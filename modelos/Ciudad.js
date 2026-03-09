@@ -1,3 +1,5 @@
+import { Mapa } from './Mapa.js';
+
 class Ciudad {
     constructor(nombre, nombreAlcalde, region, ancho, alto) {
         // Atributos obligatorios de identificación [4]
@@ -19,10 +21,10 @@ class Ciudad {
         this.puntuacionAcumulada = 0;
 
         // Composición urbana según el modelo de dominio [2]
-        this.mapa = this.#inicializarMapa(); // Matriz bidimensional (Grid)
-        this.edificios = [];                 // Colección de estructuras construidas
-        this.vias = [];                      // Red de infraestructura vial
-        this.poblacion = [];                 // Colección de ciudadanos simulados
+        this.mapa = new Mapa(this.ancho, this.alto); // Instancia de la clase Mapa con validación integrada
+        this.edificios = [];                          // Colección de estructuras construidas
+        this.vias = [];                               // Red de infraestructura vial
+        this.poblacion = [];                          // Colección de ciudadanos simulados
 
         // Balance inicial de recursos configurado por normativa del juego [5-8]
         this.recursos = {
@@ -31,15 +33,5 @@ class Ciudad {
             agua: 0,              // Inicial: 0 (requiere plantas de utilidad)
             comida: 0             // Inicial: 0 (requiere granjas)
         };
-    }
-
-    /**
-     * Crea la matriz inicial del territorio.
-     * Utiliza la convención textual 'g' para representar terreno vacío (grass) [2, 9].
-     */
-    #inicializarMapa() {
-        return Array.from({ length: this.alto }, () =>
-            Array(this.ancho).fill('g')
-        );
     }
 }
