@@ -1,5 +1,6 @@
 import { Mapa } from './Mapa.js';
 import { Alcalde } from './Alcalde.js';
+import { SistemaTurnos } from './SistemaTurnos.js';
 
 class Ciudad {
     constructor(nombre, nombreAlcalde, region, ancho, alto) {
@@ -36,5 +37,8 @@ class Ciudad {
             agua: 0,              // Inicial: 0 (requiere plantas de utilidad)
             comida: 0             // Inicial: 0 (requiere granjas)
         };
+
+        // Sistema de turnos para la evolución temporal de la ciudad
+        this.sistemaTurnos = new SistemaTurnos(this);
     }
 }
