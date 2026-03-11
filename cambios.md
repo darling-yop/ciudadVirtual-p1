@@ -249,3 +249,108 @@ Genera un resumen de ocupación del mapa.
 - Separación clara de responsabilidades: Mapa = espacial, Ciudad = entidades
 - Todos los métodos usan JavaScript puro sin dependencias
 - Validaciones son defensivas: retornan false/null/[] en casos de error
+
+---
+
+# Completación de Ciudad.js
+
+## Resumen de Changes
+Se completó la clase Ciudad con 27+ métodos funcionales para gestionar toda la simulación urbana. El archivo fue limpiado de referencias de documentación innecesarias para mantener el código limpio y legible.
+
+### Correcciones Críticas
+- **Constructor del Alcalde**: Corregido para pasar ID y referencia a Ciudad
+- **Sintaxis**: Eliminadas todas las referencias de historias de usuario ([2], [3], etc.)
+- **Atributos**: Renombrado `felicidad` a `nivelFelicidad` para consistency con clase Ciudadano
+
+### Métodos de Control de Turnos
+
+#### **`procesarTurno()`**
+Núcleo de la simulación que ocurre cada turno:
+- Verifica condiciones de derrota (recursos negativos)
+- Procesa producción de recursos
+- Procesa consumo de recursos
+- Calcula ingresos de edificios
+- Deduce costos operativos
+- Actualiza felicidad de ciudadanos
+- Gestiona crecimiento poblacional
+- Actualiza puntuación
+
+#### **`#gestionarCrecimientoPoblacional()`**
+Genera nuevos ciudadanos si:
+- Felicidad promedio > 60
+- Hay capacidad en viviendas disponibles
+- 1-3 nuevos ciudadanos por turno
+
+### Métodos de Gestión de Edificios
+
+- `agregarEdificio(edificio)` - Añade a colección
+- `removerEdificio(id)` - Elimina por ID
+- `obtenerEdificio(id)` - Búsqueda por ID
+- `obtenerEdificiosPorTipo(tipo)` - Filtro por tipo
+- `obtenerProductoresDeRecurso(tipoRecurso)` - Encuentra U1, U2, Industriales
+
+### Métodos de Gestión de Ciudadanos
+
+- `agregarCiudadano(ciudadano)` - Añade a población
+- `removerCiudadano(id)` - Elimina de población
+- `obtenerCiudadano(id)` - Búsqueda por ID
+- `asignarCiudadanoAVivienda(idCiudadano, idVivienda)` - Asigna housing
+- `desasignarCiudadanoDeVivienda(idCiudadano, idVivienda)` - Remueve housing
+- `asignarCiudadanoATrabajo(idCiudadano, idEdificio)` - Asigna trabajo
+- `desasignarCiudadanoDeTrabajo(idCiudadano, idEdificio)` - Remueve trabajo
+- `actualizarFelicidadCiudadanos()` - Actualiza felicidad según consumos
+
+### Métodos de Gestión de Vías
+
+- `agregarVia(via)` - Añade vía al mapa
+- `removerVia(index)` - Elimina vía
+
+### Métodos de Gestión de Recursos
+
+- `gastarDinero(cantidad)` - Deduce dinero (valida fondos)
+- `ingresarDinero(cantidad)` - Suma dinero
+- `obtenerDinero()` - Retorna dinero actual
+- `procesarProduccionRecursos()` - Calcula prod de U1, U2, Industriales
+- `procesarConsumoRecursos()` - Deduce consumo de edificios
+- `procesarIngresos()` - Suma ingresos de Comercios y Residenciales
+- `procesarCostos()` - Deduce mantenimiento de edificios y vías
+
+### Métodos de Consultas y Estadísticas
+
+#### **`obtenerEstadoGeneral()`**
+Retorna snapshot completo:
+```javascript
+{
+    nombre, turno, puntuacion,
+    poblacion: { total, conVivienda, conEmpleo, felicidadPromedio },
+    edificios: { total, residenciales, comerciales, industriales, servicios, utilidades, parques },
+    recursos: { dinero, electricidad, agua, comida },
+    mapa: estadísticas del mapa
+}
+```
+
+#### **`obtenerEstadisticasCiudad()`**
+Análisis derivados:
+- Tasa de crecimiento
+- Tasa de desempleo
+- Ingresos por turno
+- Tasa de ocupación laboral
+
+## Flujo de Simulación (Por Turno)
+
+1. **Validación**: Verificar condiciones de derrota
+2. **Producción**: U1 → electricidad, U2 → agua, Industriales → comida
+3. **Consumo**: Edificios consumen recursos
+4. **Ingresos**: Comercios y Residenciales generan dinero
+5. **Costos**: Mantenimiento se deduce
+6. **Ciudadanos**: Actualizar felicidad según estado
+7. **Crecimiento**: Nuevos ciudadanos si condiciones lo permiten
+8. **Puntuación**: Recalcular score total
+
+## Patrón de Diseño
+
+- **Single Responsibility**: Ciudad gestiona colecciones y lógica general
+- **Separation of Concerns**: Mapa = espacial, Edificios = entidades, Ciudadanos = dinámicos
+- **Factory Pattern**: Métodos `agregar*` actúan como entry points
+- **Validation**: Todas las operaciones validan precondiciones
+- **Immutability**: Métodos getter no modifican state

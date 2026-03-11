@@ -1,55 +1,48 @@
 
 import { Mapa } from './Mapa.js';
 import { Alcalde } from './Alcalde.js';
-import { SistemaTurnos } from './SistemaTurnos.js';
 
 class Ciudad {
     constructor(nombre, nombreAlcalde, region, ancho, alto) {
-        // --- 1. ATRIBUTOS DE IDENTIFICACIÓN (HU-001) ---
-        // Validación obligatoria de máximo 50 caracteres [2]
+        // Identificación de la ciudad
         this.nombre = (nombre || "Nueva Ciudad").substring(0, 50);
         
-        // El Alcalde representa al actor/jugador del sistema [3]
-        this.alcalde = new Alcalde(nombreAlcalde ? nombreAlcalde.substring(0, 50) : "Alcalde");
+        // Alcalde que gestiona la ciudad
+        this.alcalde = new Alcalde(1, nombreAlcalde ? nombreAlcalde.substring(0, 50) : "Alcalde", this);
 
-        // --- 2. REGIÓN GEOGRÁFICA (Integración API Colombia) ---
-        // Basada en ciudades reales de Colombia (latitud/longitud) [2, 3]
+        // Región geográfica
         this.region = region || {
             nombre: "Bogotá",
             coordenadas: { lat: 4.6097, lon: -74.0817 }
         };
 
-        // --- 3. DIMENSIONES Y TERRITORIO (HU-001) ---
-        // Validación estricta entre 15x15 y 30x30 [2, 3]
+        // Dimensiones del territorio
         this.ancho = Math.min(Math.max(Number(ancho) || 15, 15), 30);
         this.alto = Math.min(Math.max(Number(alto) || 15, 15), 30);
         
-        // Instancia del Grid bidimensional [3]
+        // Mapa de la ciudad
         this.mapa = new Mapa(this.ancho, this.alto);
 
-        // --- 4. ESTADO DE LA SIMULACIÓN ---
-        this.turnoActual = 0; [3]
-        this.puntuacionAcumulada = 0; [3]
+        // Estado de la simulación
+        this.turnoActual = 0;
+        this.puntuacionAcumulada = 0;
 
-        // --- 5. COMPOSICIÓN URBANA [3] ---
-        this.edificios = []; // Colección de instancias de Building
-        this.vias = [];      // Red de infraestructura (Roads)
-        this.poblacion = []; // Colección de ciudadanos (Inicia en 0) [4]
+        // Composición urbana
+        this.edificios = [];
+        this.vias = [];
+        this.poblacion = [];
 
-        // --- 6. ESTADO DE RECURSOS INICIALES (HU-001) [4-7] ---
+        // Recursos iniciales
         this.recursos = {
-            dinero: 50000,        // Inicial obligatorio: $50,000
-            electricidad: 0,      // Unidades/turno (Configurable desde UI)
-            agua: 0,              // Unidades/turno (Configurable desde UI)
-            comida: 0             // Unidades acumulables (Configurable desde UI)
+            dinero: 50000,
+            electricidad: 0,
+            agua: 0,
+            comida: 0
         };
-
-        // Sistema de turnos para la evolución temporal de la ciudad
-        this.sistemaTurnos = new SistemaTurnos(this);
     }
 
     /**
-     * Permite la configuración dinámica de recursos desde la interfaz [6, 7].
+     * Permite configurar recursos desde la interfaz
      */
     configurarRecursoDesdeIU(tipo, valor) {
         if (this.recursos.hasOwnProperty(tipo)) {
@@ -58,41 +51,45 @@ class Ciudad {
     }
 
     /**
-     * REGLA DE CONSTRUCCIÓN: Valida adyacencia y presupuesto [8].
-     * @param {number} costo - Costo del edificio o vía.
-     * @param {number} x, y - Coordenadas de construcción.
+     * Valida si se puede construir en una ubicación
      */
     puedeConstruir(x, y, costo) {
-        if (this.recursos.dinero < costo) return false; [8]
+        if (this.recursos.dinero < costo) return false;
         
         const vecinos = this.mapa.obtenerVecinos(x, y);
-        // Regla: Los edificios requieren una vía ('r') adyacente [5, 8, 9].
         const tieneViaAdyacente = vecinos.some(([vx, vy]) => this.mapa.obtenerCelda(vx, vy) === 'r');
         
-        return tieneViaAdyacente && this.mapa.estaDisponible(x, y); [8, 9]
+        return tieneViaAdyacente && this.mapa.estaDisponible(x, y);
     }
 
     /**
-     * SISTEMA DE TURNOS: Ciclo automático cada 10 segundos [10, 11].
+     * Procesa un turno de la simulación
      */
     procesarTurno() {
         this.turnoActual++;
 
-        // 1. Verificar condiciones críticas de derrota [6, 7]
+        // Verificar condiciones críticas de derrota
         if (this.recursos.electricidad < 0 || this.recursos.agua < 0 || this.recursos.dinero < 0) {
             this.finalizarJuego("Recursos negativos detectados");
             return;
         }
 
-        // 2. Gestión de Población (HU-013) [12-14]
+        // Procesar producción y consumo de recursos
+        this.procesarProduccionRecursos();
+        this.procesarConsumoRecursos();
+        this.procesarIngresos();
+        this.procesarCostos();
+
+        // Actualizar ciudadanos
+        this.actualizarFelicidadCiudadanos();
         this.#gestionarCrecimientoPoblacional();
 
-        // 3. Actualización de Puntuación (HU-018) [15, 16]
+        // Actualizar puntuación
         this.#actualizarPuntuacion();
     }
 
     /**
-     * Crecimiento automático: 1-3 ciudadanos si felicidad > 60 y hay espacio [12, 14].
+     * Gestiona el crecimiento poblacional
      */
     #gestionarCrecimientoPoblacional() {
         const felicidadPromedio = this.obtenerFelicidadPromedio();
@@ -101,15 +98,20 @@ class Ciudad {
             .reduce((acc, e) => acc + (e.capacidadMaxima || 0), 0);
 
         if (felicidadPromedio > 60 && this.poblacion.length < capacidadVivienda) {
-            const nuevos = Math.floor(Math.random() * 3) + 1; // Parametrizable [12]
+            const nuevos = Math.floor(Math.random() * 3) + 1;
             for (let i = 0; i < nuevos; i++) {
-                this.poblacion.push({ id: Date.now() + i, felicidad: 50 });
+                this.poblacion.push({
+                    id: Date.now() + i,
+                    nivelFelicidad: 50,
+                    estadoVivienda: false,
+                    estadoEmpleo: false
+                });
             }
         }
     }
 
     /**
-     * FÓRMULA DE SCORING: population*10 + happiness*5 + money/100... [15, 16]
+     * Calcula la puntuación actual
      */
     #actualizarPuntuacion() {
         const felicidad = this.obtenerFelicidadPromedio();
@@ -120,20 +122,402 @@ class Ciudad {
                     (this.recursos.dinero / 100) + 
                     (numEdificios * 50);
 
-        // Aplicar penalizaciones por desempleo [17, 18]
-        const desempleados = this.poblacion.filter(c => !c.tieneEmpleo).length;
+        const desempleados = this.poblacion.filter(c => !c.estadoEmpleo).length;
         score -= (desempleados * 10);
 
         this.puntuacionAcumulada = score;
     }
 
+    /**
+     * Calcula la felicidad promedio de los ciudadanos
+     */
     obtenerFelicidadPromedio() {
         if (this.poblacion.length === 0) return 0;
-        return this.poblacion.reduce((a, b) => a + b.felicidad, 0) / this.poblacion.length; [12, 19]
+        return this.poblacion.reduce((a, b) => a + b.nivelFelicidad, 0) / this.poblacion.length;
     }
 
     finalizarJuego(motivo) {
         console.error(`GAME OVER: ${motivo}`);
-        // Aquí se dispararía la redirección o el modal de derrota.
+    }
+
+    // ============================================
+    // GESTIÓN DE EDIFICIOS
+    // ============================================
+
+    /**
+     * Añade un edificio a la colección de la ciudad
+     */
+    agregarEdificio(edificio) {
+        if (!edificio || !edificio.id) return false;
+        this.edificios.push(edificio);
+        return true;
+    }
+
+    /**
+     * Remueve un edificio por su ID
+     */
+    removerEdificio(id) {
+        const index = this.edificios.findIndex(e => e.id === id);
+        if (index > -1) {
+            this.edificios.splice(index, 1);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Obtiene un edificio específico por su ID
+     */
+    obtenerEdificio(id) {
+        return this.edificios.find(e => e.id === id) || null;
+    }
+
+    /**
+     * Obtiene todos los edificios de un tipo específico
+     */
+    obtenerEdificiosPorTipo(tipo) {
+        return this.edificios.filter(e => e.tipo === tipo);
+    }
+
+    /**
+     * Obtiene edificios productores de un recurso
+     */
+    obtenerProductoresDeRecurso(tipoRecurso) {
+        return this.edificios.filter(e => {
+            if (tipoRecurso === 'electricidad') return e.tipo === 'U1';
+            if (tipoRecurso === 'agua') return e.tipo === 'U2';
+            if (tipoRecurso === 'comida') return e.tipo.startsWith('I');
+            return false;
+        });
+    }
+
+    // ============================================
+    // GESTIÓN DE CIUDADANOS
+    // ============================================
+
+    /**
+     * Añade un ciudadano a la ciudad
+     */
+    agregarCiudadano(ciudadano) {
+        if (!ciudadano || !ciudadano.id) return false;
+        this.poblacion.push(ciudadano);
+        return true;
+    }
+
+    /**
+     * Remueve un ciudadano de la ciudad
+     */
+    removerCiudadano(id) {
+        const index = this.poblacion.findIndex(c => c.id === id);
+        if (index > -1) {
+            this.poblacion.splice(index, 1);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Obtiene un ciudadano específico por ID
+     */
+    obtenerCiudadano(id) {
+        return this.poblacion.find(c => c.id === id) || null;
+    }
+
+    /**
+     * Asigna un ciudadano a una vivienda
+     */
+    asignarCiudadanoAVivienda(idCiudadano, idVivienda) {
+        const ciudadano = this.obtenerCiudadano(idCiudadano);
+        const vivienda = this.obtenerEdificio(idVivienda);
+
+        if (!ciudadano || !vivienda) return false;
+        if (!vivienda.tipo.startsWith('R')) return false;
+        if (!vivienda.asignarCiudadano) return false;
+
+        if (vivienda.asignarCiudadano(idCiudadano)) {
+            ciudadano.asignarVivienda();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Desasigna un ciudadano de su vivienda
+     */
+    desasignarCiudadanoDeVivienda(idCiudadano, idVivienda) {
+        const ciudadano = this.obtenerCiudadano(idCiudadano);
+        const vivienda = this.obtenerEdificio(idVivienda);
+
+        if (!ciudadano || !vivienda) return false;
+
+        if (vivienda.desasignarCiudadano && vivienda.desasignarCiudadano(idCiudadano)) {
+            ciudadano.desasignarVivienda();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Asigna un ciudadano a un trabajo
+     */
+    asignarCiudadanoATrabajo(idCiudadano, idEdificio) {
+        const ciudadano = this.obtenerCiudadano(idCiudadano);
+        const edificio = this.obtenerEdificio(idEdificio);
+
+        if (!ciudadano || !edificio) return false;
+        if (!edificio.asignarEmpleado) return false;
+
+        if (edificio.asignarEmpleado(idCiudadano)) {
+            ciudadano.asignarEmpleo();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Desasigna un ciudadano de su trabajo
+     */
+    desasignarCiudadanoDeTrabajo(idCiudadano, idEdificio) {
+        const ciudadano = this.obtenerCiudadano(idCiudadano);
+        const edificio = this.obtenerEdificio(idEdificio);
+
+        if (!ciudadano || !edificio) return false;
+        if (!edificio.desasignarEmpleado) return false;
+
+        if (edificio.desasignarEmpleado(idCiudadano)) {
+            ciudadano.desasignarEmpleo();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Actualiza la felicidad de todos los ciudadanos
+     */
+    actualizarFelicidadCiudadanos() {
+        this.poblacion.forEach(ciudadano => {
+            const consumoTurno = {
+                agua: this.recursos.agua > 0 ? 0 : 5,
+                electricidad: this.recursos.electricidad > 0 ? 0 : 5,
+                comida: this.recursos.comida > 0 ? 0 : 5
+            };
+
+            ciudadano.actualizarConsumos(
+                consumoTurno.agua,
+                consumoTurno.electricidad,
+                consumoTurno.comida
+            );
+
+            ciudadano.actualizarFelicidad();
+        });
+    }
+
+    // ============================================
+    // GESTIÓN DE VÍAS
+    // ============================================
+
+    /**
+     * Añade una vía a la ciudad
+     */
+    agregarVia(via) {
+        if (!via) return false;
+        this.vias.push(via);
+        return true;
+    }
+
+    /**
+     * Remueve una vía de la ciudad
+     */
+    removerVia(index) {
+        if (index < 0 || index >= this.vias.length) return false;
+        this.vias.splice(index, 1);
+        return true;
+    }
+
+    // ============================================
+    // GESTIÓN DE RECURSOS
+    // ============================================
+
+    /**
+     * Gasta dinero de la ciudad
+     */
+    gastarDinero(cantidad) {
+        if (this.recursos.dinero >= cantidad) {
+            this.recursos.dinero -= cantidad;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Ingresa dinero a la ciudad
+     */
+    ingresarDinero(cantidad) {
+        this.recursos.dinero += cantidad;
+    }
+
+    /**
+     * Obtiene el dinero disponible
+     */
+    obtenerDinero() {
+        return this.recursos.dinero;
+    }
+
+    /**
+     * Procesa la producción de recursos
+     */
+    procesarProduccionRecursos() {
+        const plantasElectricidad = this.obtenerEdificiosPorTipo('U1');
+        let prodElectricidad = 0;
+        plantasElectricidad.forEach(planta => {
+            if (planta.estaOperativo && planta.producirRecurso) {
+                prodElectricidad += planta.producirRecurso();
+            }
+        });
+
+        const plantasAgua = this.obtenerEdificiosPorTipo('U2');
+        let prodAgua = 0;
+        plantasAgua.forEach(planta => {
+            if (planta.estaOperativo && planta.producirRecurso) {
+                prodAgua += planta.producirRecurso();
+            }
+        });
+
+        const fabricas = this.edificios.filter(e => e.tipo.startsWith('I') && e.estaOperativo);
+        let prodComida = 0;
+        fabricas.forEach(fabrica => {
+            if (fabrica.calcularProduccion) {
+                prodComida += fabrica.calcularProduccion();
+            }
+        });
+
+        this.recursos.electricidad += prodElectricidad;
+        this.recursos.agua += prodAgua;
+        this.recursos.comida += prodComida;
+    }
+
+    /**
+     * Procesa el consumo de recursos
+     */
+    procesarConsumoRecursos() {
+        let consumoElectricidad = 0;
+        let consumoAgua = 0;
+        let consumoComida = 0;
+
+        this.edificios.forEach(edificio => {
+            if (edificio.estaOperativo) {
+                consumoElectricidad += edificio.consumoElectricidad || 0;
+                consumoAgua += edificio.consumoAgua || 0;
+                consumoComida += (edificio.ocupacionActual || 0) * 1;
+            }
+        });
+
+        this.recursos.electricidad -= consumoElectricidad;
+        this.recursos.agua -= consumoAgua;
+        this.recursos.comida -= consumoComida;
+
+        this.edificios.forEach(edificio => {
+            if (this.recursos.electricidad < 0 || this.recursos.agua < 0) {
+                edificio.estaOperativo = false;
+            }
+        });
+    }
+
+    /**
+     * Procesa ingresos de comercios y residenciales
+     */
+    procesarIngresos() {
+        let ingresosTotales = 0;
+
+        const comercios = this.edificios.filter(e => e.tipo.startsWith('C'));
+        comercios.forEach(comercio => {
+            if (comercio.estaOperativo && comercio.calcularIngresos) {
+                ingresosTotales += comercio.calcularIngresos();
+            }
+        });
+
+        const residenciales = this.edificios.filter(e => e.tipo.startsWith('R'));
+        residenciales.forEach(residencial => {
+            if (residencial.estaOperativo && residencial.calcularIngresos) {
+                ingresosTotales += residencial.calcularIngresos();
+            }
+        });
+
+        this.ingresarDinero(ingresosTotales);
+    }
+
+    /**
+     * Procesa costos operativos y mantenimiento
+     */
+    procesarCostos() {
+        let costosTotales = 0;
+
+        this.edificios.forEach(edificio => {
+            if (edificio.mantenimientoPorTurno) {
+                costosTotales += edificio.mantenimientoPorTurno;
+            }
+        });
+
+        this.vias.forEach(via => {
+            if (via.costoConstruccion) {
+                costosTotales += via.costoConstruccion * 0.1;
+            }
+        });
+
+        this.gastarDinero(costosTotales);
+    }
+
+    // ============================================
+    // CONSULTAS Y ESTADÍSTICAS
+    // ============================================
+
+    /**
+     * Obtiene el estado general de la ciudad
+     */
+    obtenerEstadoGeneral() {
+        return {
+            nombre: this.nombre,
+            turno: this.turnoActual,
+            puntuacion: this.puntuacionAcumulada,
+            poblacion: {
+                total: this.poblacion.length,
+                conVivienda: this.poblacion.filter(c => c.estadoVivienda).length,
+                conEmpleo: this.poblacion.filter(c => c.estadoEmpleo).length,
+                felicidadPromedio: Math.round(this.obtenerFelicidadPromedio())
+            },
+            edificios: {
+                total: this.edificios.length,
+                residenciales: this.edificios.filter(e => e.tipo.startsWith('R')).length,
+                comerciales: this.edificios.filter(e => e.tipo.startsWith('C')).length,
+                industriales: this.edificios.filter(e => e.tipo.startsWith('I')).length,
+                servicios: this.edificios.filter(e => e.tipo.startsWith('S')).length,
+                utilidades: this.edificios.filter(e => e.tipo.startsWith('U')).length,
+                parques: this.edificios.filter(e => e.tipo === 'P1').length
+            },
+            recursos: {
+                dinero: this.recursos.dinero,
+                electricidad: this.recursos.electricidad,
+                agua: this.recursos.agua,
+                comida: this.recursos.comida
+            },
+            mapa: this.mapa.obtenerEstadisticasMapa()
+        };
+    }
+
+    /**
+     * Obtiene estadísticas detalladas de la ciudad
+     */
+    obtenerEstadisticasCiudad() {
+        return {
+            tiempoTranscurrido: `Turno ${this.turnoActual}`,
+            tasaCrecimiento: this.poblacion.length > 0 ? 
+                ((this.poblacion.length / Math.max(this.turnoActual, 1)) * 100).toFixed(2) + '%' : '0%',
+            tasaDesempleo: this.poblacion.length > 0 ?
+                ((this.poblacion.filter(c => !c.estadoEmpleo).length / this.poblacion.length) * 100).toFixed(2) + '%' : '0%',
+            ingresosPorTurno: this.edificios.filter(e => e.calcularIngresos).reduce((acc, e) => 
+                acc + (e.calcularIngresos ? e.calcularIngresos() : 0), 0),
+            tasaOcupacionLaboral: this.poblacion.length > 0 ?
+                ((this.poblacion.filter(c => c.estadoEmpleo).length / this.poblacion.length) * 100).toFixed(2) + '%' : '0%'
+        };
     }
 }
