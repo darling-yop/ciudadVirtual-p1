@@ -152,3 +152,100 @@ Todas las clases de edificios especializados heredan de la clase `Edificio` base
 - Implementan `obtenerEstado()` para exponer información relevante
 - Usan JavaScript puro sin dependencias externas
 - Mantienen un diseño consistente y reutilizable
+
+---
+
+# Completación de Mapa.js
+
+## Resumen de Mejoras
+Se han añadido métodos funcionales al Mapa para gestionar construcción, demolición y consultas del estado urbano.
+
+## Métodos Implementados
+
+### Construcción y Demolición
+
+#### **`construirEdificio(tipo, x, y)`**
+Construye un edificio en el mapa actualizando la celda correspondiente.
+- **Validaciones**: Coordenadas válidas, celda disponible, tipo válido
+- **Retorna**: `true` si éxito, `false` si falla
+- **Casos de fallo**: Coordenadas fuera de límites, celda ocupada, tipo inválido
+- **Uso**: Principal método llamado por Alcalde para nueva construcción
+
+#### **`demolerEdificio(x, y)`**
+Demuele un edificio en las coordenadas especificadas limpiando la celda.
+- **Validaciones**: Coordenadas válidas, debe haber edificio (no vacío)
+- **Retorna**: Objeto con estructura `{ exitoso: boolean, tipoDemolido: string, coordenadas: {x, y} }`
+- **Información**: Reporta qué tipo de edificio fue demolido
+- **Uso**: Permite destruir edificios existentes para reutilizar terreno
+
+### Consultas de Disponibilidad
+
+#### **`obtenerPosicionesDisponibles()`**
+Genera un listado de todas las celdas desocupadas en el mapa.
+- **Retorna**: Array de objetos `{x, y}` con posiciones vacías
+- **Utilidad**: Búsqueda de ubicaciones válidas para construcción, validaciones
+- **Rendimiento**: Itera todo el grid
+
+#### **`contarEdificiosPorTipo(tipo)`**
+Cuenta la cantidad total de edificios de un tipo específico.
+- **Parámetro**: `tipo` - Código del edificio (ej: "R1", "C2", "U1")
+- **Retorna**: Número entero con cantidad encontrada
+- **Utilidad**: Estadísticas, validaciones de límites de construcción
+
+#### **`obtenerPosicionesPorTipo(tipo)`**
+Localiza todas las celdas que contienen un tipo específico de edificio.
+- **Parámetro**: `tipo` - Código del edificio
+- **Retorna**: Array de objetos `{x, y}` con ubicaciones exactas
+- **Utilidad**: Encontrar todos los edificios residenciales, comercios, etc.
+
+### Estadísticas
+
+#### **`obtenerEstadisticasMapa()`**
+Genera un resumen de ocupación del mapa.
+- **Retorna**: Objeto con estructura:
+  ```javascript
+  {
+    dimensiones: { ancho: 20, alto: 20 },
+    celdasTotales: 400,
+    usos: { 
+      'g': 350,      // Terreno vacío
+      'R1': 20,      // Residenciales tipo 1
+      'C1': 10,      // Comerciales
+      'U1': 5,       // Utilities
+      ...
+    }
+  }
+  ```
+- **Utilidad**: Monitoreo del desarrollo urbano, análisis de ocupación
+
+## Métodos Existentes (Sin Cambios)
+
+- `esCoordenadaValida(x, y)` - Valida si coordenada está en rango
+- `obtenerCelda(x, y)` - Obtiene el tipo de edificio en coordenada
+- `estaDisponible(x, y)` - Verifica si celda es terreno vacío
+- `actualizarCelda(x, y, tipo)` - Actualiza celda (uso interno)
+- `demoler(x, y)` - Limpia una celda a terreno vacío
+- `obtenerVecinos(x, y)` - Obtiene celdas adyacentes
+- `exportarMapa()` - Exporta copia del grid
+
+## Flujo de Construcción/Demolición
+
+### Construcción:
+1. Alcalde solicita `construirEdificio(tipo, x, y)` al Mapa
+2. Mapa valida coordenadas, disponibilidad y tipo
+3. Si válido: actualiza grid y retorna `true`
+4. Ciudad crea instancia de Edificio correspondiente
+5. Ciudad añade Edificio a su colección
+
+### Demolición:
+1. Alcalde solicita `demolerEdificio(x, y)` al Mapa (obtiene x,y del edificio)
+2. Mapa limpia la celda y retorna información
+3. Ciudad elimina la instancia de Edificio de su colección
+4. Ciudad procesa reembolso (50% del costo)
+
+## Notas Técnicas
+- Mapa gestiona SOLO la representación del grid/terreno
+- Edificios como entidades (con IDs, stats, ocupación) son responsabilidad de Ciudad
+- Separación clara de responsabilidades: Mapa = espacial, Ciudad = entidades
+- Todos los métodos usan JavaScript puro sin dependencias
+- Validaciones son defensivas: retornan false/null/[] en casos de error
