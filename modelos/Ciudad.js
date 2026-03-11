@@ -1,10 +1,13 @@
 import { Mapa } from './Mapa.js';
+import { Alcalde } from './Alcalde.js';
 
 class Ciudad {
     constructor(nombre, nombreAlcalde, region, ancho, alto) {
         // Atributos obligatorios de identificación [4]
         this.nombre = nombre || "Nueva Ciudad";
-        this.nombreAlcalde = nombreAlcalde || "";
+
+        // Instancia del alcalde que gestiona la ciudad
+        this.alcalde = new Alcalde(1, nombreAlcalde || "Alcalde Anónimo", this);
 
         // Región geográfica basada en una ciudad real de Colombia [1]
         this.region = region || {
