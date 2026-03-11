@@ -3,7 +3,7 @@ class Ciudadano {
         // Atributos base solicitados
         this.id = id || null;
         this.name = name || "";
-        this.username = username || "hola";
+        this.username = username || "";
         this.email = email || "";
 
         // Atributos específicos del dominio según la documentación del juego [3, 4]
