@@ -271,3 +271,5 @@ class Mapa {
     }
 }
 
+// exportar clase para su uso externo
+export { Mapa };
