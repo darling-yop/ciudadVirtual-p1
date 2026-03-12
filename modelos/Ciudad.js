@@ -604,3 +604,6 @@ class Ciudad {
         };
     }
 }
+
+// exportar para uso externo
+export { Ciudad };

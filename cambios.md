@@ -211,6 +211,7 @@ Demuele un edificio en las coordenadas especificadas limpiando la celda.
 
 ## Parche de notas
 - Las descripciones de los métodos en Ciudadano ya reflejan los nuevos valores y se explica el bono de servicios.
+- **Se agregó export nombrado de la clase `Ciudad`** en `Ciudad.js` para poder importarla desde la vista u otros módulos.
 
 ---
 
@@ -265,6 +266,7 @@ Genera un resumen de ocupación del mapa.
 - `demoler(x, y)` - Limpia una celda a terreno vacío
 - `obtenerVecinos(x, y)` - Obtiene celdas adyacentes
 - `exportarMapa()` - Exporta copia del grid
+- **Se añadió export nombrado de la clase `Mapa`** en `Mapa.js` para permitir importación mediante `import { Mapa }`.
 
 ## Flujo de Construcción/Demolición
 
