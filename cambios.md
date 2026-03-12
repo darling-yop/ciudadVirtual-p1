@@ -178,6 +178,44 @@ Demuele un edificio en las coordenadas especificadas limpiando la celda.
 - **Información**: Reporta qué tipo de edificio fue demolido
 - **Uso**: Permite destruir edificios existentes para reutilizar terreno
 
+---
+
+# Cambios en Ciudad.js
+
+## Crecimiento Poblacional
+- Se introducen parámetros configurables `crecimiento.min` y `crecimiento.max` en la ciudad.
+- Nuevo método público **`configurarCrecimiento(min, max)`** para ajustar la tasa de  ciudadanos por turno.
+- En el proceso de turno, la ciudad solo genera nuevos residentes si:
+  - Hay viviendas libres (capacidad residencial > población actual).
+  - La felicidad promedio supera 60.
+  - **Hay empleos disponibles** (se calcula vacantes libres en todos los edificios).
+- El número de nuevos ciudadanos es aleatorio entre `min` y `max`.
+
+## Asignación Automática
+- Tras generar población, se ejecuta método privado **`#asignarAutomaticamente()`**.
+  - Asigna vivienda a ciudadanos sin casa, buscando el primer residencial con capacidad.
+  - Asigna empleo a ciudadanos desempleados, usando cualquier edificio con vacantes.
+
+## Vacantes y utilidades internas
+- Añadido método **`calcularEmpleosDisponibles()`** que suma puestos libres en todos los edificios.
+- Este valor se emplea en la condición de crecimiento y puede reutilizarse para estadísticas.
+
+## Felicidad y Servicios
+- `actualizarFelicidadCiudadanos()` ahora calcula un bono extra según número de parques/servicios (`P1`, `S1`, `S2`, `S3`): +2 puntos por edificio.
+- El bono se aplica después de la actualización individual de cada ciudadano.
+
+## Ajustes de felicidad individual
+- En `Ciudadano.js` los valores de felicidad se modificaron para alinearse con la documentación:
+  - Vivienda: **+20** (antes +10) / **-20** (antes -15)
+  - Empleo: **+15** (antes +10) / **-15** (antes -10)
+
+## Parche de notas
+- Las descripciones de los métodos en Ciudadano ya reflejan los nuevos valores y se explica el bono de servicios.
+
+---
+
+Continúa la documentación anterior con las secciones siguientes según sea necesario.
+
 ### Consultas de Disponibilidad
 
 #### **`obtenerPosicionesDisponibles()`**

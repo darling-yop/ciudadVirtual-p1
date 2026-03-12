@@ -46,18 +46,18 @@ class Ciudadano {
     actualizarFelicidad() {
         let cambioFelicidad = 0;
 
-        // Bonus si tiene vivienda
+        // Bonus si tiene vivienda (especificación: +20 / -20)
         if (this.estadoVivienda) {
-            cambioFelicidad += 10;
+            cambioFelicidad += 20;
         } else {
-            cambioFelicidad -= 15;
+            cambioFelicidad -= 20;
         }
 
-        // Bonus si tiene empleo
+        // Bonus si tiene empleo (especificación: +15 / -15)
         if (this.estadoEmpleo) {
-            cambioFelicidad += 10;
+            cambioFelicidad += 15;
         } else {
-            cambioFelicidad -= 10;
+            cambioFelicidad -= 15;
         }
 
         // Penalidad por consumos no surtidos

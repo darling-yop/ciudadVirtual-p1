@@ -39,6 +39,10 @@ class Ciudad {
             agua: 0,
             comida: 0
         };
+
+        // Parámetros ajustables (crecimiento poblacional)
+        // puede ser modificado desde la IU si es necesario.
+        this.crecimiento = { min: 1, max: 3 }; // ciudadanos por turno
     }
 
     /**
@@ -47,6 +51,19 @@ class Ciudad {
     configurarRecursoDesdeIU(tipo, valor) {
         if (this.recursos.hasOwnProperty(tipo)) {
             this.recursos[tipo] = Number(valor);
+        }
+    }
+
+    /**
+     * Ajusta los parámetros de crecimiento poblacional (min y max ciudadanos por turno).
+     * Ambos valores deben ser enteros positivos y min ≤ max.
+     */
+    configurarCrecimiento(min, max) {
+        min = Math.floor(Number(min));
+        max = Math.floor(Number(max));
+        if (min > 0 && max >= min) {
+            this.crecimiento.min = min;
+            this.crecimiento.max = max;
         }
     }
 
@@ -83,6 +100,8 @@ class Ciudad {
         // Actualizar ciudadanos
         this.actualizarFelicidadCiudadanos();
         this.#gestionarCrecimientoPoblacional();
+        // Asignaciones automáticas tras la creación de nuevos residentes
+        this.#asignarAutomaticamente();
 
         // Actualizar puntuación
         this.#actualizarPuntuacion();
@@ -97,8 +116,16 @@ class Ciudad {
             .filter(e => e.tipo.startsWith('R'))
             .reduce((acc, e) => acc + (e.capacidadMaxima || 0), 0);
 
-        if (felicidadPromedio > 60 && this.poblacion.length < capacidadVivienda) {
-            const nuevos = Math.floor(Math.random() * 3) + 1;
+        const empleosDisponibles = this.calcularEmpleosDisponibles();
+
+        // Condiciones: vivienda suficiente, felicidad alta y al menos un empleo libre
+        if (
+            felicidadPromedio > 60 &&
+            this.poblacion.length < capacidadVivienda &&
+            empleosDisponibles > 0
+        ) {
+            const rango = this.crecimiento.max - this.crecimiento.min + 1;
+            const nuevos = Math.floor(Math.random() * rango) + this.crecimiento.min;
             for (let i = 0; i < nuevos; i++) {
                 this.poblacion.push({
                     id: Date.now() + i,
@@ -138,6 +165,54 @@ class Ciudad {
 
     finalizarJuego(motivo) {
         console.error(`GAME OVER: ${motivo}`);
+    }
+
+    // ============================================
+    // UTILIDADES PRIVADAS
+    // ============================================
+
+    /**
+     * Calcula la cantidad total de puestos de trabajo libres en la ciudad.
+     * Se basa en edificios que admiten empleados (comercio, industria, servicios, utilidades).
+     * @returns {number} Vacantes disponibles
+     */
+    calcularEmpleosDisponibles() {
+        let vacantes = 0;
+        this.edificios.forEach(e => {
+            if (e.capacidadMaxima && typeof e.ocupacionActual === 'number') {
+                vacantes += Math.max(0, e.capacidadMaxima - e.ocupacionActual);
+            }
+        });
+        return vacantes;
+    }
+
+    /**
+     * Asigna vivienda y/o empleo a todos los ciudadanos que no lo tengan,
+     * siempre que existan edificios con capacidad libre.
+     */
+    #asignarAutomaticamente() {
+        this.poblacion.forEach(ciudadano => {
+            if (!ciudadano.estadoVivienda) {
+                const vivienda = this.edificios.find(e =>
+                    e.tipo.startsWith('R') &&
+                    e.ocupacionActual < e.capacidadMaxima &&
+                    typeof e.asignarCiudadano === 'function'
+                );
+                if (vivienda && vivienda.asignarCiudadano(ciudadano.id)) {
+                    ciudadano.asignarVivienda();
+                }
+            }
+
+            if (!ciudadano.estadoEmpleo) {
+                const empleo = this.edificios.find(e =>
+                    typeof e.asignarEmpleado === 'function' &&
+                    e.ocupacionActual < e.capacidadMaxima
+                );
+                if (empleo && empleo.asignarEmpleado(ciudadano.id)) {
+                    ciudadano.asignarEmpleo();
+                }
+            }
+        });
     }
 
     // ============================================
@@ -295,6 +370,11 @@ class Ciudad {
      * Actualiza la felicidad de todos los ciudadanos
      */
     actualizarFelicidadCiudadanos() {
+        // calcular bono por instalaciones de servicios / parques
+        const bonusServicios = this.edificios.filter(e =>
+            ['P1', 'S1', 'S2', 'S3'].includes(e.tipo)
+        ).length * 2; // 2 puntos por cada edificio de servicio/parque
+
         this.poblacion.forEach(ciudadano => {
             const consumoTurno = {
                 agua: this.recursos.agua > 0 ? 0 : 5,
@@ -309,6 +389,9 @@ class Ciudad {
             );
 
             ciudadano.actualizarFelicidad();
+
+            // aplicar adicional de servicios
+            ciudadano.nivelFelicidad = Math.min(100, ciudadano.nivelFelicidad + bonusServicios);
         });
     }
 
