@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ciudad Virtual - Simulación</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #mapa { display: grid; grid-gap: 2px; margin-top: 10px; }
+        .celda { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 1px solid #ccc; }
+        .tipo-g { background: #eee; }
+        .tipo-r { background: #999; color: #fff; }
+        .tipo-c { background: #6c3; }
+        .tipo-i { background: #c63; }
+        .tipo-s { background: #36c; color: #fff; }
+        .tipo-u { background: #fc0; }
+        .tipo-p { background: #3c6; color: #fff; }
+        #controles { margin-top: 20px; }
+        #controles input, #controles select { margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Simulación - Ciudad Virtual</h1>
+
+    <section id="estado-general">
+        <h2>Estado de la Ciudad</h2>
+        <pre id="info-ciudad">Cargando...</pre>
+        <button id="turno-btn">Avanzar Turno</button>
+    </section>
+
+    <section id="mapa-container">
+        <h2>Mapa</h2>
+        <div id="mapa"></div>
+    </section>
+
+    <section id="controles">
+        <h2>Construir / Demoler</h2>
+        <select id="tipo-edificio">
+            <option value="R1">Residencial R1</option>
+            <option value="R2">Residencial R2</option>
+            <option value="C1">Comercial C1</option>
+            <option value="C2">Comercial C2</option>
+            <option value="I1">Industrial I1</option>
+            <option value="I2">Industrial I2</option>
+            <option value="S1">Servicio S1</option>
+            <option value="S2">Servicio S2</option>
+            <option value="S3">Servicio S3</option>
+            <option value="U1">Utilitario U1</option>
+            <option value="U2">Utilitario U2</option>
+            <option value="P1">Parque P1</option>
+        </select>
+        X:<input type="number" id="coord-x" min="0" style="width:50px;">
+        Y:<input type="number" id="coord-y" min="0" style="width:50px;">
+        <button id="construir-btn">Construir</button>
+        <button id="demoler-btn">Demoler</button>
+    </section>
+
+    <script type="module">
+        import { Ciudad } from '../../modelos/Ciudad.js';
+        import { Mapa } from '../../modelos/Mapa.js';
+
+        const ciudad = new Ciudad('Mi Ciudad', 'Alcalde', null, 15, 15);
+
+        const infoCiudadEl = document.getElementById('info-ciudad');
+        const mapaEl = document.getElementById('mapa');
+        const turnoBtn = document.getElementById('turno-btn');
+        const construirBtn = document.getElementById('construir-btn');
+        const demolerBtn = document.getElementById('demoler-btn');
+
+        function renderEstado() {
+            infoCiudadEl.textContent = JSON.stringify(ciudad.obtenerEstadoGeneral(), null, 2);
+        }
+
+        function renderMapa() {
+            const est = ciudad.mapa;
+            mapaEl.style.gridTemplateColumns = `repeat(${est.ancho}, 24px)`;
+            mapaEl.innerHTML = '';
+            for (let y = 0; y < est.alto; y++) {
+                for (let x = 0; x < est.ancho; x++) {
+                    const tipo = est.grid[y][x];
+                    const div = document.createElement('div');
+                    div.className = 'celda tipo-' + tipo.toLowerCase();
+                    div.textContent = tipo === 'g' ? '' : tipo;
+                    mapaEl.appendChild(div);
+                }
+            }
+        }
+
+        function actualizarVista() {
+            renderEstado();
+            renderMapa();
+        }
+
+        turnoBtn.addEventListener('click', () => {
+            ciudad.procesarTurno();
+            actualizarVista();
+        });
+
+        construirBtn.addEventListener('click', () => {
+            const tipo = document.getElementById('tipo-edificio').value;
+            const x = parseInt(document.getElementById('coord-x').value, 10);
+            const y = parseInt(document.getElementById('coord-y').value, 10);
+            if (ciudad.puedeConstruir(x, y, 0)) {
+                ciudad.mapa.construirEdificio(tipo, x, y);
+                actualizarVista();
+            } else {
+                alert('No se puede construir en esa posición');
+            }
+        });
+
+        demolerBtn.addEventListener('click', () => {
+            const x = parseInt(document.getElementById('coord-x').value, 10);
+            const y = parseInt(document.getElementById('coord-y').value, 10);
+            ciudad.mapa.demolerEdificio(x, y);
+            actualizarVista();
+        });
+
+        // inicializar
+        actualizarVista();
+    </script>
+</body>
+</html>
