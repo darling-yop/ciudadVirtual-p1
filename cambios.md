@@ -48,6 +48,48 @@ No se encontraron restricciones faltantes; el sistema ya cumple con los requisit
 
 **Estado actual**: No existe ningún código que:
 - Realice llamadas a NewsAPI
+
+## Cambios Realizados para Alinear con Especificaciones
+
+### Fecha: 13 de marzo de 2026
+
+#### 1. Actualización de Ciudad.js
+- **procesarIngresos()**: Eliminado ingresos de edificios residenciales, ya que según especificaciones no generan ingresos. Solo comercios e industriales (fábricas I1) generan ingresos.
+- **procesarProduccionRecursos()**: Cambiado para que solo las granjas (I2) produzcan alimentos, no todas las industriales.
+- **procesarIngresos()**: Ajustado para incluir solo fábricas (I1) en ingresos por producción de dinero.
+
+#### 2. Actualización de Edificio_industrial.js
+- **calcularProduccion()**: Cambiado a producción fija, no basada en ocupación de empleados.
+- **calcularIngresos()**: Agregado método para fábricas (I1) que devuelven ingresos fijos de $800/turno.
+
+#### 3. Actualización de Edificio_comercial.js
+- **calcularIngresos()**: Cambiado a ingresos fijos según tipo (C1: $500, C2: $2000), no basado en empleados.
+
+#### 4. Actualización de Edificio_residencial.js
+- **calcularIngresos()**: Eliminado, ya que residenciales no generan ingresos.
+- **obtenerEstado()**: Removido campo ingresosGenerados.
+
+#### 5. Actualización de Edificio_servicios.js
+- Eliminados atributos y métodos relacionados con empleados y ciudadanos atendidos, ya que los servicios afectan felicidad globalmente, no por radio.
+- Simplificado constructor y obtenerEstado().
+
+#### 6. Actualización de Edificio_utilidades.js
+- Eliminados atributos y métodos relacionados con empleados y almacenamiento, ya que plantas producen recursos fijos sin empleados.
+- **producirRecurso()**: Devuelve producción fija.
+- Simplificado obtenerEstado().
+
+#### 7. Actualización de Edificio_parques.js
+- Eliminados atributos y métodos relacionados con visitantes y capacidad, ya que parques afectan felicidad globalmente.
+- Simplificado constructor y obtenerEstado().
+
+#### 8. Actualización de Ciudad.js (continuación)
+- **#actualizarPuntuacion()**: Eliminadas bonificaciones climáticas, ya que no están en las especificaciones.
+- **actualizarFelicidadCiudadanos()**: Eliminado efecto climático en felicidad individual, ya que no se menciona en specs. Removida lógica de consumos, ya que felicidad se basa solo en vivienda, empleo, servicios y parques.
+
+#### 9. Actualización de Ciudadano.js
+- Eliminados atributos y métodos relacionados con consumos (agua, electricidad, comida), ya que no afectan felicidad según specs.
+- **actualizarFelicidad()**: Simplificado para solo considerar vivienda (+20/-20) y empleo (+15/-15). Eliminadas penalidades por consumos.
+- **obtenerEstado()**: Removidos campos de consumos.
 - Almacene noticias
 - Actualice noticias cada 30 minutos
 - Muestre noticias en la interfaz

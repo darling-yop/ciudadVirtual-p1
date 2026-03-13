@@ -38,13 +38,6 @@ class EdificioResidencial extends Edificio {
     }
 
     /**
-     * Calcula el ingreso total del edificio residencial según ocupación
-     */
-    calcularIngresos() {
-        return this.ingresoPorTurno * this.ocupacionActual;
-    }
-
-    /**
      * Obtiene el estado actual de la vivienda
      */
     obtenerEstado() {
@@ -55,8 +48,7 @@ class EdificioResidencial extends Edificio {
             ciudadanosAsignados: this.ciudadanosAsignados,
             ocupacionActual: this.ocupacionActual,
             capacidadMaxima: this.capacidadMaxima,
-            estaOperativo: this.estaOperativo,
-            ingresosGenerados: this.calcularIngresos()
+            estaOperativo: this.estaOperativo
         };
     }
 }

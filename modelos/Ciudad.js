@@ -301,12 +301,6 @@ class Ciudad {
         if (this.recursos.dinero > 0 && this.recursos.electricidad > 0 && this.recursos.agua > 0 && this.recursos.comida > 0) score += 200;
         if (this.poblacion.length > 1000) score += 1000;
 
-        // Bonificaciones climáticas
-        if (this.datosClima.condicion === 'Soleado') score += 50;
-        if (this.datosClima.condicion === 'Lluvioso') score += 30; // Beneficia agricultura
-        if (this.datosClima.temperatura > 25) score -= 20; // Calor extremo
-        if (this.datosClima.temperatura < 5) score -= 20; // Frío extremo
-
         this.puntuacionAcumulada = score;
     }
 
@@ -568,22 +562,11 @@ class Ciudad {
         }
 
         this.poblacion.forEach(ciudadano => {
-            const consumoTurno = {
-                agua: this.recursos.agua > 0 ? 0 : 5,
-                electricidad: this.recursos.electricidad > 0 ? 0 : 5,
-                comida: this.recursos.comida > 0 ? 0 : 5
-            };
-
-            ciudadano.actualizarConsumos(
-                consumoTurno.agua,
-                consumoTurno.electricidad,
-                consumoTurno.comida
-            );
 
             ciudadano.actualizarFelicidad();
 
             // aplicar adicional de servicios y clima
-            ciudadano.nivelFelicidad = Math.min(100, Math.max(0, ciudadano.nivelFelicidad + bonusServicios + efectoClima));
+            ciudadano.nivelFelicidad = Math.min(100, Math.max(0, ciudadano.nivelFelicidad + bonusServicios));
         });
     }
 
@@ -658,11 +641,11 @@ class Ciudad {
             }
         });
 
-        const fabricas = this.edificios.filter(e => e.tipo.startsWith('I') && e.estaOperativo);
+        const granjas = this.edificios.filter(e => e.tipo === 'I2' && e.estaOperativo);
         let prodComida = 0;
-        fabricas.forEach(fabrica => {
-            if (fabrica.calcularProduccion) {
-                prodComida += fabrica.calcularProduccion();
+        granjas.forEach(granja => {
+            if (granja.calcularProduccion) {
+                prodComida += granja.calcularProduccion();
             }
         });
 
@@ -703,7 +686,7 @@ class Ciudad {
     }
 
     /**
-     * Procesa ingresos de comercios y residenciales
+     * Procesa ingresos de comercios e industriales
      */
     procesarIngresos() {
         let ingresosTotales = 0;
@@ -715,10 +698,10 @@ class Ciudad {
             }
         });
 
-        const residenciales = this.edificios.filter(e => e.tipo.startsWith('R'));
-        residenciales.forEach(residencial => {
-            if (residencial.estaOperativo && residencial.calcularIngresos) {
-                ingresosTotales += residencial.calcularIngresos();
+        const industriales = this.edificios.filter(e => e.tipo === 'I1'); // Solo fábricas producen dinero
+        industriales.forEach(industrial => {
+            if (industrial.estaOperativo && industrial.calcularIngresos) {
+                ingresosTotales += industrial.calcularIngresos();
             }
         });
 
