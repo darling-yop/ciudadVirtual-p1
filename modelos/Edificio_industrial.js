@@ -40,17 +40,20 @@ class EdificioIndustrial extends Edificio {
     }
 
     /**
-     * Calcula la producción total de recursos
+     * Calcula la producción total de recursos (fija según tipo)
      */
     calcularProduccion() {
-        return this.produccionRecurso * this.ocupacionActual * this.tasaProduccion;
+        return this.produccionRecurso;
     }
 
     /**
-     * Calcula la contaminación generada en proporción a la producción
+     * Calcula los ingresos para fábricas (I1)
      */
-    calcularContaminacion() {
-        return this.contaminacion * (this.ocupacionActual / this.capacidadMaxima);
+    calcularIngresos() {
+        if (this.tipo === 'I1') {
+            return this.produccionRecurso; // $800 para fábricas
+        }
+        return 0;
     }
 
     /**
