@@ -2,7 +2,7 @@
  * Servicio para gestionar la integración con NewsAPI
  * Proporciona noticias reales para inmersión en la simulación
  */
-class ServicioNoticias {
+export class ServicioNoticias {
     constructor(apiKey, country = 'ar') { // Argentina por defecto
         this.apiKey = apiKey;
         this.country = country;
@@ -75,6 +75,9 @@ class ServicioNoticias {
         this.country = country;
     }
 }
+
+// Exportación por defecto para asegurar compatibilidad con imports.
+export default ServicioNoticias;
 
 // Exportar para uso en otros módulos
 if (typeof module !== 'undefined' && module.exports) {

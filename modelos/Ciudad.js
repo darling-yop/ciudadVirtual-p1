@@ -1,6 +1,6 @@
 
-import { ServicioClima } from '../acceso_datos/ServicioClima.js';
-import { ServicioNoticias } from '../acceso_datos/ServicioNoticias.js';
+import ServicioClima from '../acceso_datos/ServicioClima.js?v=2';
+import ServicioNoticias from '../acceso_datos/ServicioNoticias.js?v=2';
 import { Alcalde } from './Alcalde.js';
 import { Mapa } from './Mapa.js';
 
@@ -26,8 +26,13 @@ class Ciudad {
         this.mapa = new Mapa(this.ancho, this.alto);
 
         // Servicios externos
-        this.servicioClima = new ServicioClima(process.env.OPENWEATHER_API_KEY || 'API_KEY_PLACEHOLDER', this.region.coordenadas.lat, this.region.coordenadas.lon);
-        this.servicioNoticias = new ServicioNoticias(process.env.NEWS_API_KEY || 'API_KEY_PLACEHOLDER', 'ar');
+        // En el navegador no existe `process.env`, por eso usamos una comprobación segura.
+        const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
+        const openWeatherKey = env.OPENWEATHER_API_KEY || 'API_KEY_PLACEHOLDER';
+        const newsApiKey = env.NEWS_API_KEY || 'API_KEY_PLACEHOLDER';
+
+        this.servicioClima = new ServicioClima(openWeatherKey, this.region.coordenadas.lat, this.region.coordenadas.lon);
+        this.servicioNoticias = new ServicioNoticias(newsApiKey, 'ar');
 
         // Datos climáticos
         this.datosClima = {
@@ -875,3 +880,6 @@ class Ciudad {
         };
     }
 }
+
+// Exportar clase para uso en módulos ES
+export { Ciudad };
