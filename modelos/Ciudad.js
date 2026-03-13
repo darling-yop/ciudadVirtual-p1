@@ -111,11 +111,21 @@ class Ciudad {
      */
     puedeConstruir(x, y, costo) {
         if (this.recursos.dinero < costo) return false;
-        
+
+        // Validar coordenadas y disponibilidad
+        if (!this.mapa.esCoordenadaValida(x, y)) return false;
+        if (!this.mapa.estaDisponible(x, y)) return false;
+
+        // Si no hay ninguna vía construida aún, permitimos construir en cualquier lugar
+        // (esto facilita empezar la ciudad, luego ya habrá calles para conectar).
+        const tieneVias = this.mapa.obtenerPosicionesPorTipo('r').length > 0;
+        if (!tieneVias) return true;
+
+        // Si ya hay vías, exigir que la construcción esté junto a una vía para conectividad.
         const vecinos = this.mapa.obtenerVecinos(x, y);
         const tieneViaAdyacente = vecinos.some(([vx, vy]) => this.mapa.obtenerCelda(vx, vy) === 'r');
-        
-        return tieneViaAdyacente && this.mapa.estaDisponible(x, y);
+
+        return tieneViaAdyacente;
     }
 
     /**
