@@ -648,6 +648,94 @@ class Ciudad {
     // ============================================
 
     /**
+     * Retorna totales de producción/consumo por recurso (electricidad/agua).
+     */
+    getResourceTotals() {
+        let elecProd = 0, elecCons = 0;
+        let aguaProd = 0, aguaCons = 0;
+
+        this.edificios.forEach(e => {
+            if (e.estaOperativo) {
+                elecCons += e.consumoElectricidad || 0;
+                aguaCons += e.consumoAgua || 0;
+            }
+            if (e.producirRecurso) {
+                if (e.tipo === 'U1') elecProd += e.producirRecurso();
+                if (e.tipo === 'U2') aguaProd += e.producirRecurso();
+            }
+        });
+
+        return { elecProd, elecCons, aguaProd, aguaCons };
+    }
+
+    /**
+     * Bonificación global de felicidad por servicios y parques.
+     */
+    getGlobalHappinessBonus() {
+        const cantidad = this.edificios.filter(e =>
+            ['P1', 'S1', 'S2', 'S3'].includes(e.tipo)
+        ).length;
+        return cantidad * 2;
+    }
+
+    getTotalHousingCapacity() {
+        return this.edificios
+            .filter(e => e.tipo.startsWith('R'))
+            .reduce((acc, e) => acc + (e.capacidadMaxima || 0), 0);
+    }
+
+    getTotalJobs() {
+        return this.edificios
+            .filter(e => !e.tipo.startsWith('R'))
+            .reduce((acc, e) => acc + (e.capacidadMaxima || 0), 0);
+    }
+
+    getAvailableHousing() {
+        return Math.max(0, this.getTotalHousingCapacity() - this.poblacion.length);
+    }
+
+    getAvailableJobs() {
+        const employed = this.poblacion.filter(c => c.estadoEmpleo).length;
+        return Math.max(0, this.getTotalJobs() - employed);
+    }
+
+    /**
+     * Serializa la ciudad a un objeto simple (JSON). Adecuado para guardado.
+     */
+    toJSON() {
+        return {
+            nombre: this.nombre,
+            alcalde: this.alcalde ? this.alcalde.nombre : null,
+            region: this.region,
+            ancho: this.ancho,
+            alto: this.alto,
+            turnoActual: this.turnoActual,
+            puntuacionAcumulada: this.puntuacionAcumulada,
+            edificios: this.edificios.map(e => e.obtenerEstado()),
+            vias: this.vias.slice(),
+            poblacion: this.poblacion.slice(),
+            recursos: { ...this.recursos },
+            crecimiento: { ...this.crecimiento }
+        };
+    }
+
+    /**
+     * Reconstruye una ciudad a partir de un objeto creado por toJSON.
+     * Nota: las edificaciones devueltas serán objetos planos, no instancias.
+     */
+    static fromJSON(data) {
+        const c = new Ciudad(data.nombre, data.alcalde, data.region, data.ancho, data.alto);
+        c.turnoActual = data.turnoActual || 0;
+        c.puntuacionAcumulada = data.puntuacionAcumulada || 0;
+        c.edificios = data.edificios || [];
+        c.vias = data.vias || [];
+        c.poblacion = data.poblacion || [];
+        c.recursos = data.recursos || c.recursos;
+        c.crecimiento = data.crecimiento || c.crecimiento;
+        return c;
+    }
+
+    /**
      * Obtiene el estado general de la ciudad
      */
     obtenerEstadoGeneral() {
