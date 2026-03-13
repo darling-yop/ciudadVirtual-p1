@@ -1,6 +1,6 @@
 
-import { Mapa } from './Mapa.js';
 import { Alcalde } from './Alcalde.js';
+import { Mapa } from './Mapa.js';
 
 class Ciudad {
     constructor(nombre, nombreAlcalde, region, ancho, alto) {
@@ -143,14 +143,27 @@ class Ciudad {
     #actualizarPuntuacion() {
         const felicidad = this.obtenerFelicidadPromedio();
         const numEdificios = this.edificios.length;
+        const desempleados = this.poblacion.filter(c => !c.estadoEmpleo).length;
         
         let score = (this.poblacion.length * 10) + 
                     (felicidad * 5) + 
                     (this.recursos.dinero / 100) + 
-                    (numEdificios * 50);
+                    (numEdificios * 50) +
+                    (this.recursos.electricidad * 2) +
+                    (this.recursos.agua * 2);
 
-        const desempleados = this.poblacion.filter(c => !c.estadoEmpleo).length;
+        // Penalizaciones
         score -= (desempleados * 10);
+        if (this.recursos.dinero < 0) score -= 500;
+        if (this.recursos.electricidad < 0) score -= 300;
+        if (this.recursos.agua < 0) score -= 300;
+        if (felicidad < 40) score -= 400;
+
+        // Bonificaciones
+        if (desempleados === 0) score += 500;
+        if (felicidad > 80) score += 300;
+        if (this.recursos.dinero > 0 && this.recursos.electricidad > 0 && this.recursos.agua > 0 && this.recursos.comida > 0) score += 200;
+        if (this.poblacion.length > 1000) score += 1000;
 
         this.puntuacionAcumulada = score;
     }
@@ -604,6 +617,3 @@ class Ciudad {
         };
     }
 }
-
-// exportar para uso externo
-export { Ciudad };
