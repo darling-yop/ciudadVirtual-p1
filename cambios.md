@@ -1,3 +1,39 @@
+# Actualización del Sistema de Puntuación en Ciudad.js
+
+## Resumen de Cambios
+Se ha actualizado el método `#actualizarPuntuacion()` en la clase `Ciudad` para implementar un nuevo sistema de puntuación más completo y equilibrado.
+
+## Nueva Fórmula de Puntuación
+```
+score = (población × 10) +
+        (felicidad_promedio × 5) +
+        (dinero ÷ 100) +
+        (número_edificios × 50) +
+        (balance_electricidad × 2) +
+        (balance_agua × 2) +
+        bonificaciones - penalizaciones
+```
+
+## Bonificaciones Implementadas
+- **Empleo pleno**: +500 si todos los ciudadanos tienen trabajo
+- **Felicidad alta**: +300 si felicidad promedio > 80
+- **Recursos positivos**: +200 si todos los recursos (dinero, electricidad, agua, comida) son positivos
+- **Ciudad grande**: +1,000 si población > 1,000 habitantes
+
+## Penalizaciones Implementadas
+- **Dinero negativo**: -500
+- **Electricidad negativa**: -300
+- **Agua negativa**: -300
+- **Felicidad baja**: -400 si felicidad promedio < 40
+- **Desempleo**: -10 por cada ciudadano sin trabajo
+
+## Notas Técnicas
+- El método mantiene compatibilidad con el código existente
+- Las bonificaciones y penalizaciones se calculan dinámicamente en cada turno
+- La fórmula incluye balances de recursos para premiar el manejo eficiente de electricidad y agua
+
+---
+
 # Cambios en la Clase Ciudadano
 
 ## Resumen de Cambios
