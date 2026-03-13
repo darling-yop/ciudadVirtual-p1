@@ -46,3 +46,5 @@ class Edificio {
         return this.ocupacionActual >= this.capacidadMaxima;
     }
 }
+
+export { Edificio };

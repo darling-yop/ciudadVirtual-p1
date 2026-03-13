@@ -2,6 +2,8 @@
  * Edificio_comercial.js
  * Clase que representa edificios comerciales (C1, C2) que generan ingresos y empleos.
  */
+import { Edificio } from './Edificio.js';
+
 class EdificioComercial extends Edificio {
     constructor(id, subtipo, x, y, stats) {
         // subtipo: C1 o C2
@@ -69,3 +71,5 @@ class EdificioComercial extends Edificio {
         };
     }
 }
+
+export { EdificioComercial };

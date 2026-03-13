@@ -2,6 +2,8 @@
  * Edificio_residencial.js
  * Clase que representa edificios residenciales (R1, R2) donde viven los ciudadanos.
  */
+import { Edificio } from './Edificio.js';
+
 class EdificioResidencial extends Edificio {
     constructor(id, subtipo, x, y, stats) {
         // subtipo: R1 o R2
@@ -52,3 +54,5 @@ class EdificioResidencial extends Edificio {
         };
     }
 }
+
+export { EdificioResidencial };

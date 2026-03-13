@@ -3,6 +3,8 @@
  * Clase que representa parques y espacios recreativos (P1).
  * Estos edificios proporcionan recreación a todos los ciudadanos de la ciudad.
  */
+import { Edificio } from './Edificio.js';
+
 class EdificioParques extends Edificio {
     constructor(id, subtipo, x, y, stats) {
         // subtipo: P1
@@ -26,3 +28,5 @@ class EdificioParques extends Edificio {
         };
     }
 }
+
+export { EdificioParques };

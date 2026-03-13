@@ -10,6 +10,7 @@ import { EdificioIndustrial } from './Edificio_industrial.js';
 import { EdificioResidencial } from './Edificio_residencial.js';
 import { EdificioServicios } from './Edificio_servicios.js';
 import { EdificioUtilidades } from './Edificio_utilidades.js';
+import { EdificioParques } from './Edificio_parques.js';
 
 const configuraciones = {
     // Residenciales
