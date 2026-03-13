@@ -1,16 +1,22 @@
-import { Ciudad } from '../modelos/Ciudad.js';
+import { CityManager } from './CityManager.js';
 
 // Inicializar la aplicación
 class App {
     constructor() {
-        this.ciudad = null;
+        this.manager = CityManager.getInstance();
+        this.selectedCell = null;
+        this.selectedTipo = 'r';
         this.serviciosIniciados = false;
+
         this.inicializarEventos();
+
+        this.manager.init();
+        this.manager.iniciarAutoGuardado();
+        this.actualizarUI();
     }
 
     inicializarEventos() {
         document.addEventListener('DOMContentLoaded', () => {
-            this.crearCiudadInicial();
             this.actualizarUI();
         });
 
@@ -21,56 +27,80 @@ class App {
         document.getElementById('iniciar-servicios').addEventListener('click', () => {
             this.iniciarServiciosExternos();
         });
-    }
 
-    crearCiudadInicial() {
-        // Crear ciudad con configuración por defecto
-        this.ciudad = new Ciudad(
-            "Ciudad Simulada",
-            "Alcalde Demo",
-            {
-                nombre: "Buenos Aires",
-                coordenadas: { lat: -34.6037, lon: -58.3816 }
-            },
-            20, 20
-        );
+        document.getElementById('boton-iniciar-turnos').addEventListener('click', () => {
+            this.manager.iniciarCicloTurnos(() => this.actualizarUI());
+            document.getElementById('boton-iniciar-turnos').disabled = true;
+            document.getElementById('boton-detener-turnos').disabled = false;
+        });
+
+        document.getElementById('boton-detener-turnos').addEventListener('click', () => {
+            this.manager.detenerCicloTurnos();
+            document.getElementById('boton-iniciar-turnos').disabled = false;
+            document.getElementById('boton-detener-turnos').disabled = true;
+        });
+
+        document.getElementById('boton-exportar').addEventListener('click', () => {
+            this.manager.exportToFile();
+        });
+
+        document.getElementById('selector-tipo').addEventListener('change', (e) => {
+            this.selectedTipo = e.target.value;
+        });
+
+        document.getElementById('boton-construir').addEventListener('click', () => {
+            if (!this.selectedCell) return;
+            const { x, y } = this.selectedCell;
+            const resultado = this.manager.construir(this.selectedTipo, x, y);
+            if (!resultado.exito) {
+                alert(resultado.mensaje);
+            }
+            this.actualizarUI();
+        });
+
+        document.getElementById('boton-demoler').addEventListener('click', () => {
+            if (!this.selectedCell) return;
+            const { x, y } = this.selectedCell;
+            const resultado = this.manager.demoler(x, y);
+            if (!resultado.exito) {
+                alert(resultado.mensaje);
+            }
+            this.actualizarUI();
+        });
     }
 
     iniciarServiciosExternos() {
         if (!this.serviciosIniciados) {
-            this.ciudad.iniciarServiciosExternos();
-            this.serviciosIniciados = true;
-            document.getElementById('iniciar-servicios').disabled = true;
-            document.getElementById('iniciar-servicios').textContent = 'Servicios Iniciados';
-            console.log('Servicios externos iniciados');
+            const ciudad = this.manager.ciudad;
+            if (ciudad) {
+                ciudad.iniciarServiciosExternos();
+                this.serviciosIniciados = true;
+                document.getElementById('iniciar-servicios').disabled = true;
+                document.getElementById('iniciar-servicios').textContent = 'Servicios Iniciados';
+                console.log('Servicios externos iniciados');
+            }
         }
     }
 
     procesarTurno() {
-        if (this.ciudad) {
-            this.ciudad.procesarTurno();
-            this.actualizarUI();
-        }
+        this.manager.procesarTurno();
+        this.actualizarUI();
     }
 
     actualizarUI() {
-        if (!this.ciudad) return;
-
-        const estado = this.ciudad.obtenerEstadoGeneral();
+        const estado = this.manager.obtenerEstado();
+        if (!estado) return;
 
         // Actualizar header
         document.getElementById('nombre-ciudad').textContent = estado.nombre;
         document.getElementById('turno').textContent = `Turno: ${estado.turno}`;
         document.getElementById('puntuacion').textContent = `Puntuación: ${estado.puntuacion}`;
 
-        // Actualizar estadísticas
+        // Actualizar secciones
         this.actualizarEstadisticas(estado);
-
-        // Actualizar clima
         this.actualizarClima(estado.clima);
-
-        // Actualizar noticias
         this.actualizarNoticias(estado.noticias);
+        this.renderMapa(estado.mapa);
     }
 
     actualizarEstadisticas(estado) {
@@ -158,6 +188,52 @@ class App {
         } else {
             contenedor.innerHTML = '<p>No hay noticias disponibles. Inicie los servicios externos.</p>';
         }
+    }
+
+    renderMapa(mapa) {
+        const contenedor = document.getElementById('mapa-grid');
+        const info = document.getElementById('info-celda');
+
+        if (!mapa || !Array.isArray(mapa.grid)) {
+            contenedor.innerHTML = '<p>Mapa no disponible.</p>';
+            return;
+        }
+
+        contenedor.style.gridTemplateColumns = `repeat(${mapa.dimensiones.ancho}, 26px)`;
+        contenedor.innerHTML = '';
+
+        mapa.grid.forEach((fila, y) => {
+            fila.forEach((tipo, x) => {
+                const cell = document.createElement('div');
+                cell.className = `map-cell map-cell--${tipo}`;
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                cell.title = `(${x}, ${y}) - ${tipo}`;
+
+                if (this.selectedCell && this.selectedCell.x === x && this.selectedCell.y === y) {
+                    cell.classList.add('map-cell--selected');
+                }
+
+                cell.addEventListener('click', () => {
+                    this.selectedCell = { x, y, tipo };
+                    this.actualizarSeleccion();
+                });
+
+                contenedor.appendChild(cell);
+            });
+        });
+
+        if (info) {
+            if (this.selectedCell) {
+                info.textContent = `Celda seleccionada: (${this.selectedCell.x}, ${this.selectedCell.y}) tipo: ${this.selectedCell.tipo}`;
+            } else {
+                info.textContent = 'Seleccione una celda para construir o demoler.';
+            }
+        }
+    }
+
+    actualizarSeleccion() {
+        this.actualizarUI();
     }
 }
 

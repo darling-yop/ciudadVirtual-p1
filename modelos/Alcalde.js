@@ -3,6 +3,8 @@
  * Clase que representa al alcalde/jugador que gestiona la ciudad.
  * Responsable de las decisiones estratégicas y operaciones de la ciudad.
  */
+import { crearEdificioDesdeTipo } from './EdificioFactory.js';
+
 class Alcalde {
     constructor(id, nombre, ciudad) {
         // Identificación del alcalde/jugador
@@ -38,25 +40,40 @@ class Alcalde {
         // Validar que las coordenadas estén dentro del mapa
         if (x < 0 || x >= this.ciudad.ancho || y < 0 || y >= this.ciudad.alto) {
             console.log(`Coordenadas (${x}, ${y}) fuera del mapa de la ciudad.`);
-            return false;
+            return { exito: false, mensaje: 'Coordenadas fuera del mapa.' };
+        }
+
+        // Validar reglas de construcción (costo, accesibilidad por vía, etc.)
+        if (!this.ciudad.puedeConstruir(tipo, x, y)) {
+            return { exito: false, mensaje: 'No se puede construir aquí (revisa costo, vía adyacente o celda ocupada).' };
         }
 
         // Intentar construir el edificio a través del mapa
-        const edificioConstruido = this.ciudad.mapa.construirEdificio(tipo, x, y);
+        const construido = this.ciudad.mapa.construirEdificio(tipo, x, y);
 
-        if (edificioConstruido) {
+        if (construido) {
+            const costo = this.ciudad.obtenerCostoConstruccion(tipo);
+            this.ciudad.recursos.dinero -= costo;
+
+            // Registrar edificio en el estado de la ciudad
+            const edificio = crearEdificioDesdeTipo(tipo, x, y);
+            if (edificio) {
+                this.ciudad.agregarEdificio(edificio);
+            }
+
             this.edificiosConstruidos++;
             this.decisiones.push({
                 tipo: 'construccion',
                 edificio: tipo,
                 coordenadas: { x, y },
+                costo,
                 turno: this.ciudad.turnoActual
             });
             this.accionesTurno++;
-            return true;
+            return { exito: true };
         }
 
-        return false;
+        return { exito: false, mensaje: 'No se pudo construir en la celda seleccionada.' };
     }
 
     /**
