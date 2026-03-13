@@ -589,6 +589,20 @@ Genera nuevos ciudadanos si:
 
 ### Métodos de Consultas y Estadísticas
 
+Se agregaron varios accesores y herramientas de soporte en `Ciudad.js`:
+
+- `getResourceTotals()` – Devuelve producción y consumo de electricidad/agua.
+- `getGlobalHappinessBonus()` – Calcula el bono de felicidad por servicios/parques.
+- `getTotalHousingCapacity()` / `getAvailableHousing()` – Capacidad residencial.
+- `getTotalJobs()` / `getAvailableJobs()` – Capacidad laboral (excluye residenciales).
+
+Además:
+
+- **Serialización** con `toJSON()` para guardar el estado y `fromJSON()` para reconstruir.
+  - Nota: los edificios se guardan como objetos planos.
+- `procesarTurno()` ahora retorna un arreglo `alerts` y puede ser usado por la UI para avisos.
+
+
 #### **`obtenerEstadoGeneral()`**
 Retorna snapshot completo:
 ```javascript
