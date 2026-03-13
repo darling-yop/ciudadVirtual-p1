@@ -39,10 +39,10 @@ class EdificioComercial extends Edificio {
     }
 
     /**
-     * Calcula los ingresos totales considerando empleados y multiplicador
+     * Calcula los ingresos totales (fijos según tipo)
      */
     calcularIngresos() {
-        return this.ingresoPorTurno * this.ocupacionActual * this.multiplicadorIngresos;
+        return this.ingresoPorTurno;
     }
 
     /**
