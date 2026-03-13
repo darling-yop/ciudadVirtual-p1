@@ -10,11 +10,6 @@ class Ciudadano {
         this.nivelFelicidad = 50; // Rango 0-100, inicia en un valor neutro [3]
         this.estadoVivienda = false; // Indica si tiene casa asignada [3, 5]
         this.estadoEmpleo = false; // Indica si tiene trabajo asignado [3, 5]
-        
-        // Necesidades básicas de consumo por turno [3]
-        this.consumoAgua = 0; 
-        this.consumoElectricidad = 0;
-        this.consumoComida = 0;
     }
 
     // Gestión de vivienda
@@ -35,13 +30,6 @@ class Ciudadano {
         this.estadoEmpleo = false;
     }
 
-    // Actualizar consumos por turno
-    actualizarConsumos(agua, electricidad, comida) {
-        this.consumoAgua = agua || 0;
-        this.consumoElectricidad = electricidad || 0;
-        this.consumoComida = comida || 0;
-    }
-
     // Actualizar nivel de felicidad basado en necesidades
     actualizarFelicidad() {
         let cambioFelicidad = 0;
@@ -60,17 +48,6 @@ class Ciudadano {
             cambioFelicidad -= 15;
         }
 
-        // Penalidad por consumos no surtidos
-        if (this.consumoAgua > 0) {
-            cambioFelicidad -= 5;
-        }
-        if (this.consumoElectricidad > 0) {
-            cambioFelicidad -= 5;
-        }
-        if (this.consumoComida > 0) {
-            cambioFelicidad -= 5;
-        }
-
         // Aplicar cambio y mantener rango 0-100
         this.nivelFelicidad += cambioFelicidad;
         this.nivelFelicidad = Math.max(0, Math.min(100, this.nivelFelicidad));
@@ -85,10 +62,7 @@ class Ciudadano {
             email: this.email,
             nivelFelicidad: this.nivelFelicidad,
             estadoVivienda: this.estadoVivienda,
-            estadoEmpleo: this.estadoEmpleo,
-            consumoAgua: this.consumoAgua,
-            consumoElectricidad: this.consumoElectricidad,
-            consumoComida: this.consumoComida
+            estadoEmpleo: this.estadoEmpleo
         };
     }
 }
