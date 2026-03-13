@@ -2,8 +2,8 @@
 import ServicioClima from '../acceso_datos/ServicioClima.js?v=2';
 import ServicioNoticias from '../acceso_datos/ServicioNoticias.js?v=2';
 import { Alcalde } from './Alcalde.js';
+import { reconstruirEdificioDesdeEstado } from './EdificioFactory.js';
 import { Mapa } from './Mapa.js';
-
 class Ciudad {
     constructor(nombre, nombreAlcalde, region, ancho, alto) {
         // Identificación de la ciudad
@@ -107,14 +107,44 @@ class Ciudad {
     }
 
     /**
-     * Valida si se puede construir en una ubicación
+     * Obtiene el costo de construcción asociado a un tipo de edificio.
+     * @param {string} tipo
+     * @returns {number}
      */
-    puedeConstruir(x, y, costo) {
+    obtenerCostoConstruccion(tipo) {
+        const costos = {
+            r: 20,
+            R1: 200,
+            R2: 400,
+            C1: 300,
+            C2: 600,
+            I1: 500,
+            I2: 900,
+            S1: 400,
+            S2: 700,
+            S3: 1000,
+            U1: 350,
+            U2: 650,
+            P1: 250
+        };
+        return costos[tipo] ?? 100;
+    }
+
+    /**
+     * Valida si se puede construir en una ubicación (costo, vía adyacente y disponibilidad).
+     */
+    puedeConstruir(tipo, x, y) {
+        const costo = this.obtenerCostoConstruccion(tipo);
         if (this.recursos.dinero < costo) return false;
-        
+
+        // Las vías pueden construirse en cualquier celda libre (no necesitan estar adyacentes a otra vía)
+        if (tipo === Mapa.TIPOS_VALIDOS.VIA) {
+            return this.mapa.estaDisponible(x, y);
+        }
+
+        // Para otros edificios, debe haber una vía adyacente
         const vecinos = this.mapa.obtenerVecinos(x, y);
-        const tieneViaAdyacente = vecinos.some(([vx, vy]) => this.mapa.obtenerCelda(vx, vy) === 'r');
-        
+        const tieneViaAdyacente = vecinos.some(([vx, vy]) => this.mapa.obtenerCelda(vx, vy) === Mapa.TIPOS_VALIDOS.VIA);
         return tieneViaAdyacente && this.mapa.estaDisponible(x, y);
     }
 
@@ -791,7 +821,8 @@ class Ciudad {
             vias: this.vias.slice(),
             poblacion: this.poblacion.slice(),
             recursos: { ...this.recursos },
-            crecimiento: { ...this.crecimiento }
+            crecimiento: { ...this.crecimiento },
+            mapa: this.mapa.exportarMapa()
         };
     }
 
@@ -803,11 +834,23 @@ class Ciudad {
         const c = new Ciudad(data.nombre, data.alcalde, data.region, data.ancho, data.alto);
         c.turnoActual = data.turnoActual || 0;
         c.puntuacionAcumulada = data.puntuacionAcumulada || 0;
-        c.edificios = data.edificios || [];
+
+        // Restaurar mapa (grid) si se ha guardado
+        if (Array.isArray(data.mapa)) {
+            for (let y = 0; y < Math.min(c.alto, data.mapa.length); y++) {
+                for (let x = 0; x < Math.min(c.ancho, data.mapa[y].length); x++) {
+                    c.mapa.grid[y][x] = data.mapa[y][x];
+                }
+            }
+        }
+
+        // Reconstruir instancias de edificios desde el estado serializado
+        c.edificios = (data.edificios || []).map(reconstruirEdificioDesdeEstado).filter(e => e !== null);
         c.vias = data.vias || [];
         c.poblacion = data.poblacion || [];
         c.recursos = data.recursos || c.recursos;
         c.crecimiento = data.crecimiento || c.crecimiento;
+
         return c;
     }
 
@@ -842,7 +885,10 @@ class Ciudad {
             },
             clima: { ...this.datosClima },
             noticias: [...this.noticias],
-            mapa: this.mapa.obtenerEstadisticasMapa()
+            mapa: {
+                ...this.mapa.obtenerEstadisticasMapa(),
+                grid: this.mapa.grid
+            }
         };
     }
 
