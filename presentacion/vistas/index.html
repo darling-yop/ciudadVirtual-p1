@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Ciudad</title>
+    <link rel="stylesheet" href="../estilos/estilos.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 id="nombre-ciudad">Cargando...</h1>
+            <div class="info-general">
+                <span id="turno">Turno: 0</span>
+                <span id="puntuacion">Puntuación: 0</span>
+            </div>
+        </header>
+
+        <main>
+            <section class="panel-principal">
+                <div class="estadisticas">
+                    <h2>Estadísticas de la Ciudad</h2>
+                    <div id="estadisticas-contenido">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+
+                <div class="clima">
+                    <h2>Clima Actual</h2>
+                    <div id="clima-contenido">
+                        <p>Cargando datos climáticos...</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="noticias">
+                <h2>Noticias Regionales</h2>
+                <div id="noticias-contenido">
+                    <p>Cargando noticias...</p>
+                </div>
+            </section>
+
+            <section class="controles">
+                <button id="procesar-turno">Procesar Turno</button>
+                <button id="iniciar-servicios">Iniciar Servicios Externos</button>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="../negocio/app.js"></script>
+</body>
+</html>
