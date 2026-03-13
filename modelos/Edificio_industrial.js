@@ -2,6 +2,8 @@
  * Edificio_industrial.js
  * Clase que representa edificios industriales (I1, I2) que producen recursos y empleos.
  */
+import { Edificio } from './Edificio.js';
+
 class EdificioIndustrial extends Edificio {
     constructor(id, subtipo, x, y, stats) {
         // subtipo: I1 o I2
@@ -74,3 +76,5 @@ class EdificioIndustrial extends Edificio {
         };
     }
 }
+
+export { EdificioIndustrial };

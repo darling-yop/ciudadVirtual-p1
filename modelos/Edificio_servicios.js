@@ -3,6 +3,8 @@
  * Clase que representa edificios de servicios (S1: Salud, S2: Seguridad, S3: Educación).
  * Estos edificios proporcionan servicios públicos a todos los ciudadanos de la ciudad.
  */
+import { Edificio } from './Edificio.js';
+
 class EdificioServicios extends Edificio {
     constructor(id, subtipo, x, y, stats) {
         // subtipo: S1, S2, S3
@@ -27,3 +29,5 @@ class EdificioServicios extends Edificio {
         };
     }
 }
+
+export { EdificioServicios };

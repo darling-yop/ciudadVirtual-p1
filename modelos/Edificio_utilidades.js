@@ -3,6 +3,8 @@
  * Clase que representa edificios de utilidades (U1: Electricidad, U2: Agua).
  * Estos edificios producen recursos esenciales para toda la ciudad.
  */
+import { Edificio } from './Edificio.js';
+
 class EdificioUtilidades extends Edificio {
     constructor(id, subtipo, x, y, stats) {
         // subtipo: U1 o U2
@@ -26,3 +28,5 @@ class EdificioUtilidades extends Edificio {
         };
     }
 }
+
+export { EdificioUtilidades };
