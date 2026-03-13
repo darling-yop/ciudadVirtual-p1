@@ -1,4 +1,6 @@
 
+import { ServicioClima } from '../acceso_datos/ServicioClima.js';
+import { ServicioNoticias } from '../acceso_datos/ServicioNoticias.js';
 import { Alcalde } from './Alcalde.js';
 import { Mapa } from './Mapa.js';
 
@@ -23,6 +25,22 @@ class Ciudad {
         // Mapa de la ciudad
         this.mapa = new Mapa(this.ancho, this.alto);
 
+        // Servicios externos
+        this.servicioClima = new ServicioClima(process.env.OPENWEATHER_API_KEY || 'API_KEY_PLACEHOLDER', this.region.coordenadas.lat, this.region.coordenadas.lon);
+        this.servicioNoticias = new ServicioNoticias(process.env.NEWS_API_KEY || 'API_KEY_PLACEHOLDER', 'ar');
+
+        // Datos climáticos
+        this.datosClima = {
+            temperatura: 20,
+            condicion: 'Soleado',
+            humedad: 50,
+            velocidadViento: 10,
+            ultimaActualizacion: null
+        };
+
+        // Noticias actuales
+        this.noticias = [];
+
         // Estado de la simulación
         this.turnoActual = 0;
         this.puntuacionAcumulada = 0;
@@ -43,6 +61,22 @@ class Ciudad {
         // Parámetros ajustables (crecimiento poblacional)
         // puede ser modificado desde la IU si es necesario.
         this.crecimiento = { min: 1, max: 3 }; // ciudadanos por turno
+    }
+
+    /**
+     * Inicia los servicios externos (clima y noticias)
+     */
+    iniciarServiciosExternos() {
+        this.servicioClima.iniciarActualizacionAutomatica();
+        this.servicioNoticias.iniciarActualizacionAutomatica();
+    }
+
+    /**
+     * Detiene los servicios externos
+     */
+    detenerServiciosExternos() {
+        this.servicioClima.detenerActualizacion();
+        this.servicioNoticias.detenerActualizacion();
     }
 
     /**
@@ -105,6 +139,9 @@ class Ciudad {
 
         // Actualizar puntuación
         this.#actualizarPuntuacion();
+
+        // Actualizar datos de servicios externos
+        this.#actualizarDatosExternos();
     }
 
     /**
@@ -165,7 +202,27 @@ class Ciudad {
         if (this.recursos.dinero > 0 && this.recursos.electricidad > 0 && this.recursos.agua > 0 && this.recursos.comida > 0) score += 200;
         if (this.poblacion.length > 1000) score += 1000;
 
+        // Bonificaciones climáticas
+        if (this.datosClima.condicion === 'Soleado') score += 50;
+        if (this.datosClima.condicion === 'Lluvioso') score += 30; // Beneficia agricultura
+        if (this.datosClima.temperatura > 25) score -= 20; // Calor extremo
+        if (this.datosClima.temperatura < 5) score -= 20; // Frío extremo
+
         this.puntuacionAcumulada = score;
+    }
+
+    /**
+     * Actualiza los datos locales de servicios externos
+     */
+    #actualizarDatosExternos() {
+        // Actualizar clima
+        const climaActual = this.servicioClima.obtenerDatosClimaActuales();
+        if (climaActual.ultimaActualizacion) {
+            this.datosClima = { ...climaActual };
+        }
+
+        // Actualizar noticias
+        this.noticias = this.servicioNoticias.obtenerNoticiasActuales();
     }
 
     /**
@@ -388,6 +445,29 @@ class Ciudad {
             ['P1', 'S1', 'S2', 'S3'].includes(e.tipo)
         ).length * 2; // 2 puntos por cada edificio de servicio/parque
 
+        // Efectos climáticos en la felicidad
+        let efectoClima = 0;
+        switch (this.datosClima.condicion) {
+            case 'Soleado':
+                efectoClima = 5; // Clima agradable aumenta felicidad
+                break;
+            case 'Nublado':
+                efectoClima = 0; // Neutro
+                break;
+            case 'Lluvioso':
+            case 'Llovizna':
+                efectoClima = -3; // Lluvia afecta negativamente
+                break;
+            case 'Tormenta':
+                efectoClima = -10; // Tormentas reducen significativamente la felicidad
+                break;
+            case 'Nevado':
+                efectoClima = -5; // Nieve puede ser problemática
+                break;
+            default:
+                efectoClima = 0;
+        }
+
         this.poblacion.forEach(ciudadano => {
             const consumoTurno = {
                 agua: this.recursos.agua > 0 ? 0 : 5,
@@ -403,8 +483,8 @@ class Ciudad {
 
             ciudadano.actualizarFelicidad();
 
-            // aplicar adicional de servicios
-            ciudadano.nivelFelicidad = Math.min(100, ciudadano.nivelFelicidad + bonusServicios);
+            // aplicar adicional de servicios y clima
+            ciudadano.nivelFelicidad = Math.min(100, Math.max(0, ciudadano.nivelFelicidad + bonusServicios + efectoClima));
         });
     }
 
@@ -596,6 +676,8 @@ class Ciudad {
                 agua: this.recursos.agua,
                 comida: this.recursos.comida
             },
+            clima: { ...this.datosClima },
+            noticias: [...this.noticias],
             mapa: this.mapa.obtenerEstadisticasMapa()
         };
     }
