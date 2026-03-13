@@ -54,9 +54,20 @@
         <button id="demoler-btn">Demoler</button>
     </section>
 
+    <section id="routing">
+        <h2>Calcular Ruta</h2>
+        Origen X:<input type="number" id="origen-x" min="0" style="width:50px;">
+        Y:<input type="number" id="origen-y" min="0" style="width:50px;">
+        Destino X:<input type="number" id="destino-x" min="0" style="width:50px;">
+        Y:<input type="number" id="destino-y" min="0" style="width:50px;">
+        <button id="calcular-ruta-btn">Calcular Ruta</button>
+        <pre id="ruta-resultado"></pre>
+    </section>
+
     <script type="module">
         import { Ciudad } from '../../modelos/Ciudad.js';
         import { Mapa } from '../../modelos/Mapa.js';
+        import { callRouteAPI } from './js/routing.js';
 
         const ciudad = new Ciudad('Mi Ciudad', 'Alcalde', null, 15, 15);
 
@@ -65,6 +76,8 @@
         const turnoBtn = document.getElementById('turno-btn');
         const construirBtn = document.getElementById('construir-btn');
         const demolerBtn = document.getElementById('demoler-btn');
+        const calcularRutaBtn = document.getElementById('calcular-ruta-btn');
+        const rutaResultadoEl = document.getElementById('ruta-resultado');
 
         function renderEstado() {
             infoCiudadEl.textContent = JSON.stringify(ciudad.obtenerEstadoGeneral(), null, 2);
@@ -112,6 +125,20 @@
             const y = parseInt(document.getElementById('coord-y').value, 10);
             ciudad.mapa.demolerEdificio(x, y);
             actualizarVista();
+        });
+
+        calcularRutaBtn.addEventListener('click', async () => {
+            const ox = parseInt(document.getElementById('origen-x').value, 10);
+            const oy = parseInt(document.getElementById('origen-y').value, 10);
+            const dx = parseInt(document.getElementById('destino-x').value, 10);
+            const dy = parseInt(document.getElementById('destino-y').value, 10);
+
+            const ruta = await callRouteAPI(ciudad.mapa, ox, oy, dx, dy);
+            if (ruta) {
+                rutaResultadoEl.textContent = JSON.stringify(ruta, null, 2);
+            } else {
+                rutaResultadoEl.textContent = 'No se pudo calcular la ruta. Verifica que el backend esté corriendo y que haya un camino válido.';
+            }
         });
 
         // inicializar
