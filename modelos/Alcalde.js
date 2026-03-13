@@ -161,35 +161,230 @@ class Alcalde {
     }
 
     /**
-     * Planifica una ruta de transporte entre dos puntos de la ciudad.
-     * @param {Object} inicio - Punto de inicio {x, y}
-     * @param {Object} fin - Punto final {x, y}
-     * @returns {Array} - Array de coordenadas que forman la ruta
+     * Planifica una ruta de transporte entre dos edificios de la ciudad.
+     * Implementa el Sistema de Rutas (Routing System) con validaciones completas.
+     * 
+     * @param {number} idEdificioOrigen - ID del edificio de origen
+     * @param {number} idEdificioDestino - ID del edificio de destino
+     * @returns {Object} - {exito: boolean, ruta: Array, error?: string}
      */
-    planificarRuta(inicio, fin) {
-        // Implementación básica de pathfinding (puede expandirse)
-        // Por ahora retorna una ruta directa simplificada
-        const ruta = [];
-        const dx = fin.x - inicio.x;
-        const dy = fin.y - inicio.y;
-
-        // Ruta simplificada: movimiento horizontal primero, luego vertical
-        for (let x = inicio.x; x !== fin.x; x += Math.sign(dx)) {
-            ruta.push({ x, y: inicio.y });
-        }
-        for (let y = inicio.y; y !== fin.y; y += Math.sign(dy)) {
-            ruta.push({ x: fin.x, y });
+    planificarRuta(idEdificioOrigen, idEdificioDestino) {
+        // ========================================
+        // VALIDACIÓN 1: Verificar que los edificios existan
+        // ========================================
+        const edificioOrigen = this.ciudad.obtenerEdificio(idEdificioOrigen);
+        if (!edificioOrigen) {
+            return {
+                exito: false,
+                error: `Edificio de origen con ID ${idEdificioOrigen} no encontrado`
+            };
         }
 
+        const edificioDestino = this.ciudad.obtenerEdificio(idEdificioDestino);
+        if (!edificioDestino) {
+            return {
+                exito: false,
+                error: `Edificio de destino con ID ${idEdificioDestino} no encontrado`
+            };
+        }
+
+        // ========================================
+        // VALIDACIÓN 2: Verificar que no sean el mismo edificio
+        // ========================================
+        if (idEdificioOrigen === idEdificioDestino) {
+            return {
+                exito: false,
+                error: 'El edificio de origen y destino no pueden ser el mismo'
+            };
+        }
+
+        // ========================================
+        // VALIDACIÓN 3: Verificar coordenadas válidas del mapa
+        // ========================================
+        if (!this.ciudad.mapa.esCoordenadaValida(edificioOrigen.x, edificioOrigen.y)) {
+            return {
+                exito: false,
+                error: `Coordenadas inválidas del edificio origen (${edificioOrigen.x}, ${edificioOrigen.y})`
+            };
+        }
+
+        if (!this.ciudad.mapa.esCoordenadaValida(edificioDestino.x, edificioDestino.y)) {
+            return {
+                exito: false,
+                error: `Coordenadas inválidas del edificio destino (${edificioDestino.x}, ${edificioDestino.y})`
+            };
+        }
+
+        // ========================================
+        // VALIDACIÓN 4: Generar matriz de transitabilidad
+        // matriz[y][x] = 1 si es transitible (vías), 0 si no lo es
+        // ========================================
+        const matrizTransitabilidad = this.#generarMatrizTransitabilidad();
+
+        // ========================================
+        // VALIDACIÓN 5: Verificar conectividad entre edificios
+        // ========================================
+        const rutaEncontrada = this.#buscarRutaDijkstra(
+            edificioOrigen.x,
+            edificioOrigen.y,
+            edificioDestino.x,
+            edificioDestino.y,
+            matrizTransitabilidad
+        );
+
+        if (!rutaEncontrada || rutaEncontrada.length === 0) {
+            return {
+                exito: false,
+                error: 'No existe ruta disponible. Los edificios no están conectados por vías.'
+            };
+        }
+
+        // ========================================
+        // Ruta encontrada exitosamente
+        // ========================================
         this.decisiones.push({
             tipo: 'planificacion_ruta',
-            inicio,
-            fin,
-            ruta: ruta.length,
+            origen: { id: idEdificioOrigen, x: edificioOrigen.x, y: edificioOrigen.y },
+            destino: { id: idEdificioDestino, x: edificioDestino.x, y: edificioDestino.y },
+            distancia: rutaEncontrada.length,
             turno: this.ciudad.turnoActual
         });
 
         this.accionesTurno++;
+        return {
+            exito: true,
+            ruta: rutaEncontrada
+        };
+    }
+
+    /**
+     * Genera una matriz de transitabilidad donde:
+     * - 1 = transitible (vías o edificios)
+     * - 0 = no transitible (vacío o terreno)
+     * 
+     * @private
+     * @returns {Array<Array<number>>} Matriz de transitabilidad
+     */
+    #generarMatrizTransitabilidad() {
+        const mapa = this.ciudad.mapa;
+        const matriz = Array(mapa.alto).fill(null).map(() => Array(mapa.ancho).fill(0));
+
+        for (let y = 0; y < mapa.alto; y++) {
+            for (let x = 0; x < mapa.ancho; x++) {
+                const tipo = mapa.obtenerCelda(x, y);
+                
+                // Las vías (r) siempre son transitables
+                if (tipo === 'r') {
+                    matriz[y][x] = 1;
+                }
+                // Los edificios también son transitables (destinos posibles)
+                else if (tipo !== 'g') {
+                    matriz[y][x] = 1;
+                }
+                // El terreno vacío (g) no es transitible
+                else {
+                    matriz[y][x] = 0;
+                }
+            }
+        }
+
+        return matriz;
+    }
+
+    /**
+     * Implementa el algoritmo de Dijkstra para encontrar la ruta más corta.
+     * 
+     * @private
+     * @param {number} origenX - Coordenada X del origen
+     * @param {number} origenY - Coordenada Y del origen
+     * @param {number} destinoX - Coordenada X del destino
+     * @param {number} destinoY - Coordenada Y del destino
+     * @param {Array<Array<number>>} matriz - Matriz de transitabilidad
+     * @returns {Array|null} Array de coordenadas {x, y} o null si no existe ruta
+     */
+    #buscarRutaDijkstra(origenX, origenY, destinoX, destinoY, matriz) {
+        const alto = matriz.length;
+        const ancho = matriz[0].length;
+
+        // Inicializar distancias y visitados
+        const distancias = Array(alto).fill(null).map(() => Array(ancho).fill(Infinity));
+        const visitados = Array(alto).fill(null).map(() => Array(ancho).fill(false));
+        const padre = Array(alto).fill(null).map(() => Array(ancho).fill(null));
+
+        distancias[origenY][origenX] = 0;
+
+        // Direcciones de movimiento: arriba, abajo, izquierda, derecha
+        const direcciones = [
+            { dx: 0, dy: -1 }, // arriba
+            { dx: 0, dy: 1 },  // abajo
+            { dx: -1, dy: 0 }, // izquierda
+            { dx: 1, dy: 0 }   // derecha
+        ];
+
+        // Ejecutar algoritmo de Dijkstra
+        for (let i = 0; i < alto * ancho; i++) {
+            let minDist = Infinity;
+            let minX = -1, minY = -1;
+
+            // Encontrar el nodo no visitado con menor distancia
+            for (let y = 0; y < alto; y++) {
+                for (let x = 0; x < ancho; x++) {
+                    if (!visitados[y][x] && distancias[y][x] < minDist) {
+                        minDist = distancias[y][x];
+                        minX = x;
+                        minY = y;
+                    }
+                }
+            }
+
+            if (minX === -1) break; // No hay más nodos alcanzables
+
+            visitados[minY][minX] = true;
+
+            // Si llegamos al destino
+            if (minX === destinoX && minY === destinoY) {
+                return this.#reconstruirRuta(padre, destinoX, destinoY);
+            }
+
+            // Explorar vecinos
+            for (const dir of direcciones) {
+                const nuevoX = minX + dir.dx;
+                const nuevoY = minY + dir.dy;
+
+                if (nuevoX >= 0 && nuevoX < ancho && nuevoY >= 0 && nuevoY < alto &&
+                    !visitados[nuevoY][nuevoX] && matriz[nuevoY][nuevoX] === 1) {
+                    
+                    const nuevaDistancia = distancias[minY][minX] + 1;
+                    
+                    if (nuevaDistancia < distancias[nuevoY][nuevoX]) {
+                        distancias[nuevoY][nuevoX] = nuevaDistancia;
+                        padre[nuevoY][nuevoX] = { x: minX, y: minY };
+                    }
+                }
+            }
+        }
+
+        return null; // No existe ruta
+    }
+
+    /**
+     * Reconstruye la ruta desde el destino al origen utilizando el array de padres.
+     * 
+     * @private
+     * @param {Array<Array<Object>>} padre - Matriz con referencias al nodo anterior
+     * @param {number} destinoX - Coordenada X del destino
+     * @param {number} destinoY - Coordenada Y del destino
+     * @returns {Array} Array de coordenadas {x, y} ordenadas desde origen a destino
+     */
+    #reconstruirRuta(padre, destinoX, destinoY) {
+        const ruta = [];
+        let actual = { x: destinoX, y: destinoY };
+
+        while (actual !== null) {
+            ruta.unshift(actual);
+            actual = padre[actual.y][actual.x];
+        }
+
         return ruta;
     }
 

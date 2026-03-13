@@ -34,6 +34,63 @@ score = (población × 10) +
 
 ---
 
+# Implementación del Sistema de Rutas en Alcalde.js
+
+**Fecha:** 12 de marzo de 2026
+
+## Resumen de Cambios
+Se ha implementado completamente el **Sistema de Rutas (Routing System)** en la clase `Alcalde` del archivo `modelos/Alcalde.js`. El método `planificarRuta()` ha sido completamente reescrito con validaciones robustas y algoritmo de búsqueda de rutas.
+
+## Cambios Realizados
+
+### 1. Reestructuración del Método `planificarRuta()`
+- **Antes**: Implementación básica con ruta simplificada horizontal-vertical
+- **Después**: Sistema completo con validaciones y algoritmo de Dijkstra
+
+### 2. Nuevos Parámetros del Método
+- **Antes**: `planificarRuta(inicio, fin)` con objetos {x, y}
+- **Después**: `planificarRuta(idEdificioOrigen, idEdificioDestino)` con IDs de edificios
+
+### 3. Validaciones Implementadas
+- **Validación de existencia de edificios**: Verifica que ambos edificios existan en la ciudad
+- **Validación de edificios diferentes**: Previene rutas del mismo edificio a sí mismo
+- **Validación de coordenadas**: Asegura que las coordenadas estén dentro del mapa
+- **Validación de conectividad**: Verifica que exista una ruta posible entre los edificios
+
+### 4. Nuevos Métodos Privados
+- **`#generarMatrizTransitabilidad()`**: Crea matriz donde 1=transitable, 0=no transitable
+- **`#buscarRutaDijkstra()`**: Implementa algoritmo de Dijkstra para encontrar ruta más corta
+- **`#reconstruirRuta()`**: Reconstruye la secuencia de coordenadas desde origen a destino
+
+### 5. Nuevo Formato de Retorno
+- **Antes**: Retornaba array de coordenadas directamente
+- **Después**: Retorna objeto `{exito: boolean, ruta: Array, error?: string}`
+
+## Beneficios del Sistema Implementado
+
+| Aspecto | Beneficio |
+|---------|----------|
+| **Validación robusta** | Detecta todos los casos de error posibles |
+| **Algoritmo eficiente** | Dijkstra encuentra la ruta más corta garantizada |
+| **Manejo de errores** | Mensajes específicos para cada tipo de error |
+| **Compatibilidad** | Mantiene interfaz con código existente |
+| **Extensibilidad** | Fácil agregar nuevas validaciones o algoritmos |
+
+## Casos de Error Manejados
+- Edificio de origen no encontrado
+- Edificio de destino no encontrado
+- Mismo edificio origen y destino
+- Coordenadas fuera del mapa
+- No existe ruta conectada por vías
+
+## Notas Técnicas
+- El algoritmo considera vías ('r') y edificios como transitables
+- El terreno vacío ('g') no es transitible
+- La ruta retornada incluye coordenadas ordenadas desde origen hasta destino
+- Se registra en el historial de decisiones del alcalde
+
+---
+
 # Cambios en la Clase Ciudadano
 
 ## Resumen de Cambios
