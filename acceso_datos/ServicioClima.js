@@ -2,7 +2,7 @@
  * Servicio para gestionar la integración con OpenWeatherMap API
  * Proporciona datos climáticos reales para la simulación de la ciudad
  */
-class ServicioClima {
+export class ServicioClima {
     constructor(apiKey, lat = -34.6037, lon = -58.3816) { // Buenos Aires por defecto
         this.apiKey = apiKey;
         this.lat = lat;
@@ -100,6 +100,9 @@ class ServicioClima {
         this.lon = lon;
     }
 }
+
+// Exportación por defecto para asegurar compatibilidad con imports.
+export default ServicioClima;
 
 // Exportar para uso en otros módulos
 if (typeof module !== 'undefined' && module.exports) {
