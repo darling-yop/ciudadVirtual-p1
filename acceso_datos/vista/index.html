@@ -10,7 +10,7 @@
 
     <section id="estado-general">
         <h2>Estado de la Ciudad</h2>
-        <pre id="info-ciudad">Cargando.....</pre>
+        <pre id="info-ciudad" style="display: none;"></pre>
         <button id="turno-btn">Avanzar Turno</button>
     </section>
 
@@ -93,7 +93,6 @@
         }
 
         function actualizarVista() {
-            renderEstado();
             renderMapa();
         }
 

@@ -89,11 +89,7 @@ class App {
 
     actualizarUI() {
         const estado = this.manager.obtenerEstado();
-        console.log('Estado obtenido:', estado);
-        if (!estado) {
-            console.log('No hay estado disponible');
-            return;
-        }
+        if (!estado) return;
 
         // Actualizar header
         document.getElementById('nombre-ciudad').textContent = estado.nombre;
@@ -104,7 +100,6 @@ class App {
         this.actualizarEstadisticas(estado);
         this.actualizarClima(estado.clima);
         this.actualizarNoticias(estado.noticias);
-        console.log('Mapa a renderizar:', estado.mapa);
         this.renderMapa(estado.mapa);
     }
 
@@ -196,23 +191,17 @@ class App {
     }
 
     renderMapa(mapa) {
-        console.log('Renderizando mapa:', mapa);
         const contenedor = document.getElementById('mapa-grid');
         const info = document.getElementById('info-celda');
 
-        console.log('Contenedor mapa encontrado:', contenedor);
-
         if (!mapa || !Array.isArray(mapa.grid)) {
-            console.log('Mapa no válido o grid no es array');
             contenedor.innerHTML = '<p>Mapa no disponible.</p>';
             return;
         }
 
-        console.log('Configurando grid con', mapa.dimensiones.ancho, 'columnas');
         contenedor.style.gridTemplateColumns = `repeat(${mapa.dimensiones.ancho}, 26px)`;
         contenedor.innerHTML = '';
 
-        console.log('Creando celdas del mapa...');
         mapa.grid.forEach((fila, y) => {
             fila.forEach((tipo, x) => {
                 const cell = document.createElement('div');
@@ -233,8 +222,6 @@ class App {
                 contenedor.appendChild(cell);
             });
         });
-
-        console.log('Mapa renderizado completamente');
 
         if (info) {
             if (this.selectedCell) {
