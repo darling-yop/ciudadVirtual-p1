@@ -198,6 +198,78 @@ No se encontraron restricciones faltantes; el sistema ya cumple con los requisit
   - Soleado: +20% producción
   - Tormenta: -30% producción
   - Nevado: -50% producción
+
+## Cambios Recientes - Integración con Backend de Routing y Mejoras Frontend
+
+### Fecha: 13 de marzo de 2026 (continuación)
+
+#### 1. Separación de CSS y HTML en el Frontend
+- **Archivo modificado:** `acceso_datos/vista/index.html`
+- **Archivo creado:** `acceso_datos/vista/style.css`
+- **Descripción:** Se extrajo todo el CSS embebido en `<style>` del HTML a un archivo separado `style.css` para mejor organización y mantenibilidad. Se agregó enlace con `<link rel="stylesheet" href="./style.css">`.
+- **Beneficio:** Código más limpio, reutilización de estilos, y separación de responsabilidades.
+
+#### 2. Integración con Backend de Routing (Python Flask)
+- **Archivo creado:** `acceso_datos/vista/js/routing.js`
+- **Descripción:** Implementado módulo de routing que reemplaza el algoritmo Dijkstra local con llamadas a la API REST del backend Python proporcionado por el profesor.
+- **Funcionalidades:**
+  - Conversión de mapa de Ciudad a formato binario (0=edificio, 1=vía) requerido por la API.
+  - Inversión de coordenadas (x,y) a (fila,columna) según especificación del backend.
+  - Llamada POST a `http://127.0.0.1:5000/api/calculate-route` con manejo de errores.
+  - Conversión de respuesta "route" de vuelta a formato {x,y} para el frontend.
+- **Método principal:** `callRouteAPI(mapa, ox, oy, dx, dy)` - Calcula ruta entre dos puntos usando el backend.
+- **Método auxiliar:** `checkBackendHealth()` - Verifica disponibilidad del servidor.
+
+#### 3. Actualización de la Interfaz de Usuario para Routing
+- **Archivo modificado:** `acceso_datos/vista/index.html`
+- **Descripción:** Agregada sección "Calcular Ruta" con inputs para coordenadas de origen y destino, botón para ejecutar cálculo, y área de resultados.
+- **Funcionalidades:** Permite probar la integración con el backend de routing directamente desde la UI.
+
+#### 4. Corrección de Exportaciones en Módulos JS
+- **Archivos modificados:** `acceso_datos/ServicioClima.js`, `acceso_datos/ServicioNoticias.js`
+- **Descripción:** Agregadas exportaciones por defecto (`export default`) además de las exportaciones nombradas para compatibilidad con diferentes formas de importación en ES modules.
+- **Problema resuelto:** Errores de "does not provide an export named" al importar en el navegador.
+
+#### 5. Corrección de Uso de `process.env` en Ciudad.js
+- **Archivo modificado:** `modelos/Ciudad.js`
+- **Descripción:** Reemplazado acceso directo a `process.env` con verificación segura (`typeof process !== 'undefined' && process.env`) para evitar errores en el navegador donde `process` no existe.
+- **Problema resuelto:** `ReferenceError: process is not defined` al ejecutar en navegador.
+
+#### 6. Mejora en Método `puedeConstruir` de Ciudad.js
+- **Archivo modificado:** `modelos/Ciudad.js`
+- **Descripción:** Modificado para permitir construcción en cualquier celda vacía cuando no hay vías construidas (facilita inicio del juego), manteniendo restricción de adyacencia a vías una vez que existen.
+- **Problema resuelto:** Imposibilidad de construir al inicio del juego por falta de vías adyacentes.
+
+#### 7. Resolución de Conflicto de Merge en Git
+- **Acción:** Completado merge pendiente con `git commit` después de resolver conflictos automáticamente.
+- **Resultado:** Repositorio sincronizado con cambios del compañero de equipo.
+
+#### 8. Actualización de Estado de APIs Externas
+- **Actualización:** Las APIs de clima y noticias ya están implementadas en `ServicioClima.js` y `ServicioNoticias.js`, integradas en `Ciudad.js`.
+- **Estado:** ✅ IMPLEMENTADAS (actualizado de "NO IMPLEMENTADA" a completado).
+
+## Estado Actual del Proyecto
+
+### ✅ Completado
+- Modelo de datos completo (Ciudad, Ciudadano, Edificios, Mapa)
+- Lógica de simulación (turnos, recursos, felicidad, crecimiento poblacional)
+- Integraciones externas (Clima OpenWeatherMap, Noticias NewsAPI)
+- Frontend básico con separación de CSS
+- Integración con backend de routing Python
+- Sistema de persistencia (toJSON/fromJSON)
+
+### 🔄 Pendiente
+- Interfaz de usuario completa (mapa visual, controles avanzados)
+- Sistema de guardado/carga de partidas
+- Pruebas exhaustivas
+- Documentación completa de API
+
+### 📋 Próximos Pasos Recomendados
+1. Implementar renderizado visual del mapa en el frontend
+2. Agregar controles para construcción/demolición visual
+3. Mejorar UX con notificaciones y feedback
+4. Implementar sistema de guardado automático
+5. Agregar tutorial/modal de bienvenida
   - Nublado: -10% producción
 - ✅ Bonificaciones climáticas en puntuación (ya implementadas):
   - Soleado: +50 puntos
