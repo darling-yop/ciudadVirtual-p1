@@ -133,6 +133,8 @@ class Ciudad {
 
         // Actualizar ciudadanos
         this.actualizarFelicidadCiudadanos();
+        this.#aplicarEfectosClimaticos();
+        this.#procesarEventosNoticias();
         this.#gestionarCrecimientoPoblacional();
         // Asignaciones automáticas tras la creación de nuevos residentes
         this.#asignarAutomaticamente();
@@ -171,6 +173,88 @@ class Ciudad {
                     estadoEmpleo: false
                 });
             }
+        }
+    }
+
+    /**
+     * Aplica efectos climáticos a la felicidad de los ciudadanos
+     */
+    #aplicarEfectosClimaticos() {
+        const ajusteClima = this.#calcularAjusteFelicidadClima();
+        
+        this.poblacion.forEach(ciudadano => {
+            ciudadano.nivelFelicidad += ajusteClima;
+            ciudadano.nivelFelicidad = Math.max(0, Math.min(100, ciudadano.nivelFelicidad));
+        });
+    }
+
+    /**
+     * Calcula el ajuste de felicidad basado en el clima actual
+     */
+    #calcularAjusteFelicidadClima() {
+        const condicion = this.datosClima.condicion.toLowerCase();
+        
+        switch (condicion) {
+            case 'soleado':
+                return 5;
+            case 'lluvioso':
+            case 'llovizna':
+                return -3;
+            case 'tormenta':
+                return -10;
+            case 'nevado':
+            case 'nublado':
+                return -5;
+            default:
+                return 0;
+        }
+    }
+
+    /**
+     * Calcula el multiplicador de producción de comida basado en el clima
+     */
+    #calcularMultiplicadorProduccionComida() {
+        const condicion = this.datosClima.condicion.toLowerCase();
+        
+        switch (condicion) {
+            case 'lluvioso':
+            case 'llovizna':
+                return 1.5; // Lluvia aumenta producción agrícola
+            case 'soleado':
+                return 1.2; // Sol bueno para agricultura
+            case 'tormenta':
+                return 0.7; // Tormentas dañan cosechas
+            case 'nevado':
+                return 0.5; // Nieve reduce producción
+            case 'nublado':
+                return 0.9; // Nublado reduce ligeramente
+            default:
+                return 1.0; // Condición normal
+        }
+    }
+
+    /**
+     * Procesa eventos aleatorios basados en noticias que afectan la simulación
+     */
+    #procesarEventosNoticias() {
+        if (this.noticias.length === 0 || Math.random() > 0.1) return; // 10% chance de evento
+        
+        const noticiaAleatoria = this.noticias[Math.floor(Math.random() * this.noticias.length)];
+        const titulo = noticiaAleatoria.titulo.toLowerCase();
+        
+        // Eventos basados en contenido de noticias
+        if (titulo.includes('crisis') || titulo.includes('recesión')) {
+            // Crisis económica: reduce ingresos
+            this.recursos.dinero *= 0.95;
+            console.log('Evento noticioso: Crisis económica detectada, ingresos reducidos');
+        } else if (titulo.includes('desastre') || titulo.includes('accidente')) {
+            // Desastre: reduce felicidad
+            this.poblacion.forEach(c => c.nivelFelicidad = Math.max(0, c.nivelFelicidad - 10));
+            console.log('Evento noticioso: Desastre reportado, felicidad ciudadana afectada');
+        } else if (titulo.includes('éxito') || titulo.includes('avance')) {
+            // Noticia positiva: aumenta felicidad
+            this.poblacion.forEach(c => c.nivelFelicidad = Math.min(100, c.nivelFelicidad + 5));
+            console.log('Evento noticioso: Noticia positiva, felicidad ciudadana aumentada');
         }
     }
 
@@ -566,6 +650,10 @@ class Ciudad {
                 prodComida += fabrica.calcularProduccion();
             }
         });
+
+        // Aplicar multiplicador climático a la producción de alimentos
+        const multiplicadorClima = this.#calcularMultiplicadorProduccionComida();
+        prodComida *= multiplicadorClima;
 
         this.recursos.electricidad += prodElectricidad;
         this.recursos.agua += prodAgua;
