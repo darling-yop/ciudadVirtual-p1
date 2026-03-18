@@ -1,4 +1,5 @@
 import { CityManager } from './CityManager.js';
+import { ViewController } from './viewController.js';
 
 // Inicializar la aplicación
 class App {
@@ -8,68 +9,50 @@ class App {
         this.selectedTipo = 'r';
         this.serviciosIniciados = false;
 
-        this.inicializarEventos();
+        this.view = new ViewController({
+            onCellSelected: ({ x, y, tipo }) => {
+                this.selectedCell = { x, y, tipo };
+                this.actualizarUI();
+            },
+            onConstruir: (cell, tipo) => {
+                if (!cell) return;
+                const resultado = this.manager.construir(tipo, cell.x, cell.y);
+                if (!resultado.exito) {
+                    alert(resultado.mensaje);
+                }
+                this.actualizarUI();
+            },
+            onDemoler: (cell) => {
+                if (!cell) return;
+                const resultado = this.manager.demoler(cell.x, cell.y);
+                if (!resultado.exito) {
+                    alert(resultado.mensaje);
+                }
+                this.actualizarUI();
+            },
+            onProcesarTurno: () => this.procesarTurno(),
+            onIniciarServicios: () => this.iniciarServiciosExternos(),
+            onIniciarTurnos: () => {
+                this.manager.iniciarCicloTurnos(() => this.actualizarUI());
+                this.view.el.botonIniciarTurnos.disabled = true;
+                this.view.el.botonDetenerTurnos.disabled = false;
+            },
+            onDetenerTurnos: () => {
+                this.manager.detenerCicloTurnos();
+                this.view.el.botonIniciarTurnos.disabled = false;
+                this.view.el.botonDetenerTurnos.disabled = true;
+            },
+            onExportar: () => this.manager.exportToFile(),
+            onGuardar: () => this.manager.save(),
+            onCancelar: () => {
+                this.selectedCell = null;
+                this.actualizarUI();
+            }
+        });
 
         this.manager.init();
         this.manager.iniciarAutoGuardado();
         this.actualizarUI();
-    }
-
-    inicializarEventos() {
-        document.addEventListener('DOMContentLoaded', () => {
-            this.actualizarUI();
-        });
-
-        document.getElementById('procesar-turno').addEventListener('click', () => {
-            this.procesarTurno();
-        });
-
-        document.getElementById('iniciar-servicios').addEventListener('click', () => {
-            this.iniciarServiciosExternos();
-        });
-
-        document.getElementById('boton-iniciar-turnos').addEventListener('click', () => {
-            this.manager.iniciarCicloTurnos(() => this.actualizarUI());
-            document.getElementById('boton-iniciar-turnos').disabled = true;
-            document.getElementById('boton-detener-turnos').disabled = false;
-        });
-
-        document.getElementById('boton-detener-turnos').addEventListener('click', () => {
-            this.manager.detenerCicloTurnos();
-            document.getElementById('boton-iniciar-turnos').disabled = false;
-            document.getElementById('boton-detener-turnos').disabled = true;
-        });
-
-        document.getElementById('boton-exportar').addEventListener('click', () => {
-            this.manager.exportToFile();
-        });
-
-        // Botones de construcción
-        document.querySelectorAll('.construccion-menu button[data-tipo]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.selectedTipo = e.target.dataset.tipo;
-            });
-        });
-
-        document.getElementById('boton-construir').addEventListener('click', () => {
-            if (!this.selectedCell) return;
-            const { x, y } = this.selectedCell;
-            const resultado = this.manager.construir(this.selectedTipo, x, y);
-            if (!resultado.exito) {
-                alert(resultado.mensaje);
-            }
-            this.actualizarUI();
-        });
-
-        document.getElementById('boton-demoler').addEventListener('click', () => {
-            if (!this.selectedCell) return;
-            const { x, y } = this.selectedCell;
-            const resultado = this.manager.demoler(x, y);
-            if (!resultado.exito) {
-                alert(resultado.mensaje);
-            }
-            this.actualizarUI();
-        });
     }
 
     iniciarServiciosExternos() {
@@ -94,17 +77,14 @@ class App {
         const estado = this.manager.obtenerEstado();
         if (!estado) return;
 
-        // Actualizar header
-        document.getElementById('nombre-ciudad').textContent = estado.nombre;
-        document.getElementById('turno').textContent = `Turno: ${estado.turno}`;
-        document.getElementById('puntuacion').textContent = `Puntuación: ${estado.puntuacion}`;
-
-        // Actualizar secciones
-        this.actualizarEstadisticas(estado);
-        this.actualizarRecursos(estado);
-        this.actualizarClima(estado.clima);
-        this.actualizarNoticias(estado.noticias);
-        this.renderMapa(estado.mapa);
+        // Renderizar vista usando ViewController
+        this.view.renderHeader(estado);
+        this.view.renderEstadisticas(estado);
+        this.view.renderRecursos(estado);
+        this.view.renderClima(estado.clima);
+        this.view.renderNoticias(estado.noticias);
+        this.view.renderizarMapa(estado.mapa);
+        this.view.saveLastRenderMatrix(estado.mapa);
     }
 
     actualizarEstadisticas(estado) {

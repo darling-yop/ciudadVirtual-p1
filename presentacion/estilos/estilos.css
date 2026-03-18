@@ -19,6 +19,10 @@ body {
     padding: 20px;
 }
 
+.mob-only {
+    display: none;
+}
+
 header {
     background-color: #586e84;
     color: white;
@@ -296,6 +300,130 @@ button:disabled {
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.9em;
+}
+
+/* ==================== */
+/* Diseño Responsivo */
+/* ==================== */
+
+/* Tablet (768px - 1024px): Layout de dos columnas (Mapa 70%, Sidebar 30%) */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .game-layout {
+        grid-template-columns: 70% 30%;
+    }
+    .sidebar-left {
+        display: none; /* Ocultar sidebar izquierdo en tablet */
+    }
+}
+
+/* Móvil (< 768px): Mapa al 100% de ancho, menús de construcción como pestañas inferiores y panel de recursos colapsable */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    header {
+        padding: 10px;
+    }
+
+    /* Botón para mostrar recursos en móvil */
+    .mob-only {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 8px 12px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9em;
+    }
+
+    .game-layout {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    .sidebar-left, .sidebar-right {
+        display: none; /* Ocultar sidebars en móvil */
+    }
+    .mapa-central {
+        order: 2; /* Mapa en medio */
+    }
+    /* Panel de recursos colapsable en la parte superior */
+    .recursos-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        padding: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+        display: none; /* Por defecto oculto, JS lo mostrará */
+    }
+    .recursos-panel.show {
+        display: block;
+    }
+    /* Menú de construcción como pestañas inferiores */
+    .construccion-menu {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        padding: 10px;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+        display: none;
+        flex-wrap: wrap;
+        gap: 5px;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+        opacity: 0;
+        transform: translateY(100%);
+    }
+
+    .construccion-menu.open {
+        display: flex;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .construccion-menu button.selected {
+        border: 2px solid #2c3e50;
+        background: #2c3e50;
+    }
+    .construccion-menu .categoria {
+        flex: 1;
+        min-width: 120px;
+    }
+    .construccion-menu .categoria h3 {
+        display: none; /* Ocultar títulos en móvil */
+    }
+    .construccion-menu button {
+        width: 100%;
+        padding: 6px;
+        font-size: 0.8em;
+    }
+    /* Ajustar mapa para espacio */
+    .mapa-central {
+        margin-top: 60px; /* Espacio para panel recursos */
+        margin-bottom: 100px; /* Espacio para tabs */
+    }
+}
+
+/* ==================== */
+/* Colores Dinámicos para Dinero */
+/* ==================== */
+
+.recurso.dinero-verde span:last-child {
+    color: green;
+}
+
+.recurso.dinero-amarillo span:last-child {
+    color: orange;
+}
+
+.recurso.dinero-rojo span:last-child {
+    color: red;
 }
 
 .construccion-menu button:hover {
