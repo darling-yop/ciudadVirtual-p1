@@ -44,8 +44,11 @@ class App {
             this.manager.exportToFile();
         });
 
-        document.getElementById('selector-tipo').addEventListener('change', (e) => {
-            this.selectedTipo = e.target.value;
+        // Botones de construcción
+        document.querySelectorAll('.construccion-menu button[data-tipo]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.selectedTipo = e.target.dataset.tipo;
+            });
         });
 
         document.getElementById('boton-construir').addEventListener('click', () => {
@@ -98,6 +101,7 @@ class App {
 
         // Actualizar secciones
         this.actualizarEstadisticas(estado);
+        this.actualizarRecursos(estado);
         this.actualizarClima(estado.clima);
         this.actualizarNoticias(estado.noticias);
         this.renderMapa(estado.mapa);
@@ -123,26 +127,17 @@ class App {
                 <span>${estado.poblacion.felicidadPromedio}%</span>
             </div>
             <div class="recurso">
-                <span>Dinero:</span>
-                <span>$${estado.recursos.dinero}</span>
-            </div>
-            <div class="recurso">
-                <span>Electricidad:</span>
-                <span>${estado.recursos.electricidad} MW</span>
-            </div>
-            <div class="recurso">
-                <span>Agua:</span>
-                <span>${estado.recursos.agua} m³</span>
-            </div>
-            <div class="recurso">
-                <span>Comida:</span>
-                <span>${estado.recursos.comida} unidades</span>
-            </div>
-            <div class="recurso">
                 <span>Edificios Totales:</span>
                 <span>${estado.edificios.total}</span>
             </div>
         `;
+    }
+
+    actualizarRecursos(estado) {
+        document.getElementById('dinero').textContent = `$${estado.recursos.dinero}`;
+        document.getElementById('electricidad').textContent = `${estado.recursos.electricidad} MW`;
+        document.getElementById('agua').textContent = `${estado.recursos.agua} m³`;
+        document.getElementById('alimentos').textContent = `${estado.recursos.comida} unidades`;
     }
 
     actualizarClima(clima) {
@@ -191,7 +186,7 @@ class App {
     }
 
     renderMapa(mapa) {
-        const contenedor = document.getElementById('mapa-grid');
+        const contenedor = document.getElementById('grid-container');
         const info = document.getElementById('info-celda');
 
         if (!mapa || !Array.isArray(mapa.grid)) {
