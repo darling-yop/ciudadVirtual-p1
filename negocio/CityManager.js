@@ -4,6 +4,7 @@
  */
 
 import { CityRepository } from '../acceso_datos/CityRepository.js';
+import { GameRepository } from '../acceso_datos/GameRepository.js';
 import { Ciudad } from '../modelos/Ciudad.js';
 
 class CityManager {
@@ -43,13 +44,35 @@ class CityManager {
             );
         }
 
+        // Cargar estado desde backend si está disponible (no bloquea el render inicial)
+        this._loadFromBackend();
+
         this.save();
         return this.ciudad;
     }
 
+    async _loadFromBackend() {
+        const backendState = await GameRepository.load();
+        if (!backendState) return;
+
+        try {
+            this.ciudad = Ciudad.fromJSON(backendState);
+            // Guardar localmente para sincronizar
+            this.save();
+            console.log('Estado cargado desde backend');
+        } catch (error) {
+            console.warn('No se pudo restaurar estado desde backend', error);
+        }
+    }
+
     save() {
         if (!this.ciudad) return;
-        CityRepository.save(this.ciudad.toJSON());
+        const state = this.ciudad.toJSON();
+        CityRepository.save(state);
+        // Intentar también persistir en backend (si está disponible)
+        GameRepository.save(state).catch(() => {
+            // Silenciar errores (el backend puede no estar disponible en local)
+        });
     }
 
     exportToFile() {

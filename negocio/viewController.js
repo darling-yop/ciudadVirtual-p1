@@ -57,7 +57,16 @@ export class ViewController {
             botonToggleRecursos: document.getElementById('toggle-recursos'),
             construccionMenu: document.querySelector('.construccion-menu'),
             recursosPanel: document.querySelector('.recursos-panel'),
-            tipoButtons: Array.from(document.querySelectorAll('.construccion-menu button[data-tipo]'))
+            tipoButtons: Array.from(document.querySelectorAll('.construccion-menu button[data-tipo]')),
+            newCityModal: document.getElementById('new-city-modal'),
+            newCityForm: document.getElementById('new-city-form'),
+            inputCiudad: document.getElementById('input-ciudad'),
+            inputAlcalde: document.getElementById('input-alcalde'),
+            inputRegion: document.getElementById('input-region'),
+            inputLat: document.getElementById('input-lat'),
+            inputLon: document.getElementById('input-lon'),
+            inputTamano: document.getElementById('input-tamano'),
+            regionCustom: document.getElementById('region-custom')
         };
     }
 
@@ -95,6 +104,23 @@ export class ViewController {
         if (this.el.botonExportar) {
             this.el.botonExportar.addEventListener('click', () => {
                 this.onExportar?.();
+            });
+        }
+
+        if (this.el.newCityForm) {
+            this.el.newCityForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const data = this._gatherNewCityData();
+                if (data) {
+                    this.hideNewCityModal();
+                    this.onCrearCiudad?.(data);
+                }
+            });
+        }
+
+        if (this.el.inputRegion) {
+            this.el.inputRegion.addEventListener('change', () => {
+                this._updateRegionInputs();
             });
         }
 
@@ -166,6 +192,57 @@ export class ViewController {
         if (this.el.recursosPanel.classList.contains('show')) {
             this.el.recursosPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+    }
+
+    showNewCityModal() {
+        this.el.newCityModal?.classList.remove('hidden');
+        this.el.newCityModal?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    hideNewCityModal() {
+        this.el.newCityModal?.classList.add('hidden');
+    }
+
+    _updateRegionInputs() {
+        if (!this.el.inputRegion || !this.el.regionCustom) return;
+        const isCustom = this.el.inputRegion.value === 'custom';
+        this.el.regionCustom.classList.toggle('hidden', !isCustom);
+    }
+
+    _gatherNewCityData() {
+        const nombre = this.el.inputCiudad?.value?.trim();
+        const alcalde = this.el.inputAlcalde?.value?.trim();
+        const regionKey = this.el.inputRegion?.value;
+        const tamano = Number(this.el.inputTamano?.value);
+
+        if (!nombre || !alcalde) {
+            alert('Completa los campos de nombre de ciudad y alcalde.');
+            return null;
+        }
+
+        if (!tamano || tamano < 15 || tamano > 30) {
+            alert('El tamaño del mapa debe estar entre 15 y 30.');
+            return null;
+        }
+
+        const regiones = {
+            buenosaires: { nombre: 'Buenos Aires', coordenadas: { lat: -34.6037, lon: -58.3816 } },
+            mexico: { nombre: 'Ciudad de México', coordenadas: { lat: 19.4326, lon: -99.1332 } },
+            madrid: { nombre: 'Madrid', coordenadas: { lat: 40.4168, lon: -3.7038 } }
+        };
+
+        let region = regiones[regionKey];
+        if (regionKey === 'custom') {
+            const lat = parseFloat(this.el.inputLat?.value);
+            const lon = parseFloat(this.el.inputLon?.value);
+            if (Number.isNaN(lat) || Number.isNaN(lon)) {
+                alert('Ingresa latitud y longitud válidas.');
+                return null;
+            }
+            region = { nombre: 'Personalizada', coordenadas: { lat, lon } };
+        }
+
+        return { nombre, alcalde, region, tamano };
     }
 
     _highlightSelectedTipo() {

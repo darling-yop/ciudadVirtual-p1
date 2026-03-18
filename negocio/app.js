@@ -1,3 +1,5 @@
+import { CityRepository } from '../acceso_datos/CityRepository.js';
+import { Ciudad } from '../modelos/Ciudad.js';
 import { CityManager } from './CityManager.js';
 import { ViewController } from './viewController.js';
 
@@ -47,10 +49,25 @@ class App {
             onCancelar: () => {
                 this.selectedCell = null;
                 this.actualizarUI();
-            }
+            },
+            onCrearCiudad: (data) => this.crearNuevaCiudad(data)
         });
 
-        this.manager.init();
+        // Si ya hay estado guardado, cargar normalmente; si no, pedir creación de ciudad.
+        const saved = CityRepository.load();
+        if (saved) {
+            this.manager.init();
+            this.manager.iniciarAutoGuardado();
+            this.actualizarUI();
+        } else {
+            this.view.showNewCityModal();
+        }
+    }
+
+    crearNuevaCiudad({ nombre, alcalde, region, tamano }) {
+        // Crear ciudad en manager y guardarla
+        this.manager.ciudad = new Ciudad(nombre, alcalde, region, tamano, tamano);
+        this.manager.save();
         this.manager.iniciarAutoGuardado();
         this.actualizarUI();
     }
