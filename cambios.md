@@ -49,6 +49,46 @@ No se encontraron restricciones faltantes; el sistema ya cumple con los requisit
 **Estado actual**: No existe ningún código que:
 - Realice llamadas a NewsAPI
 
+---
+
+## C. Cambios implementados para que el proyecto funcione (UI + Backend)
+
+### 1. UI de Inicio + Creación de Ciudad (HU-001)
+- Se agregó un **modal de creación de ciudad** con:
+  - Nombre de la ciudad (máx 50)
+  - Nombre del alcalde (máx 50)
+  - Región (selección + opción personalizada lat/lon)
+  - Tamaño del mapa (15x15 a 30x30)
+- Se guarda en LocalStorage y se inicia directamente la simulación.
+
+### 2. Vista Principal / Controlador de Interfaz
+- Creado `negocio/viewController.js` para orquestar:
+  - Renderizado del mapa (grid dinámico basado en matriz del modelo)
+  - Actualización de recursos, clima, noticias y estadísticas
+  - Gestión de eventos de botones (construir, demoler, turnos, exportar)
+  - Atajos de teclado: B (menu construcción), R (construir vía), D (demoler), S (guardar), ESC (cancelar selección)
+  - Responsividad móvil (panel recursos colapsable + menú construcción tipo tabs)
+
+### 3. Backend (sincronización estado)
+- Se agregó `acceso_datos/GameRepository.js` para sincronizar estado con un backend REST:
+  - `GET /api/game` (cargar estado)
+  - `POST /api/game` (guardar estado)
+- `CityManager` ahora intenta cargar el estado del backend al iniciar y guarda automáticamente al backend cuando se realiza un `save()`.
+
+### 4. Fixes de carga / rutas
+- Corregido el `<script>` en `presentacion/vistas/index.html` para que apunte correctamente a `../../negocio/app.js`.
+
+### 5. Mejoras de UI/CSS
+- Se agregó layout responsive con CSS Grid y breakpoints para tablet/móvil.
+- Se implementó clasificación dinámica de color en recursos (dinero verde/amarillo/rojo).
+- Se agregó soporte para mostrar clima y noticias con formato de tarjetas.
+
+---
+
+## Notas Pendientes
+- Confirmar URL/estructura del backend para ajustar `GameRepository` (endpoints, autenticación, formato JSON).
+- Integrar de forma definitiva los servicios de clima (OpenWeather) y noticias (NewsAPI) con claves reales.
+
 ## Cambios Realizados para Alinear con Especificaciones
 
 ### Fecha: 13 de marzo de 2026

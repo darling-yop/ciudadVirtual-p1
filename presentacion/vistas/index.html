@@ -8,6 +8,65 @@
 </head>
 <body>
     <div class="container">
+        <div id="new-city-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Crear Nueva Ciudad</h2>
+                <form id="new-city-form">
+                    <label>
+                        Nombre de la ciudad
+                        <input id="input-ciudad" type="text" maxlength="50" required />
+                    </label>
+                    <label>
+                        Nombre del alcalde
+                        <input id="input-alcalde" type="text" maxlength="50" required />
+                    </label>
+                    <label>
+                        Región
+                        <select id="input-region" required>
+                            <option value="buenosaires" selected>Buenos Aires (LAT -34.6037, LON -58.3816)</option>
+                            <option value="mexico">Ciudad de México (LAT 19.4326, LON -99.1332)</option>
+                            <option value="madrid">Madrid (LAT 40.4168, LON -3.7038)</option>
+                            <option value="custom">Personalizada (lat/lon)</option>
+                        </select>
+                    </label>
+                    <div id="region-custom" class="hidden">
+                        <label>
+                            Latitud
+                            <input id="input-lat" type="number" step="0.0001" value="0" />
+                        </label>
+                        <label>
+                            Longitud
+                            <input id="input-lon" type="number" step="0.0001" value="0" />
+                        </label>
+                    </div>
+                    <label>
+                        Tamaño del mapa
+                        <select id="input-tamano" required>
+                            <option value="15">15x15</option>
+                            <option value="16">16x16</option>
+                            <option value="17">17x17</option>
+                            <option value="18">18x18</option>
+                            <option value="19">19x19</option>
+                            <option value="20" selected>20x20</option>
+                            <option value="21">21x21</option>
+                            <option value="22">22x22</option>
+                            <option value="23">23x23</option>
+                            <option value="24">24x24</option>
+                            <option value="25">25x25</option>
+                            <option value="26">26x26</option>
+                            <option value="27">27x27</option>
+                            <option value="28">28x28</option>
+                            <option value="29">29x29</option>
+                            <option value="30">30x30</option>
+                        </select>
+                    </label>
+                    <div class="modal-actions">
+                        <button type="submit">Crear Ciudad</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <header>
             <h1 id="nombre-ciudad">Cargando...</h1>
             <div class="info-general">
@@ -120,6 +179,6 @@
         </main>
     </div>
 
-    <script type="module" src="../negocio/app.js"></script>
+    <script type="module" src="../../negocio/app.js"></script>
 </body>
 </html>
