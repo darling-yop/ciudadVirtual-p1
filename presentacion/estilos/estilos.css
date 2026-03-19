@@ -47,6 +47,22 @@ body {
     font-size: 0.95rem;
 }
 
+.mapa-carga {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.estado-mapa {
+    font-size: 0.85rem;
+    color: #444;
+}
+
+.estado-mapa.error {
+    color: #c0392b;
+}
+
 .modal-content input,
 .modal-content select {
     width: 100%;

@@ -5,6 +5,8 @@
  * Está desacoplado de la lógica de negocio (CityManager / App).
  */
 
+import { Mapa } from '../modelos/Mapa.js';
+
 export class ViewController {
     constructor({
         onCellSelected,
@@ -31,6 +33,8 @@ export class ViewController {
 
         this.selectedTipo = 'r';
         this.selectedCell = null;
+        this.mapaTexto = null;
+        this.mapaGrid = null;
 
         this._bindElements();
         this._bindEvents();
@@ -66,7 +70,10 @@ export class ViewController {
             inputLat: document.getElementById('input-lat'),
             inputLon: document.getElementById('input-lon'),
             inputTamano: document.getElementById('input-tamano'),
-            regionCustom: document.getElementById('region-custom')
+            regionCustom: document.getElementById('region-custom'),
+            botonCargarMapa: document.getElementById('boton-cargar-mapa'),
+            inputMapaArchivo: document.getElementById('input-mapa-archivo'),
+            estadoMapa: document.getElementById('estado-mapa')
         };
     }
 
@@ -115,6 +122,35 @@ export class ViewController {
                     this.hideNewCityModal();
                     this.onCrearCiudad?.(data);
                 }
+            });
+        }
+
+        if (this.el.botonCargarMapa && this.el.inputMapaArchivo && this.el.estadoMapa) {
+            this.el.botonCargarMapa.addEventListener('click', () => {
+                this.el.inputMapaArchivo.click();
+            });
+
+            this.el.inputMapaArchivo.addEventListener('change', async (event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+
+                const text = await file.text();
+                const result = this._parseMapaTexto(text);
+
+                if (result.exito) {
+                    this.mapaTexto = text;
+                    this.mapaGrid = result.grid;
+                    this.el.estadoMapa.textContent = `Mapa cargado (${result.ancho}x${result.alto})`;
+                    this.el.estadoMapa.classList.remove('error');
+                } else {
+                    this.mapaTexto = null;
+                    this.mapaGrid = null;
+                    this.el.estadoMapa.textContent = `Error: ${result.mensaje}`;
+                    this.el.estadoMapa.classList.add('error');
+                }
+
+                // Limpiar selección para permitir recargar el mismo archivo
+                event.target.value = '';
             });
         }
 
@@ -242,7 +278,67 @@ export class ViewController {
             region = { nombre: 'Personalizada', coordenadas: { lat, lon } };
         }
 
-        return { nombre, alcalde, region, tamano };
+        return {
+            nombre,
+            alcalde,
+            region,
+            tamano,
+            mapaTexto: this.mapaTexto,
+            mapaGrid: this.mapaGrid
+        };
+    }
+
+    _parseMapaTexto(text) {
+        if (!text || typeof text !== 'string') {
+            return { exito: false, mensaje: 'Texto de mapa inválido.' };
+        }
+
+        const lines = text.split(/\r?\n/)
+            .map(line => line.trim())
+            .filter(line => line.length > 0);
+
+        if (lines.length === 0) {
+            return { exito: false, mensaje: 'El archivo está vacío.' };
+        }
+
+        const tokenPattern = /(R[12]|C[12]|I[12]|S[123]|U[12]|P1|r|g)/g;
+        const grid = lines.map(line => {
+            const tokens = [...line.matchAll(tokenPattern)].map(m => m[0]);
+            return tokens;
+        }).filter(row => row.length > 0);
+
+        if (grid.length === 0) {
+            return { exito: false, mensaje: 'No se detectaron celdas válidas en el archivo.' };
+        }
+
+        const alto = grid.length;
+        const ancho = Math.max(...grid.map(row => row.length));
+
+        if (alto < 15 || alto > 30 || ancho < 15 || ancho > 30) {
+            return {
+                exito: false,
+                mensaje: `Dimensiones inválidas: ${ancho}x${alto}. Debe ser entre 15x15 y 30x30.`
+            };
+        }
+
+        // Completar filas cortas con terreno vacío
+        const gridPadded = grid.map(row => {
+            if (row.length < ancho) {
+                return [...row, ...Array(ancho - row.length).fill('g')];
+            }
+            return row;
+        });
+
+        // Validar tipos permitidos
+        for (const row of gridPadded) {
+            for (const token of row) {
+                if (!Mapa.esTipoValido(token)) {
+                    return { exito: false, mensaje: `Tipo de celda inválido: '${token}'.` };
+                }
+            }
+        }
+
+        return { exito: true, grid: gridPadded, ancho, alto };
     }
 
     _highlightSelectedTipo() {
