@@ -64,9 +64,18 @@ class App {
         }
     }
 
-    crearNuevaCiudad({ nombre, alcalde, region, tamano }) {
+    crearNuevaCiudad({ nombre, alcalde, region, tamano, mapaTexto }) {
         // Crear ciudad en manager y guardarla
         this.manager.ciudad = new Ciudad(nombre, alcalde, region, tamano, tamano);
+
+        // Si se cargó un mapa desde archivo, aplicarlo
+        if (mapaTexto) {
+            const resultado = this.manager.ciudad.cargarMapaDesdeTexto(mapaTexto);
+            if (!resultado.exito) {
+                alert(`No se pudo cargar el mapa: ${resultado.mensaje}`);
+            }
+        }
+
         this.manager.save();
         this.manager.iniciarAutoGuardado();
         this.actualizarUI();

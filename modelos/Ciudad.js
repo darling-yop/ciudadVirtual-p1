@@ -2,7 +2,7 @@
 import ServicioClima from '../acceso_datos/ServicioClima.js?v=2';
 import ServicioNoticias from '../acceso_datos/ServicioNoticias.js?v=2';
 import { Alcalde } from './Alcalde.js';
-import { reconstruirEdificioDesdeEstado } from './EdificioFactory.js';
+import { crearEdificioDesdeTipo, reconstruirEdificioDesdeEstado } from './EdificioFactory.js';
 import { Mapa } from './Mapa.js';
 class Ciudad {
     constructor(nombre, nombreAlcalde, region, ancho, alto) {
@@ -82,6 +82,118 @@ class Ciudad {
     detenerServiciosExternos() {
         this.servicioClima.detenerActualizacion();
         this.servicioNoticias.detenerActualizacion();
+    }
+
+    /**
+     * Carga un mapa desde un archivo de texto con el formato especificado.
+     * El archivo puede contener códigos como g, r, R1, C1, I1, S1, U1, P1, etc.
+     * @param {string} textoMapa
+     * @returns {{exito: boolean, mensaje?: string, ancho?: number, alto?: number}}
+     */
+    cargarMapaDesdeTexto(textoMapa) {
+        if (!textoMapa || typeof textoMapa !== 'string') {
+            return { exito: false, mensaje: 'El contenido del mapa no es válido.' };
+        }
+
+        const lineas = textoMapa
+            .split(/\r?\n/)
+            .map(line => line.trim())
+            .filter(line => line.length > 0);
+
+        if (lineas.length === 0) {
+            return { exito: false, mensaje: 'El archivo de mapa está vacío.' };
+        }
+
+        const tokenPattern = /(R[12]|C[12]|I[12]|S[123]|U[12]|P1|r|g)/g;
+        const grid = lineas.map(line => {
+            const tokens = [...line.matchAll(tokenPattern)].map(m => m[0]);
+            return tokens;
+        }).filter(row => row.length > 0);
+
+        if (grid.length === 0) {
+            return { exito: false, mensaje: 'No se detectaron celdas válidas en el archivo.' };
+        }
+
+        const alto = grid.length;
+        const ancho = Math.max(...grid.map(r => r.length));
+
+        if (alto < 15 || alto > 30 || ancho < 15 || ancho > 30) {
+            return {
+                exito: false,
+                mensaje: `Dimensiones inválidas: ${ancho}x${alto}. Deben estar entre 15x15 y 30x30.`
+            };
+        }
+
+        // Completar filas cortas con terreno vacío
+        const gridPadded = grid.map(row => {
+            if (row.length < ancho) {
+                return [...row, ...Array(ancho - row.length).fill(Mapa.TIPOS_VALIDOS.VACIO)];
+            }
+            return row;
+        });
+
+        // Validar tipos de celdas
+        for (const row of gridPadded) {
+            for (const token of row) {
+                if (!Mapa.esTipoValido(token)) {
+                    return { exito: false, mensaje: `Tipo de celda inválido: '${token}'.` };
+                }
+            }
+        }
+
+        // Reiniciar el mapa y los datos que dependen de él
+        this.ancho = ancho;
+        this.alto = alto;
+        this.mapa = new Mapa(ancho, alto);
+        this.edificios = [];
+        this.vias = [];
+        this.poblacion = [];
+
+        // Reiniciar recursos a valores iniciales y ajustar según edificaciones
+        this.recursos = {
+            dinero: 50000,
+            electricidad: 0,
+            agua: 0,
+            comida: 0
+        };
+
+        let costoTotal = 0;
+
+        gridPadded.forEach((row, y) => {
+            row.forEach((token, x) => {
+                if (token === Mapa.TIPOS_VALIDOS.VACIO) return;
+
+                if (token === Mapa.TIPOS_VALIDOS.VIA) {
+                    this.mapa.actualizarCelda(x, y, token);
+                    this.vias.push({ x, y, costoConstruccion: this.obtenerCostoConstruccion(token) });
+                    costoTotal += this.obtenerCostoConstruccion(token);
+                    return;
+                }
+
+                const edificio = crearEdificioDesdeTipo(token, x, y);
+                if (!edificio) return;
+
+                this.mapa.actualizarCelda(x, y, token);
+                this.edificios.push(edificio);
+                costoTotal += this.obtenerCostoConstruccion(token);
+
+                // Ajustar recursos iniciales según producción de utilidades
+                if (token === 'U1' && typeof edificio.producirRecurso === 'function') {
+                    this.recursos.electricidad += edificio.producirRecurso();
+                }
+                if (token === 'U2' && typeof edificio.producirRecurso === 'function') {
+                    this.recursos.agua += edificio.producirRecurso();
+                }
+                if (token === 'I2' && typeof edificio.calcularProduccion === 'function') {
+                    this.recursos.comida += edificio.calcularProduccion();
+                }
+            });
+        });
+
+        // Aplicar costo de construcción al dinero disponible
+        this.recursos.dinero = Math.max(0, this.recursos.dinero - costoTotal);
+
+        return { exito: true, ancho, alto };
     }
 
     /**
