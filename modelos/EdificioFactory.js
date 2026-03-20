@@ -4,7 +4,6 @@
  * Facilita la construcción y reconstrucción desde el estado serializado.
  */
 
-import { Edificio } from './Edificio.js';
 import { EdificioComercial } from './Edificio_comercial.js';
 import { EdificioIndustrial } from './Edificio_industrial.js';
 import { EdificioResidencial } from './Edificio_residencial.js';
@@ -159,7 +158,7 @@ export function crearEdificioDesdeTipo(tipo, x, y, id = null) {
         case 'U2':
             return new EdificioUtilidades(uniqueId, tipo, x, y, stats);
         case 'P1':
-            return new Edificio(uniqueId, tipo, x, y, stats);
+            return new EdificioParques(uniqueId, tipo, x, y, stats);
         default:
             return null;
     }

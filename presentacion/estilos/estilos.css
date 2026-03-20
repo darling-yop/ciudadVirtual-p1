@@ -133,6 +133,25 @@ header {
     align-items: center;
 }
 
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.button-link {
+    background: #2980b9;
+    color: #fff;
+    border-radius: 5px;
+    padding: 8px 12px;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.button-link:hover {
+    background: #21618c;
+}
+
 header h1 {
     font-size: 2em;
 }
@@ -332,6 +351,28 @@ button:disabled {
 .map-cell--route {
     outline: 2px solid #ff5722;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75);
+}
+
+.map-cell--walker {
+    position: relative;
+}
+
+.map-cell--walker::after {
+    content: '🚶';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+    animation: walker-step 0.4s ease-in-out infinite;
+}
+
+@keyframes walker-step {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+    100% { transform: translateY(0); }
 }
 
 .map-cell--g { background: #81c784; }

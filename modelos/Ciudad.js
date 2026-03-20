@@ -931,6 +931,31 @@ class Ciudad {
      * Serializa la ciudad a un objeto simple (JSON). Adecuado para guardado.
      */
     toJSON() {
+        const edificiosSerializados = this.edificios
+            .map((edificio, index) => {
+                if (edificio && typeof edificio.obtenerEstado === 'function') {
+                    return edificio.obtenerEstado();
+                }
+
+                // Compatibilidad con estados antiguos/objetos planos para no perder guardado.
+                if (edificio && typeof edificio === 'object') {
+                    return {
+                        id: edificio.id || `legacy-${index}`,
+                        tipo: edificio.tipo || 'R1',
+                        ubicacion: {
+                            x: Number(edificio.x ?? edificio.ubicacion?.x ?? 0),
+                            y: Number(edificio.y ?? edificio.ubicacion?.y ?? 0)
+                        },
+                        ocupacionActual: Number(edificio.ocupacionActual || 0),
+                        capacidadMaxima: Number(edificio.capacidadMaxima || 0),
+                        estaOperativo: edificio.estaOperativo !== false
+                    };
+                }
+
+                return null;
+            })
+            .filter(Boolean);
+
         return {
             nombre: this.nombre,
             alcalde: this.alcalde ? this.alcalde.nombre : null,
@@ -939,7 +964,7 @@ class Ciudad {
             alto: this.alto,
             turnoActual: this.turnoActual,
             puntuacionAcumulada: this.puntuacionAcumulada,
-            edificios: this.edificios.map(e => e.obtenerEstado()),
+            edificios: edificiosSerializados,
             vias: this.vias.slice(),
             poblacion: this.poblacion.slice(),
             recursos: { ...this.recursos },

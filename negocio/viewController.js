@@ -38,6 +38,8 @@ export class ViewController {
         this.mapaTexto = null;
         this.mapaGrid = null;
         this.routeCells = [];
+        this.routeWalkerCell = null;
+        this.routeAnimationToken = 0;
 
         this.colombiaMunicipios = {
             'Cundinamarca': {
@@ -488,6 +490,10 @@ export class ViewController {
                     cell.classList.add('map-cell--route');
                 }
 
+                if (this.routeWalkerCell && this.routeWalkerCell.x === x && this.routeWalkerCell.y === y) {
+                    cell.classList.add('map-cell--walker');
+                }
+
                 cell.addEventListener('click', () => {
                     this.selectedCell = { x, y, tipo };
                     this.onCellSelected?.({ x, y, tipo });
@@ -654,13 +660,35 @@ export class ViewController {
 
     aplicarRuta(ruta = []) {
         this.routeCells = Array.isArray(ruta) ? ruta : [];
+        this.routeWalkerCell = this.routeCells.length > 0 ? this.routeCells[0] : null;
         if (this._lastRenderedMatrix) {
             this.renderizarMapa(this._lastRenderedMatrix);
         }
     }
 
+    async animarRuta(ruta = [], stepMs = 180) {
+        this.routeAnimationToken += 1;
+        const token = this.routeAnimationToken;
+
+        this.aplicarRuta(ruta);
+        if (!Array.isArray(ruta) || ruta.length === 0) return;
+
+        for (let i = 0; i < ruta.length; i++) {
+            if (token !== this.routeAnimationToken) return;
+
+            this.routeWalkerCell = ruta[i];
+            if (this._lastRenderedMatrix) {
+                this.renderizarMapa(this._lastRenderedMatrix);
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, stepMs));
+        }
+    }
+
     limpiarRuta() {
+        this.routeAnimationToken += 1;
         this.routeCells = [];
+        this.routeWalkerCell = null;
         if (this._lastRenderedMatrix) {
             this.renderizarMapa(this._lastRenderedMatrix);
         }
