@@ -22,6 +22,7 @@ export class ViewController {
         onEliminarPartida,
         onContinuarPartida,
         onNuevaPartida,
+        onCrearCiudad,
         onCancelar
     } = {}) {
         this.onCellSelected = onCellSelected;
@@ -37,6 +38,7 @@ export class ViewController {
         this.onEliminarPartida = onEliminarPartida;
         this.onContinuarPartida = onContinuarPartida;
         this.onNuevaPartida = onNuevaPartida;
+        this.onCrearCiudad = onCrearCiudad;
         this.onCancelar = onCancelar;
 
         this.selectedTipo = 'r';
@@ -82,8 +84,6 @@ export class ViewController {
             botonIniciarServicios: document.getElementById('iniciar-servicios'),
             botonIniciarTurnos: document.getElementById('boton-iniciar-turnos'),
             botonDetenerTurnos: document.getElementById('boton-detener-turnos'),
-            botonGuardarPartida: document.getElementById('boton-guardar-partida'),
-            botonEliminarPartida: document.getElementById('boton-eliminar-partida'),
             botonExportar: document.getElementById('boton-exportar'),
             botonCalcularRuta: document.getElementById('boton-calcular-ruta'),
             botonLimpiarRuta: document.getElementById('boton-limpiar-ruta'),
@@ -99,6 +99,7 @@ export class ViewController {
             continueGameModal: document.getElementById('continue-game-modal'),
             botonContinuarPartida: document.getElementById('boton-continuar-partida'),
             botonNuevaPartida: document.getElementById('boton-nueva-partida'),
+            botonEliminarPartidaModal: document.getElementById('boton-eliminar-partida-modal'),
             newCityModal: document.getElementById('new-city-modal'),
             newCityForm: document.getElementById('new-city-form'),
             inputCiudad: document.getElementById('input-ciudad'),
@@ -154,18 +155,6 @@ export class ViewController {
             });
         }
 
-        if (this.el.botonGuardarPartida) {
-            this.el.botonGuardarPartida.addEventListener('click', () => {
-                this.onGuardar?.();
-            });
-        }
-
-        if (this.el.botonEliminarPartida) {
-            this.el.botonEliminarPartida.addEventListener('click', () => {
-                this.onEliminarPartida?.();
-            });
-        }
-
         if (this.el.botonContinuarPartida) {
             this.el.botonContinuarPartida.addEventListener('click', () => {
                 this.hideContinueGameModal();
@@ -177,6 +166,13 @@ export class ViewController {
             this.el.botonNuevaPartida.addEventListener('click', () => {
                 this.hideContinueGameModal();
                 this.onNuevaPartida?.();
+            });
+        }
+
+        if (this.el.botonEliminarPartidaModal) {
+            this.el.botonEliminarPartidaModal.addEventListener('click', () => {
+                this.hideContinueGameModal();
+                this.onEliminarPartida?.();
             });
         }
 
@@ -517,17 +513,33 @@ export class ViewController {
 
         this._lastRenderedMatrix = matriz;
 
-        const ancho = matriz?.dimensiones?.ancho ?? (matriz?.[0]?.length ?? 0);
-        const alto = matriz?.dimensiones?.alto ?? (matriz?.length ?? 0);
-        const grid = matriz?.grid ?? matriz;
+        const ancho = Number(matriz?.dimensiones?.ancho ?? matriz?.ancho ?? (matriz?.[0]?.length ?? 20));
+        const alto = Number(matriz?.dimensiones?.alto ?? matriz?.alto ?? (matriz?.length ?? 20));
+        const gridRaw = matriz?.grid ?? matriz;
+
+        const normalizarTipo = (valor) => (Mapa.esTipoValido(valor) ? valor : 'g');
+
+        let grid = [];
+        if (Array.isArray(gridRaw) && gridRaw.length > 0) {
+            grid = gridRaw.map((fila) => {
+                if (!Array.isArray(fila)) {
+                    return Array.from({ length: ancho }, () => 'g');
+                }
+                const filaNormalizada = fila.map(normalizarTipo);
+                if (filaNormalizada.length < ancho) {
+                    return [...filaNormalizada, ...Array(ancho - filaNormalizada.length).fill('g')];
+                }
+                return filaNormalizada.slice(0, ancho);
+            });
+        }
+
+        if (grid.length < alto) {
+            grid = [...grid, ...Array.from({ length: alto - grid.length }, () => Array(ancho).fill('g'))];
+        }
+        grid = grid.slice(0, alto);
 
         this.el.gridContainer.style.gridTemplateColumns = `repeat(${ancho}, 26px)`;
         this.el.gridContainer.innerHTML = '';
-
-        if (!Array.isArray(grid) || grid.length === 0) {
-            this.el.gridContainer.innerHTML = '<p>Mapa no disponible.</p>';
-            return;
-        }
 
         grid.forEach((fila, y) => {
             fila.forEach((tipo, x) => {
