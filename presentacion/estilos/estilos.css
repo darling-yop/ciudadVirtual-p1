@@ -329,6 +329,11 @@ button:disabled {
     box-shadow: 0 0 0 2px rgba(255, 235, 59, 0.6);
 }
 
+.map-cell--route {
+    outline: 2px solid #ff5722;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75);
+}
+
 .map-cell--g { background: #81c784; }
 .map-cell--r { background: #757575; }
 .map-cell--R1 { background: #4db6ac; }
@@ -380,6 +385,34 @@ button:disabled {
 /* Menú de Construcción */
 .construccion-menu .categoria {
     margin-bottom: 15px;
+}
+
+.rutas-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rutas-panel label {
+    font-size: 0.85rem;
+    color: #2c3e50;
+}
+
+.rutas-panel select,
+.rutas-panel button {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.estado-ruta {
+    font-size: 0.85rem;
+    color: #1f6f43;
+    margin-top: 2px;
+}
+
+.estado-ruta.error {
+    color: #c0392b;
 }
 
 .construccion-menu .categoria h3 {

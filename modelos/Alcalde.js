@@ -4,6 +4,7 @@
  * Responsable de las decisiones estratégicas y operaciones de la ciudad.
  */
 import { crearEdificioDesdeTipo } from './EdificioFactory.js';
+import { RouteRepository } from '../acceso_datos/RouteRepository.js';
 
 class Alcalde {
     constructor(id, nombre, ciudad) {
@@ -201,7 +202,7 @@ class Alcalde {
      * @param {number} idEdificioDestino - ID del edificio de destino
      * @returns {Object} - {exito: boolean, ruta: Array, error?: string}
      */
-    planificarRuta(idEdificioOrigen, idEdificioDestino) {
+    async planificarRuta(idEdificioOrigen, idEdificioDestino) {
         // ========================================
         // VALIDACIÓN 1: Verificar que los edificios existan
         // ========================================
@@ -252,25 +253,21 @@ class Alcalde {
         // VALIDACIÓN 4: Generar matriz de transitabilidad
         // matriz[y][x] = 1 si es transitible (vías), 0 si no lo es
         // ========================================
-        const matrizTransitabilidad = this.#generarMatrizTransitabilidad();
-
-        // ========================================
-        // VALIDACIÓN 5: Verificar conectividad entre edificios
-        // ========================================
-        const rutaEncontrada = this.#buscarRutaDijkstra(
-            edificioOrigen.x,
-            edificioOrigen.y,
-            edificioDestino.x,
-            edificioDestino.y,
-            matrizTransitabilidad
+        const mapaGrid = this.ciudad.mapa?.grid;
+        const rutaBackend = await RouteRepository.calculateRoute(
+            mapaGrid,
+            { x: edificioOrigen.x, y: edificioOrigen.y },
+            { x: edificioDestino.x, y: edificioDestino.y }
         );
 
-        if (!rutaEncontrada || rutaEncontrada.length === 0) {
+        if (!rutaBackend.exito || !rutaBackend.ruta || rutaBackend.ruta.length === 0) {
             return {
                 exito: false,
-                error: 'No existe ruta disponible. Los edificios no están conectados por vías.'
+                error: rutaBackend.error || 'No existe ruta disponible. Los edificios no están conectados por vías.'
             };
         }
+
+        const rutaEncontrada = rutaBackend.ruta;
 
         // ========================================
         // Ruta encontrada exitosamente

@@ -92,6 +92,23 @@
                     <button id="boton-detener-turnos" disabled>Detener Turnos</button>
                     <button id="boton-exportar">Exportar JSON</button>
                 </section>
+
+                <section class="rutas-panel">
+                    <h2>Calcular Ruta</h2>
+                    <label for="ruta-origen">Edificio origen</label>
+                    <select id="ruta-origen">
+                        <option value="">Selecciona origen</option>
+                    </select>
+
+                    <label for="ruta-destino">Edificio destino</label>
+                    <select id="ruta-destino">
+                        <option value="">Selecciona destino</option>
+                    </select>
+
+                    <button id="boton-calcular-ruta" type="button">Calcular Ruta</button>
+                    <button id="boton-limpiar-ruta" type="button">Limpiar Ruta</button>
+                    <div id="estado-ruta" class="estado-ruta">Selecciona edificios para calcular una ruta.</div>
+                </section>
             </aside>
 
             <section class="mapa-central">

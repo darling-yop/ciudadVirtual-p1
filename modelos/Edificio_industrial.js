@@ -59,6 +59,14 @@ class EdificioIndustrial extends Edificio {
     }
 
     /**
+     * Calcula contaminación efectiva de la industria.
+     */
+    calcularContaminacion() {
+        if (!this.estaOperativo) return 0;
+        return this.contaminacion;
+    }
+
+    /**
      * Obtiene el estado actual de la industria
      */
     obtenerEstado() {

@@ -16,6 +16,7 @@ export class ViewController {
         onIniciarServicios,
         onIniciarTurnos,
         onDetenerTurnos,
+        onCalcularRuta,
         onExportar,
         onGuardar,
         onCancelar
@@ -27,6 +28,7 @@ export class ViewController {
         this.onIniciarServicios = onIniciarServicios;
         this.onIniciarTurnos = onIniciarTurnos;
         this.onDetenerTurnos = onDetenerTurnos;
+        this.onCalcularRuta = onCalcularRuta;
         this.onExportar = onExportar;
         this.onGuardar = onGuardar;
         this.onCancelar = onCancelar;
@@ -35,6 +37,7 @@ export class ViewController {
         this.selectedCell = null;
         this.mapaTexto = null;
         this.mapaGrid = null;
+        this.routeCells = [];
 
         this.colombiaMunicipios = {
             'Cundinamarca': {
@@ -71,6 +74,11 @@ export class ViewController {
             botonIniciarTurnos: document.getElementById('boton-iniciar-turnos'),
             botonDetenerTurnos: document.getElementById('boton-detener-turnos'),
             botonExportar: document.getElementById('boton-exportar'),
+            botonCalcularRuta: document.getElementById('boton-calcular-ruta'),
+            botonLimpiarRuta: document.getElementById('boton-limpiar-ruta'),
+            selectRutaOrigen: document.getElementById('ruta-origen'),
+            selectRutaDestino: document.getElementById('ruta-destino'),
+            estadoRuta: document.getElementById('estado-ruta'),
             botonConstruir: document.getElementById('boton-construir'),
             botonDemoler: document.getElementById('boton-demoler'),
             botonToggleRecursos: document.getElementById('toggle-recursos'),
@@ -129,6 +137,21 @@ export class ViewController {
         if (this.el.botonExportar) {
             this.el.botonExportar.addEventListener('click', () => {
                 this.onExportar?.();
+            });
+        }
+
+        if (this.el.botonCalcularRuta) {
+            this.el.botonCalcularRuta.addEventListener('click', async () => {
+                const idOrigen = this.el.selectRutaOrigen?.value;
+                const idDestino = this.el.selectRutaDestino?.value;
+                await this.onCalcularRuta?.(idOrigen, idDestino);
+            });
+        }
+
+        if (this.el.botonLimpiarRuta) {
+            this.el.botonLimpiarRuta.addEventListener('click', () => {
+                this.limpiarRuta();
+                this.setEstadoRuta('Ruta limpiada.');
             });
         }
 
@@ -461,6 +484,10 @@ export class ViewController {
                     cell.classList.add('map-cell--selected');
                 }
 
+                if (this.routeCells.some((routeCell) => routeCell.x === x && routeCell.y === y)) {
+                    cell.classList.add('map-cell--route');
+                }
+
                 cell.addEventListener('click', () => {
                     this.selectedCell = { x, y, tipo };
                     this.onCellSelected?.({ x, y, tipo });
@@ -603,5 +630,45 @@ export class ViewController {
 
     saveLastRenderMatrix(matriz) {
         this._lastRenderedMatrix = matriz;
+    }
+
+    renderOpcionesRuta(edificios = []) {
+        if (!this.el.selectRutaOrigen || !this.el.selectRutaDestino) return;
+
+        const renderOptions = (selectEl, selectedValue) => {
+            selectEl.innerHTML = '<option value="">Selecciona</option>';
+            edificios.forEach((edificio) => {
+                const option = document.createElement('option');
+                option.value = edificio.id;
+                option.textContent = `${edificio.tipo} [${edificio.id}] (${edificio.x},${edificio.y})`;
+                if (String(edificio.id) === String(selectedValue)) {
+                    option.selected = true;
+                }
+                selectEl.appendChild(option);
+            });
+        };
+
+        renderOptions(this.el.selectRutaOrigen, this.el.selectRutaOrigen.value);
+        renderOptions(this.el.selectRutaDestino, this.el.selectRutaDestino.value);
+    }
+
+    aplicarRuta(ruta = []) {
+        this.routeCells = Array.isArray(ruta) ? ruta : [];
+        if (this._lastRenderedMatrix) {
+            this.renderizarMapa(this._lastRenderedMatrix);
+        }
+    }
+
+    limpiarRuta() {
+        this.routeCells = [];
+        if (this._lastRenderedMatrix) {
+            this.renderizarMapa(this._lastRenderedMatrix);
+        }
+    }
+
+    setEstadoRuta(mensaje, esError = false) {
+        if (!this.el.estadoRuta) return;
+        this.el.estadoRuta.textContent = mensaje;
+        this.el.estadoRuta.classList.toggle('error', Boolean(esError));
     }
 }

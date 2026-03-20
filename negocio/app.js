@@ -32,16 +32,6 @@ class App {
                     return;
                 }
 
-                // Mostrar validación explícita antes de intentar construir
-                const puede = this.manager.ciudad?.puedeConstruir(effectiveTipo, targetCell.x, targetCell.y);
-                console.log('Validación de construcción:', { targetCell, effectiveTipo, puede });
-
-                if (!puede) {
-                    alert('No se puede construir aquí: verifica coordenada, disponibilidad o reglas de vía.');
-                    console.warn('Construcción bloqueada (puedeConstruir=false)', { targetCell, effectiveTipo });
-                    return;
-                }
-
                 const resultado = this.manager.construir(effectiveTipo, targetCell.x, targetCell.y);
 
                 if (!resultado.exito) {
@@ -52,6 +42,8 @@ class App {
                     console.log(`Construcción OK: ${effectiveTipo}@(${targetCell.x},${targetCell.y})`);
                 }
 
+                this.view.limpiarRuta();
+                this.view.setEstadoRuta('Ruta limpiada por cambio en el mapa.');
                 this.actualizarUI();
             },
             onDemoler: (cell) => {
@@ -67,6 +59,8 @@ class App {
                 } else {
                     console.log(`Demolición OK @(${cell.x},${cell.y})`);
                 }
+                this.view.limpiarRuta();
+                this.view.setEstadoRuta('Ruta limpiada por cambio en el mapa.');
                 this.actualizarUI();
             },
             onProcesarTurno: () => this.procesarTurno(),
@@ -80,6 +74,9 @@ class App {
                 this.manager.detenerCicloTurnos();
                 this.view.el.botonIniciarTurnos.disabled = false;
                 this.view.el.botonDetenerTurnos.disabled = true;
+            },
+            onCalcularRuta: async (idOrigen, idDestino) => {
+                await this.calcularRuta(idOrigen, idDestino);
             },
             onExportar: () => this.manager.exportToFile(),
             onGuardar: () => this.manager.save(),
@@ -133,7 +130,27 @@ class App {
 
     procesarTurno() {
         this.manager.procesarTurno();
+        this.view.limpiarRuta();
+        this.view.setEstadoRuta('Selecciona edificios para calcular una ruta.');
         this.actualizarUI();
+    }
+
+    async calcularRuta(idEdificioOrigen, idEdificioDestino) {
+        if (!idEdificioOrigen || !idEdificioDestino) {
+            this.view.setEstadoRuta('Debes seleccionar edificio origen y destino.', true);
+            return;
+        }
+
+        const resultado = await this.manager.planificarRuta(idEdificioOrigen, idEdificioDestino);
+
+        if (!resultado.exito) {
+            this.view.limpiarRuta();
+            this.view.setEstadoRuta(resultado.error || 'No fue posible calcular la ruta.', true);
+            return;
+        }
+
+        this.view.aplicarRuta(resultado.ruta);
+        this.view.setEstadoRuta(`Ruta encontrada. Distancia: ${resultado.ruta.length - 1} celdas.`);
     }
 
     actualizarUI() {
@@ -147,6 +164,7 @@ class App {
         this.view.renderClima(estado.clima);
         this.view.renderNoticias(estado.noticias);
         this.view.renderizarMapa(estado.mapa);
+        this.view.renderOpcionesRuta(estado.edificios.lista || []);
         this.view.saveLastRenderMatrix(estado.mapa);
     }
 
