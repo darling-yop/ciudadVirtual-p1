@@ -17,6 +17,10 @@ class CityManager {
         this.turnIntervalId = null;
         this.autoSaveIntervalId = null;
 
+        // Para entornos sin backend (por ejemplo archivo local), mantener false.
+        // Activa solo si tienes API REST con POST /api/game.
+        this.backendSyncEnabled = false;
+
         CityManager.instance = this;
     }
 
@@ -45,7 +49,9 @@ class CityManager {
         }
 
         // Cargar estado desde backend si está disponible (no bloquea el render inicial)
-        this._loadFromBackend();
+        if (this.backendSyncEnabled) {
+            this._loadFromBackend();
+        }
 
         this.save();
         return this.ciudad;
@@ -68,11 +74,17 @@ class CityManager {
     save() {
         if (!this.ciudad) return;
         const state = this.ciudad.toJSON();
+
+        // Guardado local siempre
         CityRepository.save(state);
-        // Intentar también persistir en backend (si está disponible)
-        GameRepository.save(state).catch(() => {
-            // Silenciar errores (el backend puede no estar disponible en local)
-        });
+
+        // Guardado remoto opcional (no obligatorio en modo offline)
+        // Descomentar la línea `this.backendSyncEnabled = true` en el constructor para habilitarlo.
+        if (this.backendSyncEnabled) {
+            GameRepository.save(state).catch((error) => {
+                console.warn('GameRepository.save omitido:', error);
+            });
+        }
     }
 
     exportToFile() {
@@ -119,13 +131,26 @@ class CityManager {
     }
 
     construir(tipo, x, y) {
-        if (!this.ciudad) return { exito: false, mensaje: 'Ciudad no iniciada.' };
-        const resultado = this.ciudad.alcalde.construirEdificio(tipo, x, y);
-        if (resultado && resultado.exito) {
-            this.save();
-            return resultado;
+        if (!this.ciudad) {
+            console.error('CityManager.construir: ciudad no iniciada', { tipo, x, y });
+            return { exito: false, mensaje: 'Ciudad no iniciada.' };
         }
-        return resultado || { exito: false, mensaje: 'No se pudo construir (verificar validaciones).' };
+
+        if (x == null || y == null || !tipo) {
+            console.error('CityManager.construir: parámetros inválidos', { tipo, x, y });
+            return { exito: false, mensaje: 'Parámetros de construcción inválidos.' };
+        }
+
+        const resultado = this.ciudad.alcalde.construirEdificio(tipo, x, y);
+
+        if (!resultado || !resultado.exito) {
+            console.warn('CityManager.construir: fallo de construcción', { tipo, x, y, resultado });
+            return resultado || { exito: false, mensaje: 'No se pudo construir (verificar validaciones).' };
+        }
+
+        console.log('CityManager.construir: construcción exitosa', { tipo, x, y });
+        this.save();
+        return resultado;
     }
 
     demoler(x, y) {

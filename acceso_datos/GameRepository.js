@@ -9,12 +9,18 @@
  *  - POST /api/game     -> guarda/actualiza el estado de la ciudad
  */
 
+const BACKEND_ENABLED = (typeof window !== 'undefined' && window.GAME_API_ENABLED) ? true : false;
 const BASE_URL = (typeof window !== 'undefined' && window.GAME_API_BASE_URL) ? window.GAME_API_BASE_URL : '/api';
 
 const ENDPOINT = `${BASE_URL}/game`;
 
 export const GameRepository = {
     async load() {
+        if (!BACKEND_ENABLED) {
+            // En modo local sin backend no hacemos ninguna llamada.
+            return null;
+        }
+
         try {
             const response = await fetch(ENDPOINT, {
                 method: 'GET',
@@ -32,6 +38,11 @@ export const GameRepository = {
     },
 
     async save(state) {
+        if (!BACKEND_ENABLED) {
+            // En modo local sin backend no hacemos ninguna llamada.
+            return null;
+        }
+
         try {
             const response = await fetch(ENDPOINT, {
                 method: 'POST',
