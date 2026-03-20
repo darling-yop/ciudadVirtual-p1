@@ -322,6 +322,14 @@ button:disabled {
 
 #grid-container {
     display: grid;
+    gap: 2px;
+    background: #2c3e50;
+    padding: 8px;
+    border-radius: 8px;
+    overflow: auto;
+    max-height: 420px;
+}
+
 .save-status {
     font-size: 0.9em;
     padding: 4px 8px;
@@ -335,10 +343,8 @@ button:disabled {
 
 .save-status.error {
     background: #c0392b;
-    gap: 2px;
-    background: #2c3e50;
-    padding: 8px;
-    border-radius: 8px;
+}
+
 .modal-content--compact {
     width: min(420px, 90%);
 }
@@ -354,17 +360,17 @@ button:disabled {
 
 .modal-actions button.secondary:hover {
     background: #6c7a7b;
-    overflow: auto;
-    max-height: 420px;
 }
 
-.map-cell {
 .controles .danger {
     background: #c0392b;
 }
 
 .controles .danger:hover {
     background: #a93226;
+}
+
+.map-cell {
     width: 24px;
     height: 24px;
     border-radius: 4px;

@@ -1002,26 +1002,57 @@ class Ciudad {
      * Nota: las edificaciones devueltas serán objetos planos, no instancias.
      */
     static fromJSON(data) {
-        const c = new Ciudad(data.nombre, data.alcalde, data.region, data.ancho, data.alto);
+        const ancho = data.ancho || data.gridSize?.width || data.mapa?.dimensiones?.ancho || 20;
+        const alto = data.alto || data.gridSize?.height || data.mapa?.dimensiones?.alto || 20;
+        const nombre = data.nombre || data.cityName || 'Nueva Ciudad';
+        const alcalde = data.alcalde || data.mayor || 'Alcalde';
+        const region = data.region || {
+            nombre: 'Región desconocida',
+            coordenadas: data.coordinates || { lat: 0, lon: 0 }
+        };
+
+        const c = new Ciudad(nombre, alcalde, region, ancho, alto);
         c.turnoActual = data.turnoActual || 0;
         c.puntuacionAcumulada = data.puntuacionAcumulada || 0;
 
-        // Restaurar mapa (grid) si se ha guardado
-        if (Array.isArray(data.mapa)) {
-            for (let y = 0; y < Math.min(c.alto, data.mapa.length); y++) {
-                for (let x = 0; x < Math.min(c.ancho, data.mapa[y].length); x++) {
-                    c.mapa.grid[y][x] = data.mapa[y][x];
+        // Restaurar mapa (grid) aceptando formatos antiguos y nuevos.
+        const mapaGuardado = Array.isArray(data.mapa)
+            ? data.mapa
+            : (Array.isArray(data.mapa?.grid) ? data.mapa.grid : null);
+
+        if (Array.isArray(mapaGuardado) && mapaGuardado.length > 0) {
+            for (let y = 0; y < Math.min(c.alto, mapaGuardado.length); y++) {
+                for (let x = 0; x < Math.min(c.ancho, mapaGuardado[y].length); x++) {
+                    c.mapa.grid[y][x] = mapaGuardado[y][x];
                 }
             }
         }
 
         // Reconstruir instancias de edificios desde el estado serializado
         c.edificios = (data.edificios || []).map(reconstruirEdificioDesdeEstado).filter(e => e !== null);
-        c.vias = data.vias || [];
+        c.vias = data.vias || data.roads || [];
         c.poblacion = data.poblacion || [];
         c.recursos = data.recursos || c.recursos;
         c.historicoRecursos = (data.historicoRecursos || []).slice(-20);
         c.crecimiento = data.crecimiento || c.crecimiento;
+
+        // Si el mapa vino vacío o incompleto, reconstruirlo desde vías y edificios.
+        const mapaVacio = !Array.isArray(c.mapa.grid)
+            || c.mapa.grid.length === 0
+            || !Array.isArray(c.mapa.grid[0]);
+
+        if (mapaVacio) {
+            c.mapa = new Mapa(c.ancho, c.alto);
+        }
+
+        const normalizarCelda = (x, y, tipo) => {
+            if (c.mapa.esCoordenadaValida(x, y)) {
+                c.mapa.grid[y][x] = tipo;
+            }
+        };
+
+        c.vias.forEach((via) => normalizarCelda(Number(via.x), Number(via.y), 'r'));
+        c.edificios.forEach((ed) => normalizarCelda(Number(ed.x), Number(ed.y), ed.tipo));
 
         if (!Array.isArray(c.historicoRecursos) || c.historicoRecursos.length === 0) {
             c.historicoRecursos = [];
