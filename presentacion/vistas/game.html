@@ -82,6 +82,7 @@
                     </div>
                     <button id="boton-construir">Construir</button>
                     <button id="boton-demoler">Demoler</button>
+                    <div id="estado-tipo-construccion" class="estado-tipo">Tipo seleccionado: <span id="tipo-seleccionado">r</span></div>
                 </section>
 
                 <section class="controles">
@@ -119,6 +120,76 @@
                 </section>
             </aside>
         </main>
+    </div>
+
+    <!-- Modal de creación/recuperación de ciudad (integrado en una sola página) -->
+    <div id="new-city-modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <h2>Crear o recuperar ciudad</h2>
+            <form id="new-city-form">
+                <label>
+                    Nombre de la ciudad
+                    <input id="input-ciudad" type="text" required maxlength="50" placeholder="Ej: Ciudad Verde" />
+                </label>
+                <label>
+                    Nombre del alcalde
+                    <input id="input-alcalde" type="text" required maxlength="50" placeholder="Ej: Ana" />
+                </label>
+                <label>
+                    Región
+                    <select id="input-region" required>
+                        <option value="">Selecciona</option>
+                        <option value="buenosaires">Buenos Aires</option>
+                        <option value="mexico">Ciudad de México</option>
+                        <option value="madrid">Madrid</option>
+                        <option value="colombia">Colombia</option>
+                        <option value="custom">Personalizada</option>
+                    </select>
+                </label>
+
+                <div id="region-colombia" class="region-grid hidden">
+                    <div>
+                        <label>Departamento</label>
+                        <select id="input-departamento">
+                            <option value="">Selecciona</option>
+                            <option value="Cundinamarca">Cundinamarca</option>
+                            <option value="Antioquia">Antioquia</option>
+                            <option value="Valle del Cauca">Valle del Cauca</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Municipio</label>
+                        <select id="input-municipio"><option value="">Selecciona municipio</option></select>
+                    </div>
+                </div>
+
+                <div id="region-custom" class="region-grid hidden">
+                    <div>
+                        <label>Latitud</label>
+                        <input id="input-lat" type="number" step="0.0001" placeholder="4.711" />
+                    </div>
+                    <div>
+                        <label>Longitud</label>
+                        <input id="input-lon" type="number" step="0.0001" placeholder="-74.072" />
+                    </div>
+                </div>
+
+                <label>
+                    Tamaño del mapa (15-30)
+                    <input id="input-tamano" type="number" min="15" max="30" value="20" required />
+                </label>
+
+                <div class="mapa-carga">
+                    <button type="button" id="boton-cargar-mapa">Cargar mapa desde archivo</button>
+                    <input id="input-mapa-archivo" type="file" accept=".txt" class="hidden" />
+                </div>
+                <div id="estado-mapa" class="estado-mapa">Opcional: cargar archivo de mapa</div>
+
+                <div class="modal-actions">
+                    <button type="submit">Iniciar con esta ciudad</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script type="module" src="../../negocio/app.js"></script>

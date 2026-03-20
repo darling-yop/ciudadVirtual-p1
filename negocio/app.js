@@ -17,18 +17,55 @@ class App {
                 this.actualizarUI();
             },
             onConstruir: (cell, tipo) => {
-                if (!cell) return;
-                const resultado = this.manager.construir(tipo, cell.x, cell.y);
-                if (!resultado.exito) {
-                    alert(resultado.mensaje);
+                const targetCell = cell || this.selectedCell || this.view.selectedCell;
+                const effectiveTipo = tipo || this.selectedTipo || this.view.selectedTipo;
+
+                if (!targetCell) {
+                    alert('Primero selecciona una celda en el mapa antes de construir.');
+                    console.error('Construir: no hay celda seleccionada', { cell, selectedCellApp: this.selectedCell, selectedCellView: this.view.selectedCell, tipo });
+                    return;
                 }
+
+                if (!effectiveTipo) {
+                    alert('Primero selecciona un tipo de construcción (R1, C1, I1, r, etc.).');
+                    console.error('Construir: no hay tipo seleccionado', { tipo, selectedTipoApp: this.selectedTipo, selectedTipoView: this.view.selectedTipo });
+                    return;
+                }
+
+                // Mostrar validación explícita antes de intentar construir
+                const puede = this.manager.ciudad?.puedeConstruir(effectiveTipo, targetCell.x, targetCell.y);
+                console.log('Validación de construcción:', { targetCell, effectiveTipo, puede });
+
+                if (!puede) {
+                    alert('No se puede construir aquí: verifica coordenada, disponibilidad o reglas de vía.');
+                    console.warn('Construcción bloqueada (puedeConstruir=false)', { targetCell, effectiveTipo });
+                    return;
+                }
+
+                const resultado = this.manager.construir(effectiveTipo, targetCell.x, targetCell.y);
+
+                if (!resultado.exito) {
+                    alert(`No se construyó: ${resultado.mensaje}`);
+                    console.warn('Construir fallido', resultado, { targetCell, effectiveTipo });
+                } else {
+                    alert(`Construcción realizada: ${effectiveTipo} en (${targetCell.x}, ${targetCell.y})`);
+                    console.log(`Construcción OK: ${effectiveTipo}@(${targetCell.x},${targetCell.y})`);
+                }
+
                 this.actualizarUI();
             },
             onDemoler: (cell) => {
-                if (!cell) return;
+                if (!cell) {
+                    alert('Primero selecciona una celda en el mapa antes de demoler.');
+                    return;
+                }
+
+                console.log('Intento demoler en', cell);
                 const resultado = this.manager.demoler(cell.x, cell.y);
                 if (!resultado.exito) {
-                    alert(resultado.mensaje);
+                    alert(`No se demolió: ${resultado.mensaje}`);
+                } else {
+                    console.log(`Demolición OK @(${cell.x},${cell.y})`);
                 }
                 this.actualizarUI();
             },

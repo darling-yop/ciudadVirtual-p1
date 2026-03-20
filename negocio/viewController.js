@@ -202,6 +202,13 @@ export class ViewController {
                 if (tipo) {
                     this.selectedTipo = tipo;
                     this._highlightSelectedTipo();
+                    console.log(`Construcción seleccionada: ${tipo}`);
+
+                    // Si ya hay celda seleccionada, aplicar construcción directa para mejor experiencia UX
+                    if (this.selectedCell && this.onConstruir) {
+                        console.log(`Intentando construir ${tipo} en (${this.selectedCell.x}, ${this.selectedCell.y})`);
+                        this.onConstruir(this.selectedCell, this.selectedTipo);
+                    }
                 }
             });
         });
@@ -418,6 +425,11 @@ export class ViewController {
                 btn.classList.remove('selected');
             }
         });
+
+        const tipoSelectedEl = document.getElementById('tipo-seleccionado');
+        if (tipoSelectedEl) {
+            tipoSelectedEl.textContent = this.selectedTipo || 'r';
+        }
     }
 
     renderizarMapa(matriz) {

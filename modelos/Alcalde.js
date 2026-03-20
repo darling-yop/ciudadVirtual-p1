@@ -44,8 +44,22 @@ class Alcalde {
         }
 
         // Validar reglas de construcción (costo, accesibilidad por vía, etc.)
+        if (!this.ciudad.mapa.esCoordenadaValida(x, y)) {
+            return { exito: false, mensaje: 'Coordenadas fuera del mapa.' };
+        }
+
+        if (!this.ciudad.mapa.estaDisponible(x, y)) {
+            const ocupante = this.ciudad.mapa.obtenerCelda(x, y);
+            return { exito: false, mensaje: `Celda no disponible (ya contiene ${ocupante}).` };
+        }
+
+        const costo = this.ciudad.obtenerCostoConstruccion(tipo);
+        if (this.ciudad.recursos.dinero < costo) {
+            return { exito: false, mensaje: `Dinero insuficiente. Requiere ${costo}, disponible ${this.ciudad.recursos.dinero}.` };
+        }
+
         if (!this.ciudad.puedeConstruir(tipo, x, y)) {
-            return { exito: false, mensaje: 'No se puede construir aquí (revisa costo, vía adyacente o celda ocupada).' };
+            return { exito: false, mensaje: 'No se puede construir aquí (revisa vía adyacente o reglas de construcción).' };
         }
 
         // Intentar construir el edificio a través del mapa
@@ -70,9 +84,11 @@ class Alcalde {
                 turno: this.ciudad.turnoActual
             });
             this.accionesTurno++;
+            console.log('Alcalde.construirEdificio: éxito', { tipo, x, y, costo });
             return { exito: true };
         }
 
+        console.warn('Alcalde.construirEdificio: fallo de Mapa.construirEdificio', { tipo, x, y });
         return { exito: false, mensaje: 'No se pudo construir en la celda seleccionada.' };
     }
 
