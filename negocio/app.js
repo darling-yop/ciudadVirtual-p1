@@ -149,7 +149,7 @@ class App {
             return;
         }
 
-        this.view.aplicarRuta(resultado.ruta);
+        await this.view.animarRuta(resultado.ruta);
         this.view.setEstadoRuta(`Ruta encontrada. Distancia: ${resultado.ruta.length - 1} celdas.`);
     }
 
