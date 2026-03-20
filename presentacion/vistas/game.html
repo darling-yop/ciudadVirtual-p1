@@ -13,6 +13,7 @@
             <div class="info-general">
                 <span id="turno">Turno: 0</span>
                 <span id="puntuacion">Puntuación: 0</span>
+                <span id="save-status" class="save-status">Guardado</span>
             </div>
             <div class="header-actions">
                 <a class="button-link" href="./index.html">Reiniciar Ciudad</a>
@@ -90,10 +91,18 @@
                     <button id="iniciar-servicios">Iniciar Servicios Externos</button>
                     <button id="boton-iniciar-turnos">Iniciar Turnos Automáticos</button>
                     <button id="boton-detener-turnos" disabled>Detener Turnos</button>
+                    <button id="boton-guardar-partida">Guardar Partida</button>
                     <button id="boton-exportar">Exportar JSON</button>
+                    <button id="boton-eliminar-partida" class="danger">Eliminar Partida</button>
                 </section>
 
-                <section class="rutas-panel">
+            </aside>
+
+            <section class="mapa-central">
+                <div id="info-celda">Seleccione una celda para interactuar</div>
+                <div id="grid-container"></div>
+
+                <section class="rutas-panel rutas-panel--mapa">
                     <h2>Calcular Ruta</h2>
                     <label for="ruta-origen">Edificio origen</label>
                     <select id="ruta-origen">
@@ -109,11 +118,6 @@
                     <button id="boton-limpiar-ruta" type="button">Limpiar Ruta</button>
                     <div id="estado-ruta" class="estado-ruta">Selecciona edificios para calcular una ruta.</div>
                 </section>
-            </aside>
-
-            <section class="mapa-central">
-                <div id="info-celda">Seleccione una celda para interactuar</div>
-                <div id="grid-container"></div>
             </section>
 
             <aside class="sidebar-right">
@@ -137,6 +141,17 @@
                 </section>
             </aside>
         </main>
+    </div>
+
+    <div id="continue-game-modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-content modal-content--compact">
+            <h2>Partida detectada</h2>
+            <p>¿Deseas continuar tu partida anterior o crear una nueva ciudad?</p>
+            <div class="modal-actions modal-actions--split">
+                <button id="boton-continuar-partida" type="button">Continuar</button>
+                <button id="boton-nueva-partida" type="button" class="secondary">Nueva Ciudad</button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal de creación/recuperación de ciudad (integrado en una sola página) -->

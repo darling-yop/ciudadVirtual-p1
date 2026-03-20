@@ -78,8 +78,11 @@ class App {
             onCalcularRuta: async (idOrigen, idDestino) => {
                 await this.calcularRuta(idOrigen, idDestino);
             },
-            onExportar: () => this.manager.exportToFile(),
+            onExportar: () => this.exportarCiudad(),
             onGuardar: () => this.manager.save(),
+            onEliminarPartida: () => this.eliminarPartida(),
+            onContinuarPartida: () => this.continuarPartidaGuardada(),
+            onNuevaPartida: () => this.iniciarNuevaPartidaDesdeCero(),
             onCancelar: () => {
                 this.selectedCell = null;
                 this.actualizarUI();
@@ -87,15 +90,49 @@ class App {
             onCrearCiudad: (data) => this.crearNuevaCiudad(data)
         });
 
-        // Si ya hay estado guardado, cargar normalmente; si no, pedir creación de ciudad.
+        window.addEventListener('city-save-status', (event) => {
+            const { status } = event.detail || {};
+            if (status === 'saving') {
+                this.view.setSaveStatus('Guardando...', 'saving');
+            } else if (status === 'error') {
+                this.view.setSaveStatus('Error al guardar', 'error');
+            } else {
+                this.view.setSaveStatus('Guardado', 'ok');
+            }
+        });
+
+        // Si hay estado guardado, pedir decisión explícita: continuar o nueva ciudad.
         const saved = CityRepository.load();
         if (saved) {
-            this.manager.init();
-            this.manager.iniciarAutoGuardado();
-            this.actualizarUI();
+            this.view.showContinueGameModal();
         } else {
             this.view.showNewCityModal();
         }
+    }
+
+    continuarPartidaGuardada() {
+        this.manager.init();
+        this.manager.iniciarAutoGuardado();
+        this.actualizarUI();
+    }
+
+    iniciarNuevaPartidaDesdeCero() {
+        this.manager.detenerAutoGuardado();
+        this.manager.ciudad = null;
+        CityRepository.clear();
+        this.view.showNewCityModal();
+    }
+
+    eliminarPartida() {
+        const confirmar = window.confirm('¿Seguro que deseas eliminar la partida guardada? Esta acción no se puede deshacer.');
+        if (!confirmar) return;
+
+        this.manager.detenerAutoGuardado();
+        this.manager.ciudad = null;
+        CityRepository.clear();
+        this.view.limpiarRuta();
+        this.view.showNewCityModal();
+        this.view.setSaveStatus('Sin partida guardada', 'ok');
     }
 
     crearNuevaCiudad({ nombre, alcalde, region, tamano, mapaTexto }) {
@@ -151,6 +188,13 @@ class App {
 
         await this.view.animarRuta(resultado.ruta);
         this.view.setEstadoRuta(`Ruta encontrada. Distancia: ${resultado.ruta.length - 1} celdas.`);
+    }
+
+    exportarCiudad() {
+        const filename = this.manager.exportToFile();
+        if (filename) {
+            alert(`Exportación completada: ${filename}`);
+        }
     }
 
     actualizarUI() {

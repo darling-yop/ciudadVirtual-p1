@@ -73,10 +73,11 @@ class CityManager {
 
     save() {
         if (!this.ciudad) return;
+        window.dispatchEvent(new CustomEvent('city-save-status', { detail: { status: 'saving' } }));
         const state = this.ciudad.toJSON();
 
         // Guardado local siempre
-        CityRepository.save(state);
+        const guardadoLocalExitoso = CityRepository.save(state);
 
         // Guardado remoto opcional (no obligatorio en modo offline)
         // Descomentar la línea `this.backendSyncEnabled = true` en el constructor para habilitarlo.
@@ -85,11 +86,43 @@ class CityManager {
                 console.warn('GameRepository.save omitido:', error);
             });
         }
+
+        window.dispatchEvent(new CustomEvent('city-save-status', {
+            detail: { status: guardadoLocalExitoso ? 'ok' : 'error' }
+        }));
     }
 
     exportToFile() {
         if (!this.ciudad) return;
-        CityRepository.exportToFile(this.ciudad.toJSON());
+
+        const estado = this.ciudad.toJSON();
+        const fecha = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const fechaToken = `${fecha.getFullYear()}${pad(fecha.getMonth() + 1)}${pad(fecha.getDate())}_${pad(fecha.getHours())}${pad(fecha.getMinutes())}`;
+        const nombreSeguro = (this.ciudad.nombre || 'ciudad')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_+|_+$/g, '');
+
+        const payload = {
+            cityName: estado.nombre,
+            mayor: estado.alcalde,
+            gridSize: { width: estado.ancho, height: estado.alto },
+            coordinates: estado.region?.coordenadas || { lat: null, lon: null },
+            turn: estado.turnoActual,
+            score: estado.puntuacionAcumulada,
+            map: estado.mapa,
+            buildings: estado.edificios,
+            roads: estado.vias,
+            resources: estado.recursos,
+            citizens: estado.poblacion,
+            population: estado.poblacion.length,
+            happiness: Math.round(this.ciudad.obtenerFelicidadPromedio?.() || 0)
+        };
+
+        const filename = `ciudad_${nombreSeguro || 'ciudad'}_${fechaToken}.json`;
+        CityRepository.exportToFile(payload, filename);
+        return filename;
     }
 
     procesarTurno() {

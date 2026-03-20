@@ -1084,3 +1084,180 @@ Reemplazar el cálculo local de rutas en frontend por el backend Python comparti
 - Se desacopla la estrategia de pathfinding del frontend.
 - Se centraliza el contrato de API de rutas en una sola capa (`RouteRepository`).
 - La UI queda preparada para evolución futura (por ejemplo health-check del backend o métricas de tiempo de respuesta).
+
+---
+
+# Corrección de Persistencia de Construcciones
+
+## Fecha
+20 de marzo de 2026
+
+## Problema reportado
+Las construcciones realizadas en el juego no persistían al refrescar la página o al volver a abrir el proyecto con Live Server.
+
+## Síntoma observado
+- El jugador construía correctamente en el mapa.
+- Visualmente la celda cambiaba de tipo.
+- Al recargar la página, los edificios construidos desaparecían.
+- En consola aparecían errores durante el proceso de guardado del estado.
+
+## Causa raíz
+
+### 1) Falla en serialización de edificios
+En `Ciudad.toJSON()` se serializaban los edificios con:
+
+```javascript
+this.edificios.map(e => e.obtenerEstado())
+```
+
+Si algún edificio no implementaba `obtenerEstado()`, el guardado completo fallaba y no se actualizaba LocalStorage.
+
+### 2) Creación incorrecta de edificios tipo `P1`
+En `modelos/EdificioFactory.js`, el tipo `P1` estaba siendo instanciado como clase base genérica en vez de usar `EdificioParques`.
+
+Eso provocaba inconsistencia de modelo y podía romper el guardado de partidas al serializar el arreglo de edificios.
+
+## Archivos modificados
+
+### 1) `modelos/EdificioFactory.js`
+**Corrección aplicada:**
+- Se cambió la creación de `P1` para utilizar `EdificioParques` en lugar de la clase base incorrecta.
+
+**Resultado:**
+- Los parques quedan instanciados con el comportamiento y serialización correctos.
+
+### 2) `modelos/Ciudad.js`
+**Corrección aplicada:**
+- Se reforzó `toJSON()` para serializar edificios de forma tolerante.
+- Si un edificio tiene `obtenerEstado()`, se usa ese método.
+- Si no lo tiene pero sigue siendo un objeto válido, se serializa con una estructura mínima compatible.
+- Los elementos inválidos se filtran para evitar que rompan el guardado completo.
+
+**Resultado:**
+- El guardado de la ciudad ya no falla por un solo edificio mal tipado o por un objeto legado.
+
+## Efecto funcional después del fix
+- Las construcciones nuevas se guardan correctamente.
+- Al refrescar la página, la ciudad conserva los edificios construidos.
+- El flujo `construir -> guardar -> refrescar` vuelve a ser consistente.
+- Se evita pérdida de progreso por errores de serialización.
+
+## Validación realizada
+- Construcción de nuevos edificios en el mapa.
+- Verificación de persistencia tras refrescar la página.
+- Confirmación del guardado correcto del estado sin pérdida de construcciones.
+
+---
+
+# Alineación con HU-020 y HU-021 (Persistencia y Exportación JSON)
+
+## Fecha
+20 de marzo de 2026
+
+## Objetivo
+Completar los ajustes faltantes para quedar a la par de los lineamientos del profesor en:
+- **HU-020: Guardar y Cargar Partida**
+- **HU-021: Exportar Estado de Ciudad a JSON**
+
+## Cambios implementados
+
+### 1) Flujo de carga: "Continuar" o "Nueva Ciudad"
+**Problema previo:** Si existía partida guardada, se cargaba automáticamente sin preguntar al jugador.
+
+**Implementación:**
+- Se agregó modal de decisión al detectar estado previo en LocalStorage.
+- Opciones disponibles:
+  - **Continuar**: carga la partida guardada.
+  - **Nueva Ciudad**: descarta el estado actual y abre el formulario de creación.
+
+**Archivos modificados:**
+- `presentacion/vistas/game.html`
+- `negocio/viewController.js`
+- `negocio/app.js`
+
+### 2) Indicador visual de guardado
+**Problema previo:** No existía feedback de guardado en UI.
+
+**Implementación:**
+- Se agregó indicador en el encabezado con estados:
+  - `Guardando...`
+  - `Guardado`
+  - `Error al guardar`
+- El estado se actualiza con eventos emitidos desde el flujo de persistencia.
+
+**Archivos modificados:**
+- `presentacion/vistas/game.html`
+- `presentacion/estilos/estilos.css`
+- `negocio/CityManager.js`
+- `negocio/viewController.js`
+- `negocio/app.js`
+
+### 3) Guardado manual y eliminación de partida
+**Implementación:**
+- Nuevo botón **Guardar Partida**.
+- Nuevo botón **Eliminar Partida** con confirmación.
+- Al eliminar:
+  - se limpia LocalStorage,
+  - se detiene autoguardado,
+  - se vuelve al flujo de creación de ciudad.
+
+**Archivos modificados:**
+- `presentacion/vistas/game.html`
+- `negocio/viewController.js`
+- `negocio/app.js`
+
+### 4) Histórico de recursos (últimos 20 turnos)
+**Problema previo:** No se conservaba histórico de recursos para análisis.
+
+**Implementación:**
+- Se agregó `historicoRecursos` en el modelo de ciudad.
+- Se registra snapshot de recursos:
+  - al inicializar estado,
+  - al cargar mapa,
+  - al finalizar cada turno.
+- Se limita a los últimos 20 registros.
+- Se persiste y restaura dentro de `toJSON()/fromJSON()`.
+
+**Archivo modificado:**
+- `modelos/Ciudad.js`
+
+### 5) Exportación JSON alineada con HU-021
+**Problema previo:** Exportación genérica y nombre de archivo fijo.
+
+**Implementación:**
+- Se ajustó payload exportado con campos alineados al formato esperado:
+  - `cityName`, `mayor`, `gridSize`, `coordinates`, `turn`, `score`,
+  - `map`, `buildings`, `roads`, `resources`, `citizens`, `population`, `happiness`.
+- Nombre de archivo actualizado al patrón:
+  - `ciudad_{nombre}_{fecha}.json`
+- Se muestra notificación de éxito tras exportar.
+
+**Archivos modificados:**
+- `negocio/CityManager.js`
+- `negocio/app.js`
+
+## Cumplimiento resultante
+
+### HU-020
+- Guardado automático en LocalStorage cada 30 segundos ✅
+- Guardado del estado completo serializado a JSON ✅
+- Carga de partida con decisión del usuario (continuar/nueva) ✅
+- Reconstrucción de estado al continuar ✅
+- Indicador visual de guardado ✅
+- Guardado manual ✅
+- Eliminación de partida con confirmación ✅
+
+### HU-021
+- Exportación manual a archivo JSON ✅
+- Nombre de archivo con patrón solicitado ✅
+- Estructura de JSON alineada al lineamiento ✅
+- Notificación de éxito al exportar ✅
+
+## Validación
+- Verificación de errores en archivos modificados: **sin errores reportados**.
+- Flujo funcional esperado:
+  1. Crear/continuar partida
+  2. Construir y procesar turnos
+  3. Guardado automático/manual visible
+  4. Recarga de sesión sin pérdida de estado
+  5. Exportación JSON con formato solicitado
