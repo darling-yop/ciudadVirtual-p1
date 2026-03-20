@@ -22,6 +22,7 @@ export class ViewController {
         onEliminarPartida,
         onContinuarPartida,
         onNuevaPartida,
+        onAbrirSelectorCiudades,
         onCrearCiudad,
         onCancelar
     } = {}) {
@@ -38,6 +39,7 @@ export class ViewController {
         this.onEliminarPartida = onEliminarPartida;
         this.onContinuarPartida = onContinuarPartida;
         this.onNuevaPartida = onNuevaPartida;
+        this.onAbrirSelectorCiudades = onAbrirSelectorCiudades;
         this.onCrearCiudad = onCrearCiudad;
         this.onCancelar = onCancelar;
 
@@ -74,6 +76,7 @@ export class ViewController {
             turno: document.getElementById('turno'),
             puntuacion: document.getElementById('puntuacion'),
             saveStatus: document.getElementById('save-status'),
+            botonElegirCiudad: document.getElementById('boton-elegir-ciudad'),
             recursosContenido: document.getElementById('recursos-contenido'),
             climaContenido: document.getElementById('clima-contenido'),
             noticiasContenido: document.getElementById('noticias-contenido'),
@@ -97,9 +100,9 @@ export class ViewController {
             recursosPanel: document.querySelector('.recursos-panel'),
             tipoButtons: Array.from(document.querySelectorAll('.construccion-menu button[data-tipo]')),
             continueGameModal: document.getElementById('continue-game-modal'),
-            botonContinuarPartida: document.getElementById('boton-continuar-partida'),
+            savedCitiesList: document.getElementById('saved-cities-list'),
+            savedCitiesEmpty: document.getElementById('saved-cities-empty'),
             botonNuevaPartida: document.getElementById('boton-nueva-partida'),
-            botonEliminarPartidaModal: document.getElementById('boton-eliminar-partida-modal'),
             newCityModal: document.getElementById('new-city-modal'),
             newCityForm: document.getElementById('new-city-form'),
             inputCiudad: document.getElementById('input-ciudad'),
@@ -155,24 +158,15 @@ export class ViewController {
             });
         }
 
-        if (this.el.botonContinuarPartida) {
-            this.el.botonContinuarPartida.addEventListener('click', () => {
-                this.hideContinueGameModal();
-                this.onContinuarPartida?.();
+        if (this.el.botonElegirCiudad) {
+            this.el.botonElegirCiudad.addEventListener('click', () => {
+                this.onAbrirSelectorCiudades?.();
             });
         }
 
         if (this.el.botonNuevaPartida) {
             this.el.botonNuevaPartida.addEventListener('click', () => {
-                this.hideContinueGameModal();
                 this.onNuevaPartida?.();
-            });
-        }
-
-        if (this.el.botonEliminarPartidaModal) {
-            this.el.botonEliminarPartidaModal.addEventListener('click', () => {
-                this.hideContinueGameModal();
-                this.onEliminarPartida?.();
             });
         }
 
@@ -344,6 +338,68 @@ export class ViewController {
 
         if (estado === 'saving') this.el.saveStatus.classList.add('saving');
         if (estado === 'error') this.el.saveStatus.classList.add('error');
+    }
+
+    renderSavedCities(ciudades = [], activeCityId = null) {
+        if (!this.el.savedCitiesList || !this.el.savedCitiesEmpty) return;
+
+        this.el.savedCitiesList.innerHTML = '';
+        this.el.savedCitiesEmpty.classList.toggle('hidden', ciudades.length > 0);
+
+        const formatearFecha = (fechaIso) => {
+            if (!fechaIso) return 'Sin fecha';
+            const fecha = new Date(fechaIso);
+            if (Number.isNaN(fecha.getTime())) return 'Sin fecha';
+            return fecha.toLocaleString('es-CO');
+        };
+
+        ciudades.forEach((ciudad) => {
+            const item = document.createElement('article');
+            item.className = `saved-city-item${ciudad.id === activeCityId ? ' saved-city-item--active' : ''}`;
+
+            const info = document.createElement('div');
+            info.className = 'saved-city-item__info';
+
+            const titulo = document.createElement('h3');
+            titulo.textContent = ciudad.nombre || 'Ciudad sin nombre';
+            info.appendChild(titulo);
+
+            const meta = document.createElement('p');
+            meta.className = 'saved-city-item__meta';
+            meta.textContent = `Alcalde: ${ciudad.alcalde} | Turno: ${ciudad.turno} | Puntuación: ${ciudad.puntuacion} | Actualizado: ${formatearFecha(ciudad.updatedAt)}`;
+            info.appendChild(meta);
+
+            if (ciudad.id === activeCityId) {
+                const badge = document.createElement('span');
+                badge.className = 'saved-city-item__badge';
+                badge.textContent = 'Activa';
+                info.appendChild(badge);
+            }
+
+            const actions = document.createElement('div');
+            actions.className = 'saved-city-item__actions';
+
+            const cargarBtn = document.createElement('button');
+            cargarBtn.type = 'button';
+            cargarBtn.textContent = 'Cargar';
+            cargarBtn.addEventListener('click', () => {
+                this.onContinuarPartida?.(ciudad.id);
+            });
+
+            const eliminarBtn = document.createElement('button');
+            eliminarBtn.type = 'button';
+            eliminarBtn.className = 'danger';
+            eliminarBtn.textContent = 'Eliminar';
+            eliminarBtn.addEventListener('click', () => {
+                this.onEliminarPartida?.(ciudad.id);
+            });
+
+            actions.appendChild(cargarBtn);
+            actions.appendChild(eliminarBtn);
+            item.appendChild(info);
+            item.appendChild(actions);
+            this.el.savedCitiesList.appendChild(item);
+        });
     }
 
     _updateRegionInputs() {

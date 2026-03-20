@@ -16,6 +16,7 @@
                 <span id="save-status" class="save-status">Guardado</span>
             </div>
             <div class="header-actions">
+                <button id="boton-elegir-ciudad" class="button-link button-link--button" type="button">Elegir Ciudad</button>
                 <a class="button-link" href="./index.html">Reiniciar Ciudad</a>
                 <button id="toggle-recursos" class="mob-only" type="button">Recursos</button>
             </div>
@@ -143,12 +144,12 @@
 
     <div id="continue-game-modal" class="modal hidden" role="dialog" aria-modal="true">
         <div class="modal-content modal-content--compact">
-            <h2>Partida detectada</h2>
-            <p>¿Deseas continuar tu partida anterior o crear una nueva ciudad?</p>
+            <h2>Elegir ciudad</h2>
+            <p>Selecciona una ciudad guardada para continuar con su último progreso o crea una nueva.</p>
+            <div id="saved-cities-list" class="saved-cities-list"></div>
+            <p id="saved-cities-empty" class="saved-cities-empty hidden">No hay ciudades guardadas.</p>
             <div class="modal-actions modal-actions--split">
-                <button id="boton-continuar-partida" type="button">Continuar</button>
                 <button id="boton-nueva-partida" type="button" class="secondary">Nueva Ciudad</button>
-                <button id="boton-eliminar-partida-modal" type="button" class="danger">Eliminar Guardado</button>
             </div>
         </div>
     </div>

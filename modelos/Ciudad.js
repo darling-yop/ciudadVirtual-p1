@@ -4,10 +4,21 @@ import ServicioNoticias from '../acceso_datos/ServicioNoticias.js?v=2';
 import { Alcalde } from './Alcalde.js';
 import { crearEdificioDesdeTipo, reconstruirEdificioDesdeEstado } from './EdificioFactory.js';
 import { Mapa } from './Mapa.js';
+
+function generarIdCiudad(nombre = 'ciudad') {
+    const base = String(nombre)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'ciudad';
+
+    return `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 class Ciudad {
     constructor(nombre, nombreAlcalde, region, ancho, alto) {
         // Identificación de la ciudad
         this.nombre = (nombre || "Nueva Ciudad").substring(0, 50);
+        this.cityId = generarIdCiudad(this.nombre);
         
         // Alcalde que gestiona la ciudad
         this.alcalde = new Alcalde(1, nombreAlcalde ? nombreAlcalde.substring(0, 50) : "Alcalde", this);
@@ -980,6 +991,7 @@ class Ciudad {
             .filter(Boolean);
 
         return {
+            cityId: this.cityId,
             nombre: this.nombre,
             alcalde: this.alcalde ? this.alcalde.nombre : null,
             region: this.region,
@@ -1012,6 +1024,7 @@ class Ciudad {
         };
 
         const c = new Ciudad(nombre, alcalde, region, ancho, alto);
+        c.cityId = data.cityId || generarIdCiudad(nombre);
         c.turnoActual = data.turnoActual || 0;
         c.puntuacionAcumulada = data.puntuacionAcumulada || 0;
 
@@ -1067,6 +1080,7 @@ class Ciudad {
      */
     obtenerEstadoGeneral() {
         return {
+            cityId: this.cityId,
             nombre: this.nombre,
             turno: this.turnoActual,
             puntuacion: this.puntuacionAcumulada,

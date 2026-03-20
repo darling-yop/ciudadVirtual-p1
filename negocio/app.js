@@ -80,9 +80,10 @@ class App {
             },
             onExportar: () => this.exportarCiudad(),
             onGuardar: () => this.manager.save(),
-            onEliminarPartida: () => this.eliminarPartida(),
-            onContinuarPartida: () => this.continuarPartidaGuardada(),
+            onEliminarPartida: (cityId) => this.eliminarPartida(cityId),
+            onContinuarPartida: (cityId) => this.continuarPartidaGuardada(cityId),
             onNuevaPartida: () => this.iniciarNuevaPartidaDesdeCero(),
+            onAbrirSelectorCiudades: () => this.mostrarSelectorCiudades(),
             onCancelar: () => {
                 this.selectedCell = null;
                 this.actualizarUI();
@@ -101,38 +102,66 @@ class App {
             }
         });
 
-        // Si hay estado guardado, pedir decisión explícita: continuar o nueva ciudad.
-        const saved = CityRepository.load();
-        if (saved) {
-            this.view.showContinueGameModal();
+        if (CityRepository.hasSaves()) {
+            this.mostrarSelectorCiudades();
         } else {
             this.view.showNewCityModal();
         }
     }
 
-    continuarPartidaGuardada() {
-        this.manager.init();
+    mostrarSelectorCiudades() {
+        const partidas = CityRepository.listSaves();
+        if (partidas.length === 0) {
+            this.view.hideContinueGameModal();
+            this.view.showNewCityModal();
+            return;
+        }
+
+        this.view.renderSavedCities(partidas, CityRepository.getActiveSaveId());
+        this.view.showContinueGameModal();
+    }
+
+    continuarPartidaGuardada(cityId = null) {
+        this.manager.init(cityId);
         this.manager.iniciarAutoGuardado();
         this.actualizarUI();
+        this.view.hideContinueGameModal();
     }
 
     iniciarNuevaPartidaDesdeCero() {
-        this.manager.detenerAutoGuardado();
-        this.manager.ciudad = null;
-        CityRepository.clear();
+        this.view.hideContinueGameModal();
         this.view.showNewCityModal();
     }
 
-    eliminarPartida() {
+    eliminarPartida(cityId = null) {
+        const targetCityId = cityId || CityRepository.getActiveSaveId();
+        if (!targetCityId) {
+            this.view.showNewCityModal();
+            return;
+        }
+
         const confirmar = window.confirm('¿Seguro que deseas eliminar la partida guardada? Esta acción no se puede deshacer.');
         if (!confirmar) return;
 
-        this.manager.detenerAutoGuardado();
-        this.manager.ciudad = null;
-        CityRepository.clear();
+        const esCiudadActiva = this.manager.ciudad?.cityId === targetCityId;
+        const restantes = CityRepository.deleteSave(targetCityId);
+
+        if (esCiudadActiva) {
+            this.manager.detenerAutoGuardado();
+            this.manager.ciudad = null;
+        }
+
         this.view.limpiarRuta();
+
+        if (restantes.length > 0) {
+            this.view.setSaveStatus('Partida eliminada', 'ok');
+            this.mostrarSelectorCiudades();
+            return;
+        }
+
+        this.view.hideContinueGameModal();
         this.view.showNewCityModal();
-        this.view.setSaveStatus('Sin partida guardada', 'ok');
+        this.view.setSaveStatus('Sin partidas guardadas', 'ok');
     }
 
     crearNuevaCiudad({ nombre, alcalde, region, tamano, mapaTexto }) {
@@ -147,6 +176,7 @@ class App {
             }
         }
 
+        this.manager.activeCityId = this.manager.ciudad.cityId;
         this.manager.save();
         this.manager.iniciarAutoGuardado();
         this.actualizarUI();
