@@ -1,0 +1,79 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0f2e4b 0%, #10294d 40%, #1f496f 100%);
+    color: #f8f8f8;
+}
+
+.setup-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+}
+
+.setup-card {
+    width: min(520px, 90%);
+    background: rgba(16, 37, 63, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(177, 211, 234, 0.25);
+    padding: 28px;
+}
+
+.setup-card h1 {
+    font-size: 1.4rem;
+    margin-bottom: 18px;
+    text-align: center;
+    color: #ffd85b;
+}
+
+.setup-card form {
+    display: grid;
+    gap: 14px;
+}
+
+.setup-card label {
+    display: grid;
+    gap: 6px;
+    color: #e5f4ff;
+    font-weight: 600;
+}
+
+.setup-card input,
+.setup-card select {
+    width: 100%;
+    border-radius: 7px;
+    border: 1px solid #507ea6;
+    background: rgba(22, 56, 89, 0.9);
+    color: #fff;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+}
+
+.setup-card button {
+    margin-top: 8px;
+    padding: 11px;
+    border: none;
+    border-radius: 7px;
+    background: #31a9f6;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.setup-card button:hover {
+    background: #2091d9;
+}
+
+.helper-text {
+    color: #ffdede;
+    background: rgba(190, 48, 67, 0.25);
+    border: 1px solid #d45a71;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 0.9rem;
+    min-height: 28px;
+}
