@@ -36,6 +36,21 @@ export class ViewController {
         this.mapaTexto = null;
         this.mapaGrid = null;
 
+        this.colombiaMunicipios = {
+            'Cundinamarca': {
+                'Bogotá': { lat: 4.711, lon: -74.072 },
+                'Soacha': { lat: 4.579, lon: -74.212 }
+            },
+            'Antioquia': {
+                'Medellín': { lat: 6.244, lon: -75.581 },
+                'Envigado': { lat: 6.159, lon: -75.578 }
+            },
+            'Valle del Cauca': {
+                'Cali': { lat: 3.451, lon: -76.531 },
+                'Palmira': { lat: 3.539, lon: -76.303 }
+            }
+        };
+
         this._bindElements();
         this._bindEvents();
     }
@@ -71,6 +86,9 @@ export class ViewController {
             inputLon: document.getElementById('input-lon'),
             inputTamano: document.getElementById('input-tamano'),
             regionCustom: document.getElementById('region-custom'),
+            regionColombia: document.getElementById('region-colombia'),
+            inputDepartamento: document.getElementById('input-departamento'),
+            inputMunicipio: document.getElementById('input-municipio'),
             botonCargarMapa: document.getElementById('boton-cargar-mapa'),
             inputMapaArchivo: document.getElementById('input-mapa-archivo'),
             estadoMapa: document.getElementById('estado-mapa')
@@ -160,6 +178,12 @@ export class ViewController {
             });
         }
 
+        if (this.el.inputDepartamento) {
+            this.el.inputDepartamento.addEventListener('change', () => {
+                this._populateMunicipios(this.el.inputDepartamento.value);
+            });
+        }
+
         if (this.el.botonConstruir) {
             this.el.botonConstruir.addEventListener('click', () => {
                 this.onConstruir?.(this.selectedCell, this.selectedTipo);
@@ -240,9 +264,32 @@ export class ViewController {
     }
 
     _updateRegionInputs() {
-        if (!this.el.inputRegion || !this.el.regionCustom) return;
-        const isCustom = this.el.inputRegion.value === 'custom';
+        if (!this.el.inputRegion || !this.el.regionCustom || !this.el.regionColombia) return;
+
+        const value = this.el.inputRegion.value;
+        const isCustom = value === 'custom';
+        const isColombia = value === 'colombia';
+
         this.el.regionCustom.classList.toggle('hidden', !isCustom);
+        this.el.regionColombia.classList.toggle('hidden', !isColombia);
+
+        if (isColombia && this.el.inputDepartamento?.value) {
+            this._populateMunicipios(this.el.inputDepartamento.value);
+        }
+    }
+
+    _populateMunicipios(departamento) {
+        if (!this.el.inputMunicipio || !departamento) return;
+
+        const municipios = this.colombiaMunicipios[departamento] || {};
+        this.el.inputMunicipio.innerHTML = '<option value="">Selecciona municipio</option>';
+
+        Object.keys(municipios).forEach(mun => {
+            const option = document.createElement('option');
+            option.value = mun;
+            option.textContent = mun;
+            this.el.inputMunicipio.appendChild(option);
+        });
     }
 
     _gatherNewCityData() {
@@ -268,6 +315,27 @@ export class ViewController {
         };
 
         let region = regiones[regionKey];
+        if (regionKey === 'colombia') {
+            const departamento = this.el.inputDepartamento?.value;
+            const municipio = this.el.inputMunicipio?.value;
+
+            if (!departamento || !municipio) {
+                alert('Selecciona departamento y municipio en Colombia.');
+                return null;
+            }
+
+            const coordenadas = this.colombiaMunicipios[departamento]?.[municipio];
+            if (!coordenadas) {
+                alert('No se encontraron coordenadas para el municipio seleccionado.');
+                return null;
+            }
+
+            region = {
+                nombre: `${municipio}, ${departamento}`,
+                coordenadas
+            };
+        }
+
         if (regionKey === 'custom') {
             const lat = parseFloat(this.el.inputLat?.value);
             const lon = parseFloat(this.el.inputLon?.value);

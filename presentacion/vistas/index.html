@@ -21,14 +21,36 @@
                         <input id="input-alcalde" type="text" maxlength="50" required />
                     </label>
                     <label>
-                        Región
+                        Región geográfica
                         <select id="input-region" required>
                             <option value="buenosaires" selected>Buenos Aires (LAT -34.6037, LON -58.3816)</option>
                             <option value="mexico">Ciudad de México (LAT 19.4326, LON -99.1332)</option>
                             <option value="madrid">Madrid (LAT 40.4168, LON -3.7038)</option>
-                            <option value="custom">Personalizada (lat/lon)</option>
+                            <option value="colombia">Colombia (seleccionar departamento/municipio)</option>
+                            <option value="custom">Ingresar coordenadas</option>
                         </select>
                     </label>
+
+                    <div id="region-colombia" class="hidden">
+                        <div class="region-grid">
+                            <label>
+                                Departamento
+                                <select id="input-departamento">
+                                    <option value="">Selecciona departamento</option>
+                                    <option value="Cundinamarca">Cundinamarca</option>
+                                    <option value="Antioquia">Antioquia</option>
+                                    <option value="Valle del Cauca">Valle del Cauca</option>
+                                </select>
+                            </label>
+                            <label>
+                                Municipio
+                                <select id="input-municipio">
+                                    <option value="">Selecciona municipio</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
                     <div id="region-custom" class="hidden">
                         <label>
                             Latitud
@@ -60,6 +82,14 @@
                             <option value="30">30x30</option>
                         </select>
                     </label>
+
+                    <section class="recursos-iniciales">
+                        <h3>Recursos iniciales</h3>
+                        <div class="recurso"><span>Dinero:</span><span>$50,000</span></div>
+                        <div class="recurso"><span>Electricidad:</span><span>0 MW</span></div>
+                        <div class="recurso"><span>Agua:</span><span>0 m³</span></div>
+                        <div class="recurso"><span>Comida:</span><span>0 unidades</span></div>
+                    </section>
                     <div class="mapa-carga">
                         <button type="button" id="boton-cargar-mapa">Cargar Mapa (.txt)</button>
                         <input id="input-mapa-archivo" type="file" accept=".txt" style="display:none" />
