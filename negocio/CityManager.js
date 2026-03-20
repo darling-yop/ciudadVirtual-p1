@@ -149,7 +149,16 @@ class CityManager {
         }
 
         console.log('CityManager.construir: construcción exitosa', { tipo, x, y });
-        this.save();
+        try {
+            this.save();
+        } catch (error) {
+            console.error('CityManager.construir: construcción aplicada pero falló el guardado', error);
+            return {
+                ...resultado,
+                mensaje: 'Construcción realizada, pero ocurrió un error al guardar el estado.'
+            };
+        }
+
         return resultado;
     }
 
@@ -169,6 +178,14 @@ class CityManager {
 
         this.save();
         return { exito: true, mensaje: 'Demolición realizada.' };
+    }
+
+    async planificarRuta(idEdificioOrigen, idEdificioDestino) {
+        if (!this.ciudad || !this.ciudad.alcalde) {
+            return { exito: false, error: 'Ciudad no iniciada.' };
+        }
+
+        return await this.ciudad.alcalde.planificarRuta(idEdificioOrigen, idEdificioDestino);
     }
 }
 

@@ -997,7 +997,13 @@ class Ciudad {
                 industriales: this.edificios.filter(e => e.tipo.startsWith('I')).length,
                 servicios: this.edificios.filter(e => e.tipo.startsWith('S')).length,
                 utilidades: this.edificios.filter(e => e.tipo.startsWith('U')).length,
-                parques: this.edificios.filter(e => e.tipo === 'P1').length
+                parques: this.edificios.filter(e => e.tipo === 'P1').length,
+                lista: this.edificios.map(e => ({
+                    id: e.id,
+                    tipo: e.tipo,
+                    x: e.x,
+                    y: e.y
+                }))
             },
             recursos: {
                 dinero: this.recursos.dinero,

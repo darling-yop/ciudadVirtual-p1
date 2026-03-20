@@ -955,3 +955,132 @@ Análisis derivados:
 - **Factory Pattern**: Métodos `agregar*` actúan como entry points
 - **Validation**: Todas las operaciones validan precondiciones
 - **Immutability**: Métodos getter no modifican state
+
+---
+
+# Integración Frontend-Backend de Rutas (Algoritmo del Profesor)
+
+## Fecha
+20 de marzo de 2026
+
+## Objetivo
+Reemplazar el cálculo local de rutas en frontend por el backend Python compartido por el profesor, manteniendo la experiencia del juego y alineando el flujo con HU-012 (cálculo de ruta óptima por API).
+
+## Resumen funcional
+- El cálculo de ruta ahora se realiza contra `POST http://127.0.0.1:5000/api/calculate-route`.
+- El frontend convierte el mapa al formato requerido por el backend:
+  - `1` para vías (`r`)
+  - `0` para celdas no transitables (edificios y terreno).
+- Las coordenadas se convierten de formato frontend `(x, y)` a formato backend `[fila, columna]` y se reconvierten al recibir la respuesta.
+- Se agregó panel visual en el juego para seleccionar edificio origen/destino, calcular ruta y limpiar ruta.
+- La ruta retornada se resalta en el mapa.
+
+## Archivos creados
+
+### 1) `acceso_datos/RouteRepository.js`
+**Responsabilidad:** cliente HTTP para el backend de rutas.
+
+**Implementado:**
+- Configuración de endpoint por defecto: `http://127.0.0.1:5000/api/calculate-route`.
+- Conversión de matriz de mapa a binario esperado por el backend.
+- Conversión de coordenadas:
+  - Frontend a backend: `(x,y)` -> `[y,x]`
+  - Backend a frontend: `[fila,columna]` -> `{x, y}`
+- Manejo de errores de red y errores HTTP del backend con mensajes claros para la UI.
+
+## Archivos modificados
+
+### 2) `modelos/Alcalde.js`
+**Cambio principal:** `planificarRuta(...)` pasa de síncrono a asíncrono para consultar el backend.
+
+**Detalle:**
+- Se añadió import de `RouteRepository`.
+- Se mantiene la validación de edificios y coordenadas.
+- Se reemplaza el uso de Dijkstra local por `RouteRepository.calculateRoute(...)`.
+- Se conserva el formato de retorno de dominio `{ exito, ruta, error }` y el registro de decisión del alcalde.
+
+### 3) `negocio/CityManager.js`
+**Cambio principal:** nuevo método `async planificarRuta(idEdificioOrigen, idEdificioDestino)`.
+
+**Detalle:**
+- Encapsula la llamada a `this.ciudad.alcalde.planificarRuta(...)`.
+- Devuelve error controlado si la ciudad no está iniciada.
+
+### 4) `modelos/Ciudad.js`
+**Cambio principal:** ampliación de estado para alimentar la UI de rutas.
+
+**Detalle:**
+- En `obtenerEstadoGeneral()`, dentro de `edificios`, se agregó `lista` con:
+  - `id`
+  - `tipo`
+  - `x`
+  - `y`
+- Esto permite poblar los selectores de origen/destino en frontend sin acoplar la vista a la estructura interna del modelo.
+
+### 5) `presentacion/vistas/game.html`
+**Cambio principal:** se agregó el panel de cálculo de rutas.
+
+**Detalle UI agregado:**
+- Selector de edificio origen.
+- Selector de edificio destino.
+- Botón `Calcular Ruta`.
+- Botón `Limpiar Ruta`.
+- Área de estado para mensajes de éxito/error.
+
+### 6) `negocio/viewController.js`
+**Cambio principal:** soporte de interacción y render de rutas en vista.
+
+**Detalle:**
+- Nuevas referencias DOM para el panel de rutas.
+- Nuevos eventos:
+  - click en `Calcular Ruta` (callback asíncrono hacia App)
+  - click en `Limpiar Ruta`
+- Nuevos métodos:
+  - `renderOpcionesRuta(edificios)`
+  - `aplicarRuta(ruta)`
+  - `limpiarRuta()`
+  - `setEstadoRuta(mensaje, esError)`
+- Durante `renderizarMapa`, se agregan clases de resaltado a celdas que pertenezcan a la ruta actual.
+
+### 7) `negocio/app.js`
+**Cambio principal:** orquestación de flujo completo de rutas.
+
+**Detalle:**
+- Se añadió callback `onCalcularRuta` al crear `ViewController`.
+- Se agregó método `async calcularRuta(idEdificioOrigen, idEdificioDestino)`:
+  - valida selección,
+  - llama a `CityManager.planificarRuta(...)`,
+  - muestra errores,
+  - aplica resaltado de ruta al éxito.
+- En `actualizarUI()`, se llama `renderOpcionesRuta(...)` para mantener sincronizados los selectores.
+- Se limpia ruta automáticamente al:
+  - construir,
+  - demoler,
+  - procesar turno.
+
+### 8) `presentacion/estilos/estilos.css`
+**Cambio principal:** estilos visuales para el sistema de rutas.
+
+**Detalle:**
+- Nueva clase `.map-cell--route` para resaltar el recorrido calculado.
+- Nuevos estilos para el panel `.rutas-panel`.
+- Estados visuales para mensajes (`.estado-ruta` y `.estado-ruta.error`).
+
+### 9) `.vscode/settings.json`
+**Nota:** se creó configuración de entorno de Python en el workspace. No impacta la lógica del juego ni la integración de rutas; es configuración de editor.
+
+## Comportamiento esperado después de los cambios
+1. El usuario construye al menos dos edificios y vías conectadas.
+2. En `Calcular Ruta`, selecciona origen y destino.
+3. El frontend envía solicitud al backend del profesor.
+4. Si hay ruta, se resalta sobre el mapa y se muestra distancia.
+5. Si no hay ruta o backend no responde, se muestra mensaje de error en panel.
+
+## Validación realizada
+- Verificación estática de errores sobre archivos modificados: sin errores reportados por el editor.
+- Integración alineada con el README del backend (endpoint, formato de mapa y coordenadas).
+
+## Impacto técnico
+- Se desacopla la estrategia de pathfinding del frontend.
+- Se centraliza el contrato de API de rutas en una sola capa (`RouteRepository`).
+- La UI queda preparada para evolución futura (por ejemplo health-check del backend o métricas de tiempo de respuesta).
