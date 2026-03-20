@@ -1,219 +1,45 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Ciudad</title>
-    <link rel="stylesheet" href="../estilos/estilos.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configuración Inicial - Ciudad Virtual</title>
+    <link rel="stylesheet" href="../estilos/setup.css" />
 </head>
 <body>
-    <div class="container">
-        <div id="new-city-modal" class="modal hidden">
-            <div class="modal-content">
-                <h2>Crear Nueva Ciudad</h2>
-                <form id="new-city-form">
-                    <label>
-                        Nombre de la ciudad
-                        <input id="input-ciudad" type="text" maxlength="50" required />
-                    </label>
-                    <label>
-                        Nombre del alcalde
-                        <input id="input-alcalde" type="text" maxlength="50" required />
-                    </label>
-                    <label>
-                        Región geográfica
-                        <select id="input-region" required>
-                            <option value="buenosaires" selected>Buenos Aires (LAT -34.6037, LON -58.3816)</option>
-                            <option value="mexico">Ciudad de México (LAT 19.4326, LON -99.1332)</option>
-                            <option value="madrid">Madrid (LAT 40.4168, LON -3.7038)</option>
-                            <option value="colombia">Colombia (seleccionar departamento/municipio)</option>
-                            <option value="custom">Ingresar coordenadas</option>
-                        </select>
-                    </label>
+    <main class="setup-container">
+        <section class="setup-card">
+            <h1>Creación de Nueva Ciudad (HU-001)</h1>
+            <form id="setup-form">
+                <label>
+                    Nombre de la ciudad *
+                    <input id="nombre-ciudad" type="text" maxlength="50" placeholder="Ej: Springfield" required />
+                </label>
+                <label>
+                    Nombre del alcalde *
+                    <input id="nombre-alcalde" type="text" maxlength="50" placeholder="Ej: Homer Simpson" required />
+                </label>
+                <label>
+                    Región geográfica *
+                    <select id="region" required>
+                        <option value="">Selecciona</option>
+                        <option value="Bogotá">Bogotá</option>
+                        <option value="Medellín">Medellín</option>
+                        <option value="Cali">Cali</option>
+                    </select>
+                </label>
+                <label>
+                    Tamaño del mapa *
+                    <input id="tamano-mapa" type="number" min="15" max="30" value="20" required />
+                </label>
 
-                    <div id="region-colombia" class="hidden">
-                        <div class="region-grid">
-                            <label>
-                                Departamento
-                                <select id="input-departamento">
-                                    <option value="">Selecciona departamento</option>
-                                    <option value="Cundinamarca">Cundinamarca</option>
-                                    <option value="Antioquia">Antioquia</option>
-                                    <option value="Valle del Cauca">Valle del Cauca</option>
-                                </select>
-                            </label>
-                            <label>
-                                Municipio
-                                <select id="input-municipio">
-                                    <option value="">Selecciona municipio</option>
-                                </select>
-                            </label>
-                        </div>
-                    </div>
+                <div class="helper-text" id="error-msg" aria-live="polite"></div>
 
-                    <div id="region-custom" class="hidden">
-                        <label>
-                            Latitud
-                            <input id="input-lat" type="number" step="0.0001" value="0" />
-                        </label>
-                        <label>
-                            Longitud
-                            <input id="input-lon" type="number" step="0.0001" value="0" />
-                        </label>
-                    </div>
-                    <label>
-                        Tamaño del mapa
-                        <select id="input-tamano" required>
-                            <option value="15">15x15</option>
-                            <option value="16">16x16</option>
-                            <option value="17">17x17</option>
-                            <option value="18">18x18</option>
-                            <option value="19">19x19</option>
-                            <option value="20" selected>20x20</option>
-                            <option value="21">21x21</option>
-                            <option value="22">22x22</option>
-                            <option value="23">23x23</option>
-                            <option value="24">24x24</option>
-                            <option value="25">25x25</option>
-                            <option value="26">26x26</option>
-                            <option value="27">27x27</option>
-                            <option value="28">28x28</option>
-                            <option value="29">29x29</option>
-                            <option value="30">30x30</option>
-                        </select>
-                    </label>
+                <button type="submit">Crear ciudad y continuar</button>
+            </form>
+        </section>
+    </main>
 
-                    <section class="recursos-iniciales">
-                        <h3>Recursos iniciales</h3>
-                        <div class="recurso"><span>Dinero:</span><span>$50,000</span></div>
-                        <div class="recurso"><span>Electricidad:</span><span>0 MW</span></div>
-                        <div class="recurso"><span>Agua:</span><span>0 m³</span></div>
-                        <div class="recurso"><span>Comida:</span><span>0 unidades</span></div>
-                    </section>
-                    <div class="mapa-carga">
-                        <button type="button" id="boton-cargar-mapa">Cargar Mapa (.txt)</button>
-                        <input id="input-mapa-archivo" type="file" accept=".txt" style="display:none" />
-                        <div id="estado-mapa" class="estado-mapa">No se ha cargado ningún mapa.</div>
-                    </div>
-                    <div class="modal-actions">
-                        <button type="submit">Crear Ciudad</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <header>
-            <h1 id="nombre-ciudad">Cargando...</h1>
-            <div class="info-general">
-                <span id="turno">Turno: 0</span>
-                <span id="puntuacion">Puntuación: 0</span>
-            </div>
-            <button id="toggle-recursos" class="mob-only" type="button">Recursos</button>
-        </header>
-
-        <main class="game-layout">
-            <aside class="sidebar-left">
-                <section class="recursos-panel">
-                    <h2>Recursos</h2>
-                    <div id="recursos-contenido">
-                        <div class="recurso">
-                            <span>Dinero:</span>
-                            <span id="dinero">0</span>
-                        </div>
-                        <div class="recurso">
-                            <span>Electricidad:</span>
-                            <span id="electricidad">0</span>
-                        </div>
-                        <div class="recurso">
-                            <span>Agua:</span>
-                            <span id="agua">0</span>
-                        </div>
-                        <div class="recurso">
-                            <span>Alimentos:</span>
-                            <span id="alimentos">0</span>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="construccion-menu">
-                    <h2>Construcción</h2>
-                    <div class="categoria">
-                        <h3>Residencial</h3>
-                        <button data-tipo="R1">R1</button>
-                        <button data-tipo="R2">R2</button>
-                    </div>
-                    <div class="categoria">
-                        <h3>Comercial</h3>
-                        <button data-tipo="C1">C1</button>
-                        <button data-tipo="C2">C2</button>
-                    </div>
-                    <div class="categoria">
-                        <h3>Industrial</h3>
-                        <button data-tipo="I1">I1</button>
-                        <button data-tipo="I2">I2</button>
-                    </div>
-                    <div class="categoria">
-                        <h3>Vías</h3>
-                        <button data-tipo="r">Vía</button>
-                    </div>
-                    <div class="categoria">
-                        <h3>Utilidades</h3>
-                        <button data-tipo="U1">U1</button>
-                        <button data-tipo="U2">U2</button>
-                    </div>
-                    <div class="categoria">
-                        <h3>Servicios</h3>
-                        <button data-tipo="S1">S1</button>
-                        <button data-tipo="S2">S2</button>
-                        <button data-tipo="S3">S3</button>
-                    </div>
-                    <div class="categoria">
-                        <h3>Parques</h3>
-                        <button data-tipo="P1">P1</button>
-                    </div>
-                    <button id="boton-construir">Construir</button>
-                    <button id="boton-demoler">Demoler</button>
-                </section>
-
-                <section class="controles">
-                    <button id="procesar-turno">Procesar Turno</button>
-                    <button id="iniciar-servicios">Iniciar Servicios Externos</button>
-                    <button id="boton-iniciar-turnos">Iniciar Turnos Automáticos</button>
-                    <button id="boton-detener-turnos" disabled>Detener Turnos</button>
-                    <button id="boton-exportar">Exportar JSON</button>
-                </section>
-            </aside>
-
-            <section class="mapa-central">
-                <div id="info-celda">Seleccione una celda para interactuar</div>
-                <div id="grid-container"></div>
-            </section>
-
-            <aside class="sidebar-right">
-                <section class="clima-widget">
-                    <h2>Clima Actual</h2>
-                    <div id="clima-contenido">
-                        <p>Cargando datos climáticos...</p>
-                    </div>
-                </section>
-
-                <section class="noticias-widget">
-                    <h2>Noticias Regionales</h2>
-                    <div id="noticias-contenido">
-                        <p>Cargando noticias...</p>
-                    </div>
-                </section>
-
-                <section class="estadisticas-widget">
-                    <h2>Estadísticas Generales</h2>
-                    <div id="estadisticas-contenido">
-                        <!-- Se llenará dinámicamente -->
-                    </div>
-                </section>
-            </aside>
-        </main>
-    </div>
-
-    <script type="module" src="../../negocio/app.js"></script>
+    <script type="module" src="setupController.js"></script>
 </body>
 </html>

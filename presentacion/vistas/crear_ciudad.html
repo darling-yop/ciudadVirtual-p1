@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nueva Ciudad - Ciudad Virtual</title>
+    <link rel="stylesheet" href="../estilos/estilos.css" />
+</head>
+<body>
+    <div class="container">
+        <main style="max-width: 600px; margin: 40px auto;">
+            <section class="modal-content" style="background:#0f2e4b; color:#fff;">
+                <h2 style="color:#ffda00; text-align:center;">Nueva Ciudad</h2>
+                <form id="crear-ciudad-form">
+                    <label>
+                        Nombre de la ciudad *
+                        <input id="input-ciudad" type="text" maxlength="50" placeholder="Ej: Springfield" required />
+                    </label>
+                    <label>
+                        Nombre del alcalde *
+                        <input id="input-alcalde" type="text" maxlength="50" placeholder="Ej: Homer Simpson" required />
+                    </label>
+                    <label>
+                        Región geográfica *
+                        <select id="input-region" required>
+                            <option value="buenosaires">Buenos Aires (LAT -34.6037, LON -58.3816)</option>
+                            <option value="mexico">Ciudad de México (LAT 19.4326, LON -99.1332)</option>
+                            <option value="madrid">Madrid (LAT 40.4168, LON -3.7038)</option>
+                            <option value="colombia">Seleccionar municipio de Colombia</option>
+                            <option value="custom">Ingresar coordenadas</option>
+                        </select>
+                    </label>
+
+                    <div id="region-colombia" class="hidden">
+                        <div class="region-grid">
+                            <label>
+                                Departamento
+                                <select id="input-departamento">
+                                    <option value="">Selecciona departamento</option>
+                                    <option value="Cundinamarca">Cundinamarca</option>
+                                    <option value="Antioquia">Antioquia</option>
+                                    <option value="Valle del Cauca">Valle del Cauca</option>
+                                </select>
+                            </label>
+                            <label>
+                                Municipio
+                                <select id="input-municipio">
+                                    <option value="">Selecciona municipio</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="region-custom" class="hidden">
+                        <label>
+                            Latitud
+                            <input id="input-lat" type="number" step="0.0001" value="0" />
+                        </label>
+                        <label>
+                            Longitud
+                            <input id="input-lon" type="number" step="0.0001" value="0" />
+                        </label>
+                    </div>
+
+                    <label>
+                        Tamaño del mapa *
+                        <select id="input-tamano" required>
+                            <option value="15">15x15</option>
+                            <option value="16">16x16</option>
+                            <option value="17">17x17</option>
+                            <option value="18">18x18</option>
+                            <option value="19">19x19</option>
+                            <option value="20" selected>20x20</option>
+                            <option value="21">21x21</option>
+                            <option value="22">22x22</option>
+                            <option value="23">23x23</option>
+                            <option value="24">24x24</option>
+                            <option value="25">25x25</option>
+                            <option value="26">26x26</option>
+                            <option value="27">27x27</option>
+                            <option value="28">28x28</option>
+                            <option value="29">29x29</option>
+                            <option value="30">30x30</option>
+                        </select>
+                    </label>
+
+                    <div class="mapa-carga" style="margin-top:8px;">
+                        <button id="boton-cargar-mapa" type="button">Cargar mapa desde .txt</button>
+                        <input id="input-mapa-archivo" type="file" accept=".txt" style="display:none" />
+                    </div>
+                    <div id="estado-mapa" class="estado-mapa">Ningún archivo seleccionado</div>
+
+                    <section class="recursos-iniciales">
+                        <h3>Recursos iniciales</h3>
+                        <div class="recurso"><span>Dinero:</span><span>$50,000</span></div>
+                        <div class="recurso"><span>Electricidad:</span><span>0 MW</span></div>
+                        <div class="recurso"><span>Agua:</span><span>0 m³</span></div>
+                        <div class="recurso"><span>Comida:</span><span>0 unidades</span></div>
+                    </section>
+
+                    <div class="modal-actions" style="justify-content: space-between; gap: 10px; margin-top: 14px;">
+                        <button type="button" id="boton-volver">Volver</button>
+                        <button type="submit">Crear Ciudad</button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="crear_ciudad.js"></script>
+</body>
+</html>

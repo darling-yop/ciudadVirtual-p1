@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Ciudad</title>
+    <link rel="stylesheet" href="../estilos/estilos.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 id="nombre-ciudad">Cargando...</h1>
+            <div class="info-general">
+                <span id="turno">Turno: 0</span>
+                <span id="puntuacion">Puntuación: 0</span>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <a class="button-link" href="./index.html" style="background:#2980b9;color:#fff;border-radius:5px;padding:8px 12px;text-decoration:none;">Reiniciar Ciudad</a>
+                <button id="toggle-recursos" class="mob-only" type="button">Recursos</button>
+            </div>
+        </header>
+
+        <main class="game-layout">
+            <aside class="sidebar-left">
+                <section class="recursos-panel">
+                    <h2>Recursos</h2>
+                    <div id="recursos-contenido">
+                        <div class="recurso">
+                            <span>Dinero:</span>
+                            <span id="dinero">0</span>
+                        </div>
+                        <div class="recurso">
+                            <span>Electricidad:</span>
+                            <span id="electricidad">0</span>
+                        </div>
+                        <div class="recurso">
+                            <span>Agua:</span>
+                            <span id="agua">0</span>
+                        </div>
+                        <div class="recurso">
+                            <span>Alimentos:</span>
+                            <span id="alimentos">0</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="construccion-menu">
+                    <h2>Construcción</h2>
+                    <div class="categoria">
+                        <h3>Residencial</h3>
+                        <button data-tipo="R1">R1</button>
+                        <button data-tipo="R2">R2</button>
+                    </div>
+                    <div class="categoria">
+                        <h3>Comercial</h3>
+                        <button data-tipo="C1">C1</button>
+                        <button data-tipo="C2">C2</button>
+                    </div>
+                    <div class="categoria">
+                        <h3>Industrial</h3>
+                        <button data-tipo="I1">I1</button>
+                        <button data-tipo="I2">I2</button>
+                    </div>
+                    <div class="categoria">
+                        <h3>Vías</h3>
+                        <button data-tipo="r">Vía</button>
+                    </div>
+                    <div class="categoria">
+                        <h3>Utilidades</h3>
+                        <button data-tipo="U1">U1</button>
+                        <button data-tipo="U2">U2</button>
+                    </div>
+                    <div class="categoria">
+                        <h3>Servicios</h3>
+                        <button data-tipo="S1">S1</button>
+                        <button data-tipo="S2">S2</button>
+                        <button data-tipo="S3">S3</button>
+                    </div>
+                    <div class="categoria">
+                        <h3>Parques</h3>
+                        <button data-tipo="P1">P1</button>
+                    </div>
+                    <button id="boton-construir">Construir</button>
+                    <button id="boton-demoler">Demoler</button>
+                </section>
+
+                <section class="controles">
+                    <button id="procesar-turno">Procesar Turno</button>
+                    <button id="iniciar-servicios">Iniciar Servicios Externos</button>
+                    <button id="boton-iniciar-turnos">Iniciar Turnos Automáticos</button>
+                    <button id="boton-detener-turnos" disabled>Detener Turnos</button>
+                    <button id="boton-exportar">Exportar JSON</button>
+                </section>
+            </aside>
+
+            <section class="mapa-central">
+                <div id="info-celda">Seleccione una celda para interactuar</div>
+                <div id="grid-container"></div>
+            </section>
+
+            <aside class="sidebar-right">
+                <section class="clima-widget">
+                    <h2>Clima Actual</h2>
+                    <div id="clima-contenido">
+                        <p>Cargando datos climáticos...</p>
+                    </div>
+                </section>
+
+                <section class="noticias-widget">
+                    <h2>Noticias Regionales</h2>
+                    <div id="noticias-contenido">
+                        <p>Cargando noticias...</p>
+                    </div>
+                </section>
+
+                <section class="estadisticas-widget">
+                    <h2>Estadísticas Generales</h2>
+                    <div id="estadisticas-contenido"></div>
+                </section>
+            </aside>
+        </main>
+    </div>
+
+    <script type="module" src="../../negocio/app.js"></script>
+</body>
+</html>
