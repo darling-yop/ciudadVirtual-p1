@@ -14,6 +14,7 @@ class CityManager {
         if (CityManager.instance) return CityManager.instance;
 
         this.ciudad = null;
+        this.activeCityId = null;
         this.turnIntervalId = null;
         this.autoSaveIntervalId = null;
 
@@ -31,10 +32,11 @@ class CityManager {
         return CityManager.instance;
     }
 
-    init() {
-        const saved = CityRepository.load();
+    init(cityId = null) {
+        const saved = CityRepository.load(cityId);
         if (saved) {
             this.ciudad = Ciudad.fromJSON(saved);
+            this.activeCityId = this.ciudad.cityId;
         } else {
             this.ciudad = new Ciudad(
                 'Ciudad Simulada',
@@ -46,6 +48,7 @@ class CityManager {
                 20,
                 20
             );
+            this.activeCityId = this.ciudad.cityId;
         }
 
         // Cargar estado desde backend si está disponible (no bloquea el render inicial)
@@ -77,7 +80,12 @@ class CityManager {
         const state = this.ciudad.toJSON();
 
         // Guardado local siempre
-        const guardadoLocalExitoso = CityRepository.save(state);
+        const savedId = CityRepository.save(state, { cityId: this.ciudad.cityId, setActive: true });
+        const guardadoLocalExitoso = Boolean(savedId);
+        if (savedId) {
+            this.activeCityId = savedId;
+            this.ciudad.cityId = savedId;
+        }
 
         // Guardado remoto opcional (no obligatorio en modo offline)
         // Descomentar la línea `this.backendSyncEnabled = true` en el constructor para habilitarlo.
@@ -148,6 +156,9 @@ class CityManager {
     iniciarAutoGuardado() {
         if (this.autoSaveIntervalId) return;
         this.autoSaveIntervalId = setInterval(() => {
+            if (typeof document !== 'undefined' && document.hidden) {
+                return;
+            }
             this.save();
         }, 30 * 1000);
     }
