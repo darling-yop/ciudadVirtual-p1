@@ -72,6 +72,24 @@ body {
     border-radius: 6px;
 }
 
+.region-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.recursos-iniciales {
+    margin-top: 12px;
+    border-top: 1px solid #ddd;
+    padding-top: 12px;
+}
+
+.recursos-iniciales h3 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
 .modal-actions {
     display: flex;
     justify-content: flex-end;
