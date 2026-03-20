@@ -63,6 +63,10 @@ class Ciudad {
             comida: 0
         };
 
+        // Histórico de recursos para análisis y gráficos (últimos 20 turnos).
+        this.historicoRecursos = [];
+        this.#registrarHistoricoRecursos();
+
         // Parámetros ajustables (crecimiento poblacional)
         // puede ser modificado desde la IU si es necesario.
         this.crecimiento = { min: 1, max: 3 }; // ciudadanos por turno
@@ -156,6 +160,7 @@ class Ciudad {
             agua: 0,
             comida: 0
         };
+        this.historicoRecursos = [];
 
         let costoTotal = 0;
 
@@ -192,6 +197,7 @@ class Ciudad {
 
         // Aplicar costo de construcción al dinero disponible
         this.recursos.dinero = Math.max(0, this.recursos.dinero - costoTotal);
+        this.#registrarHistoricoRecursos();
 
         return { exito: true, ancho, alto };
     }
@@ -301,6 +307,23 @@ class Ciudad {
 
         // Actualizar datos de servicios externos
         this.#actualizarDatosExternos();
+
+        // Registrar snapshot de recursos al final del turno
+        this.#registrarHistoricoRecursos();
+    }
+
+    #registrarHistoricoRecursos() {
+        this.historicoRecursos.push({
+            turno: this.turnoActual,
+            dinero: this.recursos.dinero,
+            electricidad: this.recursos.electricidad,
+            agua: this.recursos.agua,
+            comida: this.recursos.comida
+        });
+
+        if (this.historicoRecursos.length > 20) {
+            this.historicoRecursos = this.historicoRecursos.slice(-20);
+        }
     }
 
     /**
@@ -968,6 +991,7 @@ class Ciudad {
             vias: this.vias.slice(),
             poblacion: this.poblacion.slice(),
             recursos: { ...this.recursos },
+            historicoRecursos: this.historicoRecursos.slice(-20),
             crecimiento: { ...this.crecimiento },
             mapa: this.mapa.exportarMapa()
         };
@@ -996,7 +1020,13 @@ class Ciudad {
         c.vias = data.vias || [];
         c.poblacion = data.poblacion || [];
         c.recursos = data.recursos || c.recursos;
+        c.historicoRecursos = (data.historicoRecursos || []).slice(-20);
         c.crecimiento = data.crecimiento || c.crecimiento;
+
+        if (!Array.isArray(c.historicoRecursos) || c.historicoRecursos.length === 0) {
+            c.historicoRecursos = [];
+            c.#registrarHistoricoRecursos();
+        }
 
         return c;
     }

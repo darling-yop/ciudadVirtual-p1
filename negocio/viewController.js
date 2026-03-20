@@ -19,6 +19,9 @@ export class ViewController {
         onCalcularRuta,
         onExportar,
         onGuardar,
+        onEliminarPartida,
+        onContinuarPartida,
+        onNuevaPartida,
         onCancelar
     } = {}) {
         this.onCellSelected = onCellSelected;
@@ -31,6 +34,9 @@ export class ViewController {
         this.onCalcularRuta = onCalcularRuta;
         this.onExportar = onExportar;
         this.onGuardar = onGuardar;
+        this.onEliminarPartida = onEliminarPartida;
+        this.onContinuarPartida = onContinuarPartida;
+        this.onNuevaPartida = onNuevaPartida;
         this.onCancelar = onCancelar;
 
         this.selectedTipo = 'r';
@@ -65,6 +71,7 @@ export class ViewController {
             nombreCiudad: document.getElementById('nombre-ciudad'),
             turno: document.getElementById('turno'),
             puntuacion: document.getElementById('puntuacion'),
+            saveStatus: document.getElementById('save-status'),
             recursosContenido: document.getElementById('recursos-contenido'),
             climaContenido: document.getElementById('clima-contenido'),
             noticiasContenido: document.getElementById('noticias-contenido'),
@@ -75,6 +82,8 @@ export class ViewController {
             botonIniciarServicios: document.getElementById('iniciar-servicios'),
             botonIniciarTurnos: document.getElementById('boton-iniciar-turnos'),
             botonDetenerTurnos: document.getElementById('boton-detener-turnos'),
+            botonGuardarPartida: document.getElementById('boton-guardar-partida'),
+            botonEliminarPartida: document.getElementById('boton-eliminar-partida'),
             botonExportar: document.getElementById('boton-exportar'),
             botonCalcularRuta: document.getElementById('boton-calcular-ruta'),
             botonLimpiarRuta: document.getElementById('boton-limpiar-ruta'),
@@ -87,6 +96,9 @@ export class ViewController {
             construccionMenu: document.querySelector('.construccion-menu'),
             recursosPanel: document.querySelector('.recursos-panel'),
             tipoButtons: Array.from(document.querySelectorAll('.construccion-menu button[data-tipo]')),
+            continueGameModal: document.getElementById('continue-game-modal'),
+            botonContinuarPartida: document.getElementById('boton-continuar-partida'),
+            botonNuevaPartida: document.getElementById('boton-nueva-partida'),
             newCityModal: document.getElementById('new-city-modal'),
             newCityForm: document.getElementById('new-city-form'),
             inputCiudad: document.getElementById('input-ciudad'),
@@ -139,6 +151,32 @@ export class ViewController {
         if (this.el.botonExportar) {
             this.el.botonExportar.addEventListener('click', () => {
                 this.onExportar?.();
+            });
+        }
+
+        if (this.el.botonGuardarPartida) {
+            this.el.botonGuardarPartida.addEventListener('click', () => {
+                this.onGuardar?.();
+            });
+        }
+
+        if (this.el.botonEliminarPartida) {
+            this.el.botonEliminarPartida.addEventListener('click', () => {
+                this.onEliminarPartida?.();
+            });
+        }
+
+        if (this.el.botonContinuarPartida) {
+            this.el.botonContinuarPartida.addEventListener('click', () => {
+                this.hideContinueGameModal();
+                this.onContinuarPartida?.();
+            });
+        }
+
+        if (this.el.botonNuevaPartida) {
+            this.el.botonNuevaPartida.addEventListener('click', () => {
+                this.hideContinueGameModal();
+                this.onNuevaPartida?.();
             });
         }
 
@@ -293,6 +331,23 @@ export class ViewController {
 
     hideNewCityModal() {
         this.el.newCityModal?.classList.add('hidden');
+    }
+
+    showContinueGameModal() {
+        this.el.continueGameModal?.classList.remove('hidden');
+    }
+
+    hideContinueGameModal() {
+        this.el.continueGameModal?.classList.add('hidden');
+    }
+
+    setSaveStatus(texto, estado = 'ok') {
+        if (!this.el.saveStatus) return;
+        this.el.saveStatus.textContent = texto;
+        this.el.saveStatus.classList.remove('saving', 'error');
+
+        if (estado === 'saving') this.el.saveStatus.classList.add('saving');
+        if (estado === 'error') this.el.saveStatus.classList.add('error');
     }
 
     _updateRegionInputs() {
@@ -646,7 +701,7 @@ export class ViewController {
             edificios.forEach((edificio) => {
                 const option = document.createElement('option');
                 option.value = edificio.id;
-                option.textContent = `${edificio.tipo} [${edificio.id}] (${edificio.x},${edificio.y})`;
+                option.textContent = `${edificio.tipo} (${edificio.x},${edificio.y})`;
                 if (String(edificio.id) === String(selectedValue)) {
                     option.selected = true;
                 }
