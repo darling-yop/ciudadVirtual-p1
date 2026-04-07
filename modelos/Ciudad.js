@@ -87,8 +87,35 @@ class Ciudad {
      * Inicia los servicios externos (clima y noticias)
      */
     iniciarServiciosExternos() {
-        this.servicioClima.iniciarActualizacionAutomatica();
-        this.servicioNoticias.iniciarActualizacionAutomatica();
+        try {
+            // Validar que las API keys estén configuradas
+            const tieneClima = this.servicioClima && this.servicioClima.apiKey && this.servicioClima.apiKey !== 'API_KEY_PLACEHOLDER';
+            const tieneNoticias = this.servicioNoticias && this.servicioNoticias.apiKey && this.servicioNoticias.apiKey !== 'API_KEY_PLACEHOLDER';
+
+            if (!tieneClima && !tieneNoticias) {
+                console.warn('Servicios externos: API keys no configuradas. Continuando sin datos en tiempo real.');
+                console.warn('Para habilitar clima: Configura OPENWEATHER_API_KEY en ServicioClima.js');
+                console.warn('Para habilitar noticias: Configura NEWS_API_KEY en ServicioNoticias.js');
+                return;
+            }
+
+            if (tieneClima) {
+                this.servicioClima.iniciarActualizacionAutomatica();
+                console.log('Servicio de Clima iniciado correctamente');
+            } else {
+                console.warn('Servicio de Clima: API key no configurada');
+            }
+
+            if (tieneNoticias) {
+                this.servicioNoticias.iniciarActualizacionAutomatica();
+                console.log('Servicio de Noticias iniciado correctamente');
+            } else {
+                console.warn('Servicio de Noticias: API key no configurada');
+            }
+        } catch (error) {
+            console.error('Error al iniciar servicios externos:', error);
+            throw error;
+        }
     }
 
     /**

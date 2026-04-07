@@ -186,20 +186,59 @@ class App {
         if (!this.serviciosIniciados) {
             const ciudad = this.manager.ciudad;
             if (ciudad) {
-                ciudad.iniciarServiciosExternos();
-                this.serviciosIniciados = true;
-                document.getElementById('iniciar-servicios').disabled = true;
-                document.getElementById('iniciar-servicios').textContent = 'Servicios Iniciados';
-                console.log('Servicios externos iniciados');
+                try {
+                    ciudad.iniciarServiciosExternos();
+                    this.serviciosIniciados = true;
+                    
+                    // Proporcionar feedback visual
+                    const boton = document.getElementById('iniciar-servicios');
+                    if (boton) {
+                        boton.disabled = true;
+                        boton.textContent = 'Servicios Iniciados ✓';
+                    }
+                    
+                    console.log('Servicios externos iniciados (Clima y Noticias activos)');
+                    alert('Servicios externos iniciados correctamente.\nEl clima y las noticias se actualizarán cada 30 minutos.');
+                } catch (error) {
+                    console.error('Error al iniciar servicios externos:', error);
+                    alert('Error al iniciar servicios externos. Revisar consola.');
+                }
+            } else {
+                alert('No hay ciudad cargada. Crea una ciudad primero.');
             }
+        } else {
+            alert('Los servicios exteriores ya están iniciados.');
         }
     }
 
     procesarTurno() {
-        this.manager.procesarTurno();
-        this.view.limpiarRuta();
-        this.view.setEstadoRuta('Selecciona edificios para calcular una ruta.');
-        this.actualizarUI();
+        try {
+            if (!this.manager.ciudad) {
+                alert('No hay ciudad cargada. Crea una nueva ciudad primero.');
+                return;
+            }
+
+            const turnoAnterior = this.manager.ciudad.turnoActual;
+            this.manager.procesarTurno();
+            const turnoNuevo = this.manager.ciudad.turnoActual;
+
+            // Log de información del turno
+            console.log(`Turno procesado: ${turnoAnterior} → ${turnoNuevo}`);
+            
+            // Actualizar UI completamente
+            this.view.limpiarRuta();
+            this.view.setEstadoRuta('Turno procesado. Selecciona edificios para calcular una ruta.');
+            this.actualizarUI();
+            
+            // Feedback visual
+            const estado = this.manager.obtenerEstado();
+            if (estado) {
+                console.log(`Dinero: ${estado.dinero} | Electricidad: ${estado.electricidad} | Agua: ${estado.agua}`);
+            }
+        } catch (error) {
+            console.error('Error al procesar turno:', error);
+            alert('Error al procesar el turno. Revisar consola.');
+        }
     }
 
     async calcularRuta(idEdificioOrigen, idEdificioDestino) {
@@ -221,9 +260,22 @@ class App {
     }
 
     exportarCiudad() {
-        const filename = this.manager.exportToFile();
-        if (filename) {
-            alert(`Exportación completada: ${filename}`);
+        try {
+            if (!this.manager.ciudad) {
+                alert('No hay ciudad cargada. Crea una ciudad primero.');
+                return;
+            }
+
+            const filename = this.manager.exportToFile();
+            if (filename) {
+                console.log(`Archivo exportado: ${filename}`);
+                alert(`✓ Exportación completada exitosamente.\nArchivo: ${filename}\n\nSe descargó un JSON con el estado completo de la ciudad.`);
+            } else {
+                alert('Error: No se pudo generar el archivo de exportación.');
+            }
+        } catch (error) {
+            console.error('Error al exportar ciudad:', error);
+            alert('Error al exportar la ciudad. Revisar consola.');
         }
     }
 
