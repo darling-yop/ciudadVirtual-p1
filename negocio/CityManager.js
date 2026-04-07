@@ -135,20 +135,38 @@ class CityManager {
 
     procesarTurno() {
         if (!this.ciudad) return;
-        this.ciudad.procesarTurno();
-        this.save();
+        try {
+            this.ciudad.procesarTurno();
+            this.save();
+        } catch (error) {
+            console.error('Error en procesarTurno:', error);
+        }
     }
 
     iniciarCicloTurnos(callback) {
-        if (this.turnIntervalId) return;
+        if (this.turnIntervalId) {
+            console.warn('Ciclo de turnos ya está activo');
+            return;
+        }
+        console.log('Iniciando ciclo automático de turnos (10 segundos por turno)');
         this.turnIntervalId = setInterval(() => {
             this.procesarTurno();
-            if (typeof callback === 'function') callback(this.obtenerEstado());
+            if (typeof callback === 'function') {
+                try {
+                    callback(this.obtenerEstado());
+                } catch (error) {
+                    console.error('Error en callback de turno:', error);
+                }
+            }
         }, 10 * 1000);
     }
 
     detenerCicloTurnos() {
-        if (!this.turnIntervalId) return;
+        if (!this.turnIntervalId) {
+            console.warn('No hay ciclo de turnos activo');
+            return;
+        }
+        console.log('Deteniendo ciclo automático de turnos');
         clearInterval(this.turnIntervalId);
         this.turnIntervalId = null;
     }
