@@ -137,6 +137,9 @@ class CityManager {
         if (!this.ciudad) return;
         try {
             this.ciudad.procesarTurno();
+            if (this.ciudad.juegoFinalizado) {
+                this.detenerCicloTurnos();
+            }
             this.save();
         } catch (error) {
             console.error('Error en procesarTurno:', error);

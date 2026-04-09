@@ -2,6 +2,7 @@
 import ServicioClima from '../acceso_datos/ServicioClima.js?v=2';
 import ServicioNoticias from '../acceso_datos/ServicioNoticias.js?v=2';
 import { Alcalde } from './Alcalde.js';
+import { Ciudadano } from './Ciudadano.js';
 import { crearEdificioDesdeTipo, reconstruirEdificioDesdeEstado } from './EdificioFactory.js';
 import { Mapa } from './Mapa.js';
 
@@ -65,6 +66,7 @@ class Ciudad {
         this.edificios = [];
         this.vias = [];
         this.poblacion = [];
+        this.juegoFinalizado = false;
 
         // Recursos iniciales
         this.recursos = {
@@ -318,6 +320,11 @@ class Ciudad {
      * Procesa un turno de la simulación
      */
     procesarTurno() {
+        if (this.juegoFinalizado) {
+            console.warn('Turno omitido: el juego ya se ha finalizado.');
+            return;
+        }
+
         this.turnoActual++;
 
         // Verificar condiciones críticas de derrota antes de procesar el turno
@@ -350,7 +357,6 @@ class Ciudad {
 
         // Actualizar ciudadanos
         this.actualizarFelicidadCiudadanos();
-        this.#aplicarEfectosClimaticos();
         this.#procesarEventosNoticias();
         this.#gestionarCrecimientoPoblacional();
         // Asignaciones automáticas tras la creación de nuevos residentes
@@ -389,23 +395,34 @@ class Ciudad {
             .filter(e => e.tipo.startsWith('R'))
             .reduce((acc, e) => acc + (e.capacidadMaxima || 0), 0);
 
+        const hogaresOcupados = this.edificios
+            .filter(e => e.tipo.startsWith('R'))
+            .reduce((acc, e) => acc + (e.ocupacionActual || 0), 0);
+
+        const capacidadDisponible = Math.max(0, capacidadVivienda - hogaresOcupados);
         const empleosDisponibles = this.calcularEmpleosDisponibles();
 
-        // Condiciones: vivienda suficiente, felicidad alta y al menos un empleo libre
         if (
             felicidadPromedio > 60 &&
-            this.poblacion.length < capacidadVivienda &&
+            capacidadDisponible > 0 &&
             empleosDisponibles > 0
         ) {
             const rango = this.crecimiento.max - this.crecimiento.min + 1;
-            const nuevos = Math.floor(Math.random() * rango) + this.crecimiento.min;
+            const maxNuevos = Math.min(capacidadDisponible, empleosDisponibles);
+            const nuevos = Math.min(
+                maxNuevos,
+                Math.floor(Math.random() * rango) + this.crecimiento.min
+            );
+
             for (let i = 0; i < nuevos; i++) {
-                this.poblacion.push({
-                    id: Date.now() + i,
-                    nivelFelicidad: 50,
-                    estadoVivienda: false,
-                    estadoEmpleo: false
-                });
+                const nextIndex = this.poblacion.length + i + 1;
+                const nuevoCiudadano = new Ciudadano(
+                    Date.now() + nextIndex,
+                    `Ciudadano ${nextIndex}`,
+                    `ciudadano${nextIndex}`,
+                    `ciudadano${nextIndex}@ciudadvirtual.com`
+                );
+                this.poblacion.push(nuevoCiudadano);
             }
         }
     }
@@ -546,7 +563,11 @@ class Ciudad {
     }
 
     finalizarJuego(motivo) {
+        this.juegoFinalizado = true;
         console.error(`GAME OVER: ${motivo}`);
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('game-over', { detail: { motivo } }));
+        }
     }
 
     // ============================================
@@ -752,40 +773,18 @@ class Ciudad {
      * Actualiza la felicidad de todos los ciudadanos
      */
     actualizarFelicidadCiudadanos() {
-        // calcular bono por instalaciones de servicios / parques
         const bonusServicios = this.edificios.filter(e =>
             ['P1', 'S1', 'S2', 'S3'].includes(e.tipo)
         ).length * 2; // 2 puntos por cada edificio de servicio/parque
 
-        // Efectos climáticos en la felicidad
-        let efectoClima = 0;
-        switch (this.datosClima.condicion) {
-            case 'Soleado':
-                efectoClima = 5; // Clima agradable aumenta felicidad
-                break;
-            case 'Nublado':
-                efectoClima = 0; // Neutro
-                break;
-            case 'Lluvioso':
-            case 'Llovizna':
-                efectoClima = -3; // Lluvia afecta negativamente
-                break;
-            case 'Tormenta':
-                efectoClima = -10; // Tormentas reducen significativamente la felicidad
-                break;
-            case 'Nevado':
-                efectoClima = -5; // Nieve puede ser problemática
-                break;
-            default:
-                efectoClima = 0;
-        }
+        const efectoClima = this.#calcularAjusteFelicidadClima();
 
         this.poblacion.forEach(ciudadano => {
-
             ciudadano.actualizarFelicidad();
-
-            // aplicar adicional de servicios y clima
-            ciudadano.nivelFelicidad = Math.min(100, Math.max(0, ciudadano.nivelFelicidad + bonusServicios));
+            ciudadano.nivelFelicidad = Math.min(
+                100,
+                Math.max(0, ciudadano.nivelFelicidad + bonusServicios + efectoClima)
+            );
         });
     }
 
@@ -953,7 +952,7 @@ class Ciudad {
             }
         });
 
-        this.gastarDinero(costosTotales);
+        this.recursos.dinero -= costosTotales;
     }
 
     // ============================================
@@ -1004,7 +1003,10 @@ class Ciudad {
     }
 
     getAvailableHousing() {
-        return Math.max(0, this.getTotalHousingCapacity() - this.poblacion.length);
+        const hogaresOcupados = this.edificios
+            .filter(e => e.tipo.startsWith('R'))
+            .reduce((acc, e) => acc + (e.ocupacionActual || 0), 0);
+        return Math.max(0, this.getTotalHousingCapacity() - hogaresOcupados);
     }
 
     getAvailableJobs() {
@@ -1041,6 +1043,27 @@ class Ciudad {
             })
             .filter(Boolean);
 
+        const poblacionSerializada = this.poblacion
+            .map((ciudadano, index) => {
+                if (ciudadano && typeof ciudadano.obtenerEstado === 'function') {
+                    return ciudadano.obtenerEstado();
+                }
+
+                if (ciudadano && typeof ciudadano === 'object') {
+                    return {
+                        id: ciudadano.id || `legacy-citizen-${index}`,
+                        name: ciudadano.name || '',
+                        username: ciudadano.username || '',
+                        email: ciudadano.email || '',
+                        nivelFelicidad: Number(ciudadano.nivelFelicidad || 0),
+                        estadoVivienda: Boolean(ciudadano.estadoVivienda),
+                        estadoEmpleo: Boolean(ciudadano.estadoEmpleo)
+                    };
+                }
+                return null;
+            })
+            .filter(Boolean);
+
         return {
             cityId: this.cityId,
             nombre: this.nombre,
@@ -1052,10 +1075,11 @@ class Ciudad {
             puntuacionAcumulada: this.puntuacionAcumulada,
             edificios: edificiosSerializados,
             vias: this.vias.slice(),
-            poblacion: this.poblacion.slice(),
+            poblacion: poblacionSerializada,
             recursos: { ...this.recursos },
             historicoRecursos: this.historicoRecursos.slice(-20),
             crecimiento: { ...this.crecimiento },
+            juegoFinalizado: Boolean(this.juegoFinalizado),
             mapa: this.mapa.exportarMapa()
         };
     }
@@ -1095,10 +1119,23 @@ class Ciudad {
         // Reconstruir instancias de edificios desde el estado serializado
         c.edificios = (data.edificios || []).map(reconstruirEdificioDesdeEstado).filter(e => e !== null);
         c.vias = data.vias || data.roads || [];
-        c.poblacion = data.poblacion || [];
+        c.poblacion = (data.poblacion || []).map(item => {
+            if (!item || item.id == null) return null;
+            const ciudadano = new Ciudadano(
+                item.id,
+                item.name || item.nombre || '',
+                item.username || '',
+                item.email || ''
+            );
+            ciudadano.nivelFelicidad = Number(item.nivelFelicidad ?? 50);
+            ciudadano.estadoVivienda = Boolean(item.estadoVivienda);
+            ciudadano.estadoEmpleo = Boolean(item.estadoEmpleo);
+            return ciudadano;
+        }).filter(Boolean);
         c.recursos = data.recursos || c.recursos;
         c.historicoRecursos = (data.historicoRecursos || []).slice(-20);
         c.crecimiento = data.crecimiento || c.crecimiento;
+        c.juegoFinalizado = Boolean(data.juegoFinalizado);
 
         // Si el mapa vino vacío o incompleto, reconstruirlo desde vías y edificios.
         const mapaVacio = !Array.isArray(c.mapa.grid)
@@ -1162,6 +1199,7 @@ class Ciudad {
                 agua: this.recursos.agua,
                 comida: this.recursos.comida
             },
+            juegoFinalizado: Boolean(this.juegoFinalizado),
             clima: { ...this.datosClima },
             noticias: [...this.noticias],
             mapa: {
