@@ -12,10 +12,16 @@ function mapToBinaryGrid(grid) {
 }
 
 function toBackendCoord(point) {
+    // El backend Flask espera coordenadas [fila, columna] => [y, x]
     return [point.y, point.x];
 }
 
 function toFrontendCoord(point) {
+    // El backend devuelve [[fila, columna], ...] y la vista consume {x, y}
+    if (!Array.isArray(point) || point.length < 2) {
+        return null;
+    }
+
     return { x: point[1], y: point[0] };
 }
 
@@ -52,11 +58,21 @@ export const RouteRepository = {
                 return { exito: false, error: 'El backend no retorno una ruta valida.' };
             }
 
+            const ruta = backendRoute
+                .map(toFrontendCoord)
+                .filter((point) => point !== null);
+
+            if (ruta.length === 0) {
+                return { exito: false, error: 'El backend no retorno coordenadas utilizables.' };
+            }
+
             return {
                 exito: true,
-                ruta: backendRoute.map(toFrontendCoord)
+                ruta
             };
         } catch (error) {
+            // Agregamos log detallado para ver el error real (ej: CORS o Connection Refused)
+            console.error('Error detallado de conexión:', error);
             return {
                 exito: false,
                 error: 'No se pudo conectar con el backend de rutas. Verifica que este corriendo en http://127.0.0.1:5000.'
