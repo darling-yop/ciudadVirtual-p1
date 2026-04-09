@@ -191,6 +191,7 @@ section {
 }
 
 h2 {
+    
     color: #2c3e50;
     margin-bottom: 15px;
     border-bottom: 2px solid #3498db;
@@ -446,8 +447,12 @@ button:disabled {
     justify-content: center;
     align-items: center;
     font-size: 0.6rem;
-    color: #fff;
+    color: transparent;
     user-select: none;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #81c784;
 }
 
 .map-cell--selected {
@@ -482,20 +487,43 @@ button:disabled {
     100% { transform: translateY(0); }
 }
 
-.map-cell--g { background: #81c784; }
-.map-cell--r { background: #757575; }
-.map-cell--R1 { background: #4db6ac; }
-.map-cell--R2 { background: #26a69a; }
-.map-cell--C1 { background: #42a5f5; }
-.map-cell--C2 { background: #1e88e5; }
-.map-cell--I1 { background: #ffb74d; }
-.map-cell--I2 { background: #fb8c00; }
-.map-cell--S1 { background: #ab47bc; }
-.map-cell--S2 { background: #8e24aa; }
-.map-cell--S3 { background: #7e57c2; }
-.map-cell--U1 { background: #29b6f6; }
-.map-cell--U2 { background: #26c6da; }
-.map-cell--P1 { background: #66bb6a; }
+.map-cell--g {
+    background-color: #81c784;
+}
+.map-cell--r {
+    background-color: #757575;
+    background-image: none;
+}
+.map-cell--R1 {
+    background-image: url("../../imagenes/edificio_residencial.jpg");
+}
+.map-cell--R2 {
+    background-image: url("../../imagenes/edificio_residencial.jpg");
+}
+.map-cell--C1 {
+    background-image: url("../../imagenes/edificio_comercial.jpg");
+}
+.map-cell--C2 {
+    background-image: url("../../imagenes/edificio_comercial.jpg");
+}
+.map-cell--I1 {
+    background-image: url("../../imagenes/edificio_industrial.jpg");
+}
+.map-cell--I2 {
+    background-image: url("../../imagenes/edificio_industrial.jpg");
+}
+.map-cell--S1,
+.map-cell--S2,
+.map-cell--S3 {
+    background-image: url("../../imagenes/edificio_servicios.jpg");
+}
+.map-cell--U1,
+.map-cell--U2 {
+    background-image: url("../../imagenes/edificio_utilidades.jpg");
+}
+.map-cell--P1 {
+    background-image: url("../../imagenes/parque.jpg");
+}
 
 /* ==================== */
 /* Nuevo Layout de Juego */
