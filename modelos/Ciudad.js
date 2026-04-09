@@ -67,13 +67,16 @@ class Ciudad {
         this.vias = [];
         this.poblacion = [];
         this.juegoFinalizado = false;
+        this.motivoFinJuego = null;
+        this.turnosConDeficit = 0; // Contador de turnos consecutivos con déficit crítico
+        this.MAX_TURNOS_DEFICIT = 3; // Máximo de turnos que puede haber déficit antes de game-over
 
-        // Recursos iniciales
+        // Recursos iniciales (aumentados para evitar game-over inmediato)
         this.recursos = {
             dinero: 50000,
-            electricidad: 0,
-            agua: 0,
-            comida: 0
+            electricidad: 500,   // Aumentado de 0
+            agua: 500,           // Aumentado de 0
+            comida: 100          // Aumentado de 0
         };
 
         // Histórico de recursos para análisis y gráficos (últimos 20 turnos).
@@ -554,12 +557,35 @@ class Ciudad {
         const electricidad = Number(this.recursos.electricidad ?? 0);
         const agua = Number(this.recursos.agua ?? 0);
         const dinero = Number(this.recursos.dinero ?? 0);
-        const comida = Number(this.recursos.comida ?? 0);
 
-        if (electricidad < 0 || agua < 0 || dinero < 0 || comida < 0) {
-            this.finalizarJuego('Recursos negativos detectados');
-            return true;
+        // Verificar si hay déficit en recursos críticos (electricidad, agua o dinero)
+        // Permitir pequeño endeudamiento (-5000) para dar margen de maniobra
+        const hayDeficit = electricidad < 0 || agua < 0 || dinero < -5000;
+
+        if (hayDeficit) {
+            this.turnosConDeficit++;
+            console.warn(`⚠ Déficit detectado. Turno ${this.turnosConDeficit}/${this.MAX_TURNOS_DEFICIT}`, {
+                electricidad,
+                agua,
+                dinero
+            });
+
+            // Game-over solo si el déficit persiste durante varios turnos consecutivos
+            if (this.turnosConDeficit >= this.MAX_TURNOS_DEFICIT) {
+                let motivo = 'Crisis de recursos: ';
+                if (dinero <= -5000) motivo += 'Deuda insostenible ($' + dinero + ')';
+                else if (electricidad < 0 && agua < 0) motivo += 'Colapso total - Sin agua ni electricidad';
+                else if (electricidad < 0) motivo += 'Generador eléctrico colapsó';
+                else if (agua < 0) motivo += 'Sistema de agua colapsó';
+                
+                this.finalizarJuego(motivo);
+                return true;
+            }
+        } else {
+            // Recursos estables: resetear el contador de déficit
+            this.turnosConDeficit = 0;
         }
+
         return false;
     }
 
@@ -880,7 +906,29 @@ class Ciudad {
     }
 
     /**
-     * Procesa el consumo de recursos
+     * Procesa el consumo de recursos según ocupación y tipo de edificio
+     * REGLAS DE CONSUMO POR ESTRUCTURA CONSTRUIBLE:
+     * 
+     * RESIDENCIAL (R1, R2):
+     * - R1 (Casa): 4 ciudadanos max | consume 5 elec + 3 agua por ciudadano
+     * - R2 (Apartamento): 12 ciudadanos max | consume 5 elec + 3 agua por ciudadano
+     *
+     * COMERCIAL (C1, C2):
+     * - C1 (Tienda): 6 empleos | consume 8 elec base + 2 por empleado + 2 agua
+     * - C2 (Centro): 20 empleos | consume 25 elec base + 3 por empleado + 5 agua
+     *
+     * INDUSTRIAL (I1, I2):
+     * - I1 (Fábrica): 15 empleos | consume 20 elec base + 3 por empleado + 5 agua
+     * - I2 (Granja): 8 empleos | consume 5 elec + 15 agua (produce comida)
+     *
+     * SERVICIOS (S1, S2, S3):
+     * - Todos: consume 15 electricidad fijo por estructura
+     *
+     * UTILIDADES (U1, U2):
+     * - Solo productores, NO consumen
+     *
+     * PARQUES (P1):
+     * - Consume 3 electricidad fijo
      */
     procesarConsumoRecursos() {
         let consumoElectricidad = 0;
@@ -888,17 +936,54 @@ class Ciudad {
         let consumoComida = 0;
 
         this.edificios.forEach(edificio => {
-            if (edificio.estaOperativo) {
-                consumoElectricidad += edificio.consumoElectricidad || 0;
-                consumoAgua += edificio.consumoAgua || 0;
-                consumoComida += (edificio.ocupacionActual || 0) * 1;
+            if (!edificio.estaOperativo) return;
+
+            const tipo = edificio.tipo;
+            const ocupacion = edificio.ocupacionActual || 0;
+
+            // Aplicar consumo según tipo de estructura
+            if (tipo === 'R1' || tipo === 'R2') {
+                // Residencial: consumo proporcional a ciudadanos
+                consumoElectricidad += ocupacion * 5;
+                consumoAgua += ocupacion * 3;
+                consumoComida += ocupacion * 1;
+            } else if (tipo === 'C1') {
+                // Tienda: consumo fijo + proporcional a empleados
+                consumoElectricidad += 8 + (ocupacion * 2);
+                consumoAgua += 2;
+            } else if (tipo === 'C2') {
+                // Centro comercial: mayor consumo
+                consumoElectricidad += 25 + (ocupacion * 3);
+                consumoAgua += 5;
+            } else if (tipo === 'I1') {
+                // Fábrica: consumo industrial alto
+                consumoElectricidad += 20 + (ocupacion * 3);
+                consumoAgua += 5;
+            } else if (tipo === 'I2') {
+                // Granja: consume agua para producción agrícola
+                consumoElectricidad += 5;
+                consumoAgua += 15;
+            } else if (tipo === 'S1' || tipo === 'S2' || tipo === 'S3') {
+                // Servicios públicos: demanda constante de energía
+                consumoElectricidad += 15;
+            } else if (tipo === 'P1') {
+                // Parque: iluminación y riego
+                consumoElectricidad += 3;
             }
+            // U1 (Planta Eléctrica) y U2 (Planta Agua) no consumen
         });
 
+        // Consumo de iluminación de vías/caminos
+        this.vias.forEach(() => {
+            consumoElectricidad += 1;
+        });
+
+        // Restar consumo de recursos
         this.recursos.electricidad -= consumoElectricidad;
         this.recursos.agua -= consumoAgua;
         this.recursos.comida -= consumoComida;
 
+        // Desactivar edificios si falta energía o agua crítica
         this.edificios.forEach(edificio => {
             if (this.recursos.electricidad < 0 || this.recursos.agua < 0) {
                 edificio.estaOperativo = false;
@@ -1083,6 +1168,8 @@ class Ciudad {
             historicoRecursos: this.historicoRecursos.slice(-20),
             crecimiento: { ...this.crecimiento },
             juegoFinalizado: Boolean(this.juegoFinalizado),
+            motivoFinJuego: this.motivoFinJuego || null,
+            turnosConDeficit: this.turnosConDeficit || 0,
             mapa: this.mapa.exportarMapa()
         };
     }
@@ -1140,6 +1227,7 @@ class Ciudad {
         c.crecimiento = data.crecimiento || c.crecimiento;
         c.juegoFinalizado = Boolean(data.juegoFinalizado);
         c.motivoFinJuego = data.motivoFinJuego || null;
+        c.turnosConDeficit = Number(data.turnosConDeficit || 0);
 
         // Si el mapa vino vacío o incompleto, reconstruirlo desde vías y edificios.
         const mapaVacio = !Array.isArray(c.mapa.grid)
