@@ -21,13 +21,13 @@ class App {
                 const effectiveTipo = tipo || this.selectedTipo || this.view.selectedTipo;
 
                 if (!targetCell) {
-                    alert('Primero selecciona una celda en el mapa antes de construir.');
+                    this.view.showToast('Selecciona una celda en el mapa antes de construir.', { tipo: 'warning' });
                     console.error('Construir: no hay celda seleccionada', { cell, selectedCellApp: this.selectedCell, selectedCellView: this.view.selectedCell, tipo });
                     return;
                 }
 
                 if (!effectiveTipo) {
-                    alert('Primero selecciona un tipo de construcción (R1, C1, I1, r, etc.).');
+                    this.view.showToast('Selecciona un tipo de construcción (R1, C1, I1, r, etc.).', { tipo: 'warning' });
                     console.error('Construir: no hay tipo seleccionado', { tipo, selectedTipoApp: this.selectedTipo, selectedTipoView: this.view.selectedTipo });
                     return;
                 }
@@ -35,10 +35,10 @@ class App {
                 const resultado = this.manager.construir(effectiveTipo, targetCell.x, targetCell.y);
 
                 if (!resultado.exito) {
-                    alert(`No se construyó: ${resultado.mensaje}`);
+                    this.view.showToast(`No se construyó: ${resultado.mensaje}`, { tipo: 'error' });
                     console.warn('Construir fallido', resultado, { targetCell, effectiveTipo });
                 } else {
-                    alert(`Construcción realizada: ${effectiveTipo} en (${targetCell.x}, ${targetCell.y})`);
+                    this.view.showToast(`Construcción de ${effectiveTipo} realizada en (${targetCell.x}, ${targetCell.y}).`, { tipo: 'success' });
                     console.log(`Construcción OK: ${effectiveTipo}@(${targetCell.x},${targetCell.y})`);
                 }
 
