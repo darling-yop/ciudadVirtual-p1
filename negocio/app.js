@@ -3,6 +3,22 @@ import { Ciudad } from '../modelos/Ciudad.js';
 import { CityManager } from './CityManager.js';
 import { ViewController } from './viewController.js';
 
+const BUILDING_TYPE_LABELS = {
+    r: 'Vía',
+    R1: 'Residencial R1',
+    R2: 'Residencial R2',
+    C1: 'Comercial C1',
+    C2: 'Comercial C2',
+    I1: 'Industrial I1',
+    I2: 'Industrial I2',
+    U1: 'Utilidad U1',
+    U2: 'Utilidad U2',
+    S1: 'Servicio S1',
+    S2: 'Servicio S2',
+    S3: 'Servicio S3',
+    P1: 'Parque P1'
+};
+
 // Inicializar la aplicación
 class App {
     constructor() {
@@ -38,7 +54,8 @@ class App {
                     this.view.showToast(`No se construyó: ${resultado.mensaje}`, { tipo: 'error' });
                     console.warn('Construir fallido', resultado, { targetCell, effectiveTipo });
                 } else {
-                    this.view.showToast(`Construcción de ${effectiveTipo} realizada en (${targetCell.x}, ${targetCell.y}).`, { tipo: 'success' });
+                    const tipoDescripcion = BUILDING_TYPE_LABELS[effectiveTipo] || `Tipo ${effectiveTipo}`;
+                    this.view.showToast(`Construcción de ${tipoDescripcion} realizada en (${targetCell.x}, ${targetCell.y}).`, { tipo: 'success' });
                     console.log(`Construcción OK: ${effectiveTipo}@(${targetCell.x},${targetCell.y})`);
                 }
 

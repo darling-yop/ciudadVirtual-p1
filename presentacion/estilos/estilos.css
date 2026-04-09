@@ -608,8 +608,8 @@ button:disabled {
 
 .game-toast {
     position: fixed;
+    top: 94px;
     right: 18px;
-    bottom: 18px;
     max-width: min(420px, 88vw);
     padding: 10px 14px;
     border-radius: 10px;
@@ -774,7 +774,7 @@ button:disabled {
     .game-toast {
         left: 12px;
         right: 12px;
-        bottom: 112px;
+        top: 86px;
         max-width: none;
     }
 }
