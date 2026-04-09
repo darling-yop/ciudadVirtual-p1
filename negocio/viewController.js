@@ -24,6 +24,7 @@ export class ViewController {
         onNuevaPartida,
         onAbrirSelectorCiudades,
         onCrearCiudad,
+        onAplicarRecursos,
         onCancelar
     } = {}) {
         this.onCellSelected = onCellSelected;
@@ -41,6 +42,7 @@ export class ViewController {
         this.onNuevaPartida = onNuevaPartida;
         this.onAbrirSelectorCiudades = onAbrirSelectorCiudades;
         this.onCrearCiudad = onCrearCiudad;
+        this.onAplicarRecursos = onAplicarRecursos;
         this.onCancelar = onCancelar;
 
         this.selectedTipo = 'r';
@@ -97,6 +99,10 @@ export class ViewController {
             botonConstruir: document.getElementById('boton-construir'),
             botonDemoler: document.getElementById('boton-demoler'),
             botonToggleRecursos: document.getElementById('toggle-recursos'),
+            inputRecursoElectricidad: document.getElementById('input-recurso-electricidad'),
+            inputRecursoAgua: document.getElementById('input-recurso-agua'),
+            inputRecursoAlimentos: document.getElementById('input-recurso-alimentos'),
+            botonAplicarRecursos: document.getElementById('boton-aplicar-recursos'),
             construccionMenu: document.querySelector('.construccion-menu'),
             recursosPanel: document.querySelector('.recursos-panel'),
             tipoButtons: Array.from(document.querySelectorAll('.construccion-menu button[data-tipo]')),
@@ -182,6 +188,18 @@ export class ViewController {
         if (this.el.botonExportar) {
             this.el.botonExportar.addEventListener('click', () => {
                 this.onExportar?.();
+            });
+        }
+
+        if (this.el.botonAplicarRecursos) {
+            this.el.botonAplicarRecursos.addEventListener('click', () => {
+                const recursos = {
+                    electricidad: Number(this.el.inputRecursoElectricidad?.value ?? 0),
+                    agua: Number(this.el.inputRecursoAgua?.value ?? 0),
+                    alimentos: Number(this.el.inputRecursoAlimentos?.value ?? 0)
+                };
+
+                this.onAplicarRecursos?.(recursos);
             });
         }
 
@@ -764,7 +782,21 @@ export class ViewController {
             aguaEl.textContent = `${estado.recursos.agua} m³`;
         }
         if (alimentosEl) {
-            alimentosEl.textContent = `${estado.recursos.comida} unidades`;
+            const alimentos = Number(estado.recursos.alimentos ?? estado.recursos.comida ?? 0);
+            alimentosEl.textContent = `${alimentos} unidades`;
+        }
+
+        if (this.el.inputRecursoElectricidad) {
+            this.el.inputRecursoElectricidad.value = String(Number(estado.recursos.electricidad ?? 0));
+        }
+
+        if (this.el.inputRecursoAgua) {
+            this.el.inputRecursoAgua.value = String(Number(estado.recursos.agua ?? 0));
+        }
+
+        if (this.el.inputRecursoAlimentos) {
+            const alimentos = Number(estado.recursos.alimentos ?? estado.recursos.comida ?? 0);
+            this.el.inputRecursoAlimentos.value = String(alimentos);
         }
     }
 

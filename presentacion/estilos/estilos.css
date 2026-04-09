@@ -580,6 +580,39 @@ button:disabled {
     font-weight: bold;
 }
 
+.recursos-ajuste {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #d9e2ec;
+    display: grid;
+    gap: 6px;
+}
+
+.recursos-ajuste h3 {
+    margin: 0 0 4px;
+    font-size: 0.9rem;
+    color: #2c3e50;
+}
+
+.recursos-ajuste label {
+    font-size: 0.82rem;
+    color: #4f5f6f;
+}
+
+.recursos-ajuste input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #c9d4df;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.recursos-ajuste button {
+    width: 100%;
+    margin: 6px 0 0;
+    padding: 8px 10px;
+}
+
 /* Menú de Construcción */
 .construccion-menu .categoria {
     margin-bottom: 15px;
