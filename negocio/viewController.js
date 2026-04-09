@@ -669,8 +669,47 @@ export class ViewController {
     renderHeader(estado) {
         if (!estado) return;
         if (this.el.nombreCiudad) this.el.nombreCiudad.textContent = estado.nombre;
-        if (this.el.turno) this.el.turno.textContent = `Turno: ${estado.turno}`;
+        if (this.el.turno) {
+            this.el.turno.textContent = `Turno: ${estado.turno}`;
+            if (estado.juegoFinalizado) {
+                this.el.turno.textContent += ' - JUEGO FINALIZADO';
+            }
+        }
         if (this.el.puntuacion) this.el.puntuacion.textContent = `Puntuación: ${estado.puntuacion}`;
+    }
+
+    renderActiveState() {
+        const botones = [
+            this.el.botonProcesarTurno,
+            this.el.botonIniciarTurnos,
+            this.el.botonConstruir,
+            this.el.botonDemoler,
+            this.el.botonCalcularRuta
+        ];
+        botones.forEach(boton => {
+            if (boton) boton.disabled = false;
+        });
+        if (this.el.estadoRuta) {
+            if (this.el.estadoRuta.classList) this.el.estadoRuta.classList.remove('estado-error');
+        }
+    }
+
+    renderGameOverState(estado) {
+        const botones = [
+            this.el.botonProcesarTurno,
+            this.el.botonIniciarTurnos,
+            this.el.botonConstruir,
+            this.el.botonDemoler,
+            this.el.botonCalcularRuta
+        ];
+        botones.forEach(boton => {
+            if (boton) boton.disabled = true;
+        });
+
+        if (this.el.estadoRuta) {
+            this.el.estadoRuta.textContent = `Juego finalizado: ${estado.motivoFinJuego || 'Recursos negativos detectados'}`;
+            if (this.el.estadoRuta.classList) this.el.estadoRuta.classList.add('estado-error');
+        }
     }
 
     renderEstadisticas(estado) {

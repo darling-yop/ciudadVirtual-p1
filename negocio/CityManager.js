@@ -37,6 +37,9 @@ class CityManager {
         if (saved) {
             this.ciudad = Ciudad.fromJSON(saved);
             this.activeCityId = this.ciudad.cityId;
+            if (this.ciudad && typeof this.ciudad.verificarRecursosCriticos === 'function') {
+                this.ciudad.verificarRecursosCriticos();
+            }
         } else {
             this.ciudad = new Ciudad(
                 'Ciudad Simulada',
