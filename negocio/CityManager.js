@@ -143,12 +143,13 @@ class CityManager {
         }
     }
 
-    iniciarCicloTurnos(callback) {
+    iniciarCicloTurnos(callback, duracionTurnoSegundos = 10) {
         if (this.turnIntervalId) {
             console.warn('Ciclo de turnos ya está activo');
             return;
         }
-        console.log('Iniciando ciclo automático de turnos (10 segundos por turno)');
+        const duracion = Number(duracionTurnoSegundos) || 10;
+        console.log(`Iniciando ciclo automático de turnos (${duracion} segundos por turno)`);
         this.turnIntervalId = setInterval(() => {
             this.procesarTurno();
             if (typeof callback === 'function') {
@@ -158,7 +159,7 @@ class CityManager {
                     console.error('Error en callback de turno:', error);
                 }
             }
-        }, 10 * 1000);
+        }, duracion * 1000);
     }
 
     detenerCicloTurnos() {

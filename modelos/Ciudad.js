@@ -320,8 +320,13 @@ class Ciudad {
     procesarTurno() {
         this.turnoActual++;
 
-        // Verificar condiciones críticas de derrota
-        if (this.recursos.electricidad < 0 || this.recursos.agua < 0 || this.recursos.dinero < 0) {
+        // Verificar condiciones críticas de derrota antes de procesar el turno
+        if (
+            this.recursos.electricidad < 0 ||
+            this.recursos.agua < 0 ||
+            this.recursos.dinero < 0 ||
+            this.recursos.comida < 0
+        ) {
             this.finalizarJuego("Recursos negativos detectados");
             return;
         }
@@ -331,6 +336,17 @@ class Ciudad {
         this.procesarConsumoRecursos();
         this.procesarIngresos();
         this.procesarCostos();
+
+        // Verificar nuevamente después de aplicar costos y consumos
+        if (
+            this.recursos.electricidad < 0 ||
+            this.recursos.agua < 0 ||
+            this.recursos.dinero < 0 ||
+            this.recursos.comida < 0
+        ) {
+            this.finalizarJuego("Recursos negativos detectados");
+            return;
+        }
 
         // Actualizar ciudadanos
         this.actualizarFelicidadCiudadanos();
@@ -918,14 +934,22 @@ class Ciudad {
         let costosTotales = 0;
 
         this.edificios.forEach(edificio => {
-            if (edificio.mantenimientoPorTurno) {
-                costosTotales += edificio.mantenimientoPorTurno;
+            if (edificio.costoConstruccion) {
+                const costoMantenimiento = Math.max(
+                    1,
+                    Math.round(edificio.costoConstruccion * 0.0001)
+                );
+                costosTotales += costoMantenimiento;
             }
         });
 
         this.vias.forEach(via => {
             if (via.costoConstruccion) {
-                costosTotales += via.costoConstruccion * 0.1;
+                const costoVia = Math.max(
+                    1,
+                    Math.round(via.costoConstruccion * 0.0001)
+                );
+                costosTotales += costoVia;
             }
         });
 
@@ -1167,3 +1191,4 @@ class Ciudad {
 
 // Exportar clase para uso en módulos ES
 export { Ciudad };
+

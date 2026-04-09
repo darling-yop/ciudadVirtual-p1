@@ -89,6 +89,19 @@ No se encontraron restricciones faltantes; el sistema ya cumple con los requisit
 - Confirmar URL/estructura del backend para ajustar `GameRepository` (endpoints, autenticación, formato JSON).
 - Integrar de forma definitiva los servicios de clima (OpenWeather) y noticias (NewsAPI) con claves reales.
 
+## Cambios de reglas de simulación (09 de abril de 2026)
+- `modelos/Ciudad.js`:
+  - Se amplió la condición de fin de juego para que cualquier recurso negativo (`dinero`, `electricidad`, `agua`, `comida`) cierre la partida.
+  - Se agregó verificación antes y después de procesar producción, consumo e ingresos/costos.
+  - Se ajustó `procesarCostos()` para calcular mantenimiento como `0.01%` del valor de construcción de cada edificio y cada vía.
+- `negocio/CityManager.js`:
+  - `iniciarCicloTurnos()` ahora acepta un parámetro opcional `duracionTurnoSegundos`.
+  - Se preserva el valor predeterminado de 10 segundos para no romper la lógica actual.
+- `modelos/Recursos.js`:
+  - `verificarEstadoCritico()` ahora incluye `dinero negativo` y `alimentos negativos` como condiciones de derrota.
+
+> Cambios puntuales y de bajo impacto para preservar el trabajo existente del equipo.
+
 ## Cambios Realizados para Alinear con Especificaciones
 
 ### Fecha: 13 de marzo de 2026
