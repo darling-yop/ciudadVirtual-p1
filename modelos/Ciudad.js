@@ -74,9 +74,10 @@ class Ciudad {
         // Recursos iniciales (aumentados para evitar game-over inmediato)
         this.recursos = {
             dinero: 50000,
-            electricidad: 500,   // Aumentado de 0
-            agua: 500,           // Aumentado de 0
-            comida: 100          // Aumentado de 0
+            electricidad: 0,
+            agua: 0,
+            alimentos: 0,
+            comida: 0
         };
 
         // Histórico de recursos para análisis y gráficos (últimos 20 turnos).
@@ -86,6 +87,16 @@ class Ciudad {
         // Parámetros ajustables (crecimiento poblacional)
         // puede ser modificado desde la IU si es necesario.
         this.crecimiento = { min: 1, max: 3 }; // ciudadanos por turno
+    }
+
+    #normalizarRecursos() {
+        this.recursos.dinero = Number(this.recursos.dinero ?? 0);
+        this.recursos.electricidad = Number(this.recursos.electricidad ?? 0);
+        this.recursos.agua = Number(this.recursos.agua ?? 0);
+
+        const alimentos = Number(this.recursos.alimentos ?? this.recursos.comida ?? 0);
+        this.recursos.alimentos = alimentos;
+        this.recursos.comida = alimentos;
     }
 
     /**
@@ -201,6 +212,7 @@ class Ciudad {
             dinero: 50000,
             electricidad: 0,
             agua: 0,
+            alimentos: 0,
             comida: 0
         };
         this.historicoRecursos = [];
@@ -233,7 +245,9 @@ class Ciudad {
                     this.recursos.agua += edificio.producirRecurso();
                 }
                 if (token === 'I2' && typeof edificio.calcularProduccion === 'function') {
-                    this.recursos.comida += edificio.calcularProduccion();
+                    const produccionInicial = Number(edificio.calcularProduccion()) || 0;
+                    this.recursos.alimentos += produccionInicial;
+                    this.recursos.comida += produccionInicial;
                 }
             });
         });
@@ -251,6 +265,10 @@ class Ciudad {
     configurarRecursoDesdeIU(tipo, valor) {
         if (this.recursos.hasOwnProperty(tipo)) {
             this.recursos[tipo] = Number(valor);
+            if (tipo === 'alimentos' || tipo === 'comida') {
+                this.recursos.alimentos = Number(valor);
+                this.recursos.comida = Number(valor);
+            }
         }
     }
 
@@ -328,6 +346,8 @@ class Ciudad {
             return;
         }
 
+        this.#normalizarRecursos();
+
         this.turnoActual++;
 
         // Verificar condiciones críticas de derrota antes de procesar el turno
@@ -369,6 +389,7 @@ class Ciudad {
             dinero: this.recursos.dinero,
             electricidad: this.recursos.electricidad,
             agua: this.recursos.agua,
+            alimentos: this.recursos.alimentos,
             comida: this.recursos.comida
         });
 
@@ -525,7 +546,7 @@ class Ciudad {
         // Bonificaciones
         if (desempleados === 0) score += 500;
         if (felicidad > 80) score += 300;
-        if (this.recursos.dinero > 0 && this.recursos.electricidad > 0 && this.recursos.agua > 0 && this.recursos.comida > 0) score += 200;
+        if (this.recursos.dinero > 0 && this.recursos.electricidad > 0 && this.recursos.agua > 0 && this.recursos.alimentos > 0) score += 200;
         if (this.poblacion.length > 1000) score += 1000;
 
         this.puntuacionAcumulada = score;
@@ -556,34 +577,15 @@ class Ciudad {
     verificarRecursosCriticos() {
         const electricidad = Number(this.recursos.electricidad ?? 0);
         const agua = Number(this.recursos.agua ?? 0);
-        const dinero = Number(this.recursos.dinero ?? 0);
 
-        // Verificar si hay déficit en recursos críticos (electricidad, agua o dinero)
-        // Permitir pequeño endeudamiento (-5000) para dar margen de maniobra
-        const hayDeficit = electricidad < 0 || agua < 0 || dinero < -5000;
+        if (electricidad < 0 || agua < 0) {
+            let motivo = 'Crisis de recursos: ';
+            if (electricidad < 0 && agua < 0) motivo += 'Colapso total - Sin agua ni electricidad';
+            else if (electricidad < 0) motivo += 'Energía negativa';
+            else motivo += 'Balance de agua negativo';
 
-        if (hayDeficit) {
-            this.turnosConDeficit++;
-            console.warn(`⚠ Déficit detectado. Turno ${this.turnosConDeficit}/${this.MAX_TURNOS_DEFICIT}`, {
-                electricidad,
-                agua,
-                dinero
-            });
-
-            // Game-over solo si el déficit persiste durante varios turnos consecutivos
-            if (this.turnosConDeficit >= this.MAX_TURNOS_DEFICIT) {
-                let motivo = 'Crisis de recursos: ';
-                if (dinero <= -5000) motivo += 'Deuda insostenible ($' + dinero + ')';
-                else if (electricidad < 0 && agua < 0) motivo += 'Colapso total - Sin agua ni electricidad';
-                else if (electricidad < 0) motivo += 'Generador eléctrico colapsó';
-                else if (agua < 0) motivo += 'Sistema de agua colapsó';
-                
-                this.finalizarJuego(motivo);
-                return true;
-            }
-        } else {
-            // Recursos estables: resetear el contador de déficit
-            this.turnosConDeficit = 0;
+            this.finalizarJuego(motivo);
+            return true;
         }
 
         return false;
@@ -693,7 +695,7 @@ class Ciudad {
         return this.edificios.filter(e => {
             if (tipoRecurso === 'electricidad') return e.tipo === 'U1';
             if (tipoRecurso === 'agua') return e.tipo === 'U2';
-            if (tipoRecurso === 'comida') return e.tipo.startsWith('I');
+            if (tipoRecurso === 'comida' || tipoRecurso === 'alimentos') return e.tipo === 'I2';
             return false;
         });
     }
@@ -807,12 +809,26 @@ class Ciudad {
         ).length * 2; // 2 puntos por cada edificio de servicio/parque
 
         const efectoClima = this.#calcularAjusteFelicidadClima();
+        const poblacionTotal = this.poblacion.length;
+        const alimentosDisponibles = Number(this.recursos.alimentos ?? this.recursos.comida ?? 0);
+
+        // Consumo indirecto de alimentos: impacta felicidad, no resta inventario directamente.
+        let efectoAlimentos = 0;
+        if (poblacionTotal > 0) {
+            if (alimentosDisponibles >= poblacionTotal) {
+                efectoAlimentos = 5;
+            } else if (alimentosDisponibles >= Math.ceil(poblacionTotal * 0.5)) {
+                efectoAlimentos = 1;
+            } else {
+                efectoAlimentos = -8;
+            }
+        }
 
         this.poblacion.forEach(ciudadano => {
             ciudadano.actualizarFelicidad();
             ciudadano.nivelFelicidad = Math.min(
                 100,
-                Math.max(0, ciudadano.nivelFelicidad + bonusServicios + efectoClima)
+                Math.max(0, ciudadano.nivelFelicidad + bonusServicios + efectoClima + efectoAlimentos)
             );
         });
     }
@@ -889,106 +905,54 @@ class Ciudad {
         });
 
         const granjas = this.edificios.filter(e => e.tipo === 'I2' && e.estaOperativo);
-        let prodComida = 0;
+        let prodAlimentos = 0;
         granjas.forEach(granja => {
             if (granja.calcularProduccion) {
-                prodComida += granja.calcularProduccion();
+                prodAlimentos += granja.calcularProduccion();
             }
         });
 
-        // Aplicar multiplicador climático a la producción de alimentos
+        // Los alimentos son acumulables y generados por granjas.
         const multiplicadorClima = this.#calcularMultiplicadorProduccionComida();
-        prodComida *= multiplicadorClima;
+        prodAlimentos *= multiplicadorClima;
 
         this.recursos.electricidad += prodElectricidad;
         this.recursos.agua += prodAgua;
-        this.recursos.comida += prodComida;
+        this.recursos.alimentos += prodAlimentos;
+        this.recursos.comida = this.recursos.alimentos;
     }
 
     /**
-     * Procesa el consumo de recursos según ocupación y tipo de edificio
-     * REGLAS DE CONSUMO POR ESTRUCTURA CONSTRUIBLE:
-     * 
-     * RESIDENCIAL (R1, R2):
-     * - R1 (Casa): 4 ciudadanos max | consume 5 elec + 3 agua por ciudadano
-     * - R2 (Apartamento): 12 ciudadanos max | consume 5 elec + 3 agua por ciudadano
-     *
-     * COMERCIAL (C1, C2):
-     * - C1 (Tienda): 6 empleos | consume 8 elec base + 2 por empleado + 2 agua
-     * - C2 (Centro): 20 empleos | consume 25 elec base + 3 por empleado + 5 agua
-     *
-     * INDUSTRIAL (I1, I2):
-     * - I1 (Fábrica): 15 empleos | consume 20 elec base + 3 por empleado + 5 agua
-     * - I2 (Granja): 8 empleos | consume 5 elec + 15 agua (produce comida)
-     *
-     * SERVICIOS (S1, S2, S3):
-     * - Todos: consume 15 electricidad fijo por estructura
-     *
-     * UTILIDADES (U1, U2):
-     * - Solo productores, NO consumen
-     *
-     * PARQUES (P1):
-     * - Consume 3 electricidad fijo
+     * Procesa consumo de recursos por propósito de edificio.
+     * - Electricidad: la consumen todos excepto parques (P1) y utilidades (U1/U2).
+     * - Agua: la consumen edificios urbanos según su configuración de tipo.
+     * - Alimentos: consumo indirecto vía felicidad (no se resta aquí).
      */
     procesarConsumoRecursos() {
         let consumoElectricidad = 0;
         let consumoAgua = 0;
-        let consumoComida = 0;
 
         this.edificios.forEach(edificio => {
             if (!edificio.estaOperativo) return;
 
             const tipo = edificio.tipo;
-            const ocupacion = edificio.ocupacionActual || 0;
-
-            // Aplicar consumo según tipo de estructura
-            if (tipo === 'R1' || tipo === 'R2') {
-                // Residencial: consumo proporcional a ciudadanos
-                consumoElectricidad += ocupacion * 5;
-                consumoAgua += ocupacion * 3;
-                consumoComida += ocupacion * 1;
-            } else if (tipo === 'C1') {
-                // Tienda: consumo fijo + proporcional a empleados
-                consumoElectricidad += 8 + (ocupacion * 2);
-                consumoAgua += 2;
-            } else if (tipo === 'C2') {
-                // Centro comercial: mayor consumo
-                consumoElectricidad += 25 + (ocupacion * 3);
-                consumoAgua += 5;
-            } else if (tipo === 'I1') {
-                // Fábrica: consumo industrial alto
-                consumoElectricidad += 20 + (ocupacion * 3);
-                consumoAgua += 5;
-            } else if (tipo === 'I2') {
-                // Granja: consume agua para producción agrícola
-                consumoElectricidad += 5;
-                consumoAgua += 15;
-            } else if (tipo === 'S1' || tipo === 'S2' || tipo === 'S3') {
-                // Servicios públicos: demanda constante de energía
-                consumoElectricidad += 15;
-            } else if (tipo === 'P1') {
-                // Parque: iluminación y riego
-                consumoElectricidad += 3;
+            if (tipo === 'U1' || tipo === 'U2') {
+                return;
             }
-            // U1 (Planta Eléctrica) y U2 (Planta Agua) no consumen
-        });
 
-        // Consumo de iluminación de vías/caminos
-        this.vias.forEach(() => {
-            consumoElectricidad += 1;
+            if (tipo !== 'P1') {
+                consumoElectricidad += Math.max(0, Number(edificio.consumoElectricidad || 0));
+            }
+
+            consumoAgua += Math.max(0, Number(edificio.consumoAgua || 0));
         });
 
         // Restar consumo de recursos
         this.recursos.electricidad -= consumoElectricidad;
         this.recursos.agua -= consumoAgua;
-        this.recursos.comida -= consumoComida;
 
-        // Desactivar edificios si falta energía o agua crítica
-        this.edificios.forEach(edificio => {
-            if (this.recursos.electricidad < 0 || this.recursos.agua < 0) {
-                edificio.estaOperativo = false;
-            }
-        });
+        this.recursos.consumoElectricidadTurno = consumoElectricidad;
+        this.recursos.consumoAguaTurno = consumoAgua;
     }
 
     /**
@@ -1223,6 +1187,11 @@ class Ciudad {
             return ciudadano;
         }).filter(Boolean);
         c.recursos = data.recursos || c.recursos;
+        c.recursos.dinero = Number(c.recursos.dinero ?? 0);
+        c.recursos.electricidad = Number(c.recursos.electricidad ?? 0);
+        c.recursos.agua = Number(c.recursos.agua ?? 0);
+        c.recursos.alimentos = Number(c.recursos.alimentos ?? c.recursos.comida ?? 0);
+        c.recursos.comida = c.recursos.alimentos;
         c.historicoRecursos = (data.historicoRecursos || []).slice(-20);
         c.crecimiento = data.crecimiento || c.crecimiento;
         c.juegoFinalizado = Boolean(data.juegoFinalizado);
@@ -1248,8 +1217,14 @@ class Ciudad {
         c.edificios.forEach((ed) => normalizarCelda(Number(ed.x), Number(ed.y), ed.tipo));
 
         if (!Array.isArray(c.historicoRecursos) || c.historicoRecursos.length === 0) {
-            c.historicoRecursos = [];
-            c.#registrarHistoricoRecursos();
+            c.historicoRecursos = [{
+                turno: c.turnoActual,
+                dinero: c.recursos.dinero,
+                electricidad: c.recursos.electricidad,
+                agua: c.recursos.agua,
+                alimentos: c.recursos.alimentos,
+                comida: c.recursos.comida
+            }];
         }
 
         return c;
@@ -1292,6 +1267,7 @@ class Ciudad {
                 dinero: this.recursos.dinero,
                 electricidad: this.recursos.electricidad,
                 agua: this.recursos.agua,
+                alimentos: this.recursos.alimentos,
                 comida: this.recursos.comida
             },
             juegoFinalizado: Boolean(this.juegoFinalizado),

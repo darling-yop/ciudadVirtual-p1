@@ -35,6 +35,7 @@ class Recursos {
             case 'electricidad': this.electricidad = valor; break;
             case 'agua': this.agua = valor; break;
             case 'alimentos': this.alimentos = valor; break;
+            case 'comida': this.alimentos = valor; break;
         }
     }
 
@@ -56,17 +57,11 @@ class Recursos {
      * @returns {Object} { derrota: boolean, motivo: string }
      */
     verificarEstadoCritico() {
-        if (this.dinero < 0) {
-            return { derrota: true, motivo: "Dinero negativo" };
-        }
         if (this.obtenerBalanceNetoEnergia() < 0) {
             return { derrota: true, motivo: "Energía negativa" };
         }
         if (this.obtenerBalanceNetoAgua() < 0) {
             return { derrota: true, motivo: "Balance de agua negativo" };
-        }
-        if (this.alimentos < 0) {
-            return { derrota: true, motivo: "Alimentos negativos" };
         }
         return { derrota: false, motivo: "" };
     }

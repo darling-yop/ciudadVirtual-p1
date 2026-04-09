@@ -101,6 +101,7 @@ class App {
             onContinuarPartida: (cityId) => this.continuarPartidaGuardada(cityId),
             onNuevaPartida: () => this.iniciarNuevaPartidaDesdeCero(),
             onAbrirSelectorCiudades: () => this.mostrarSelectorCiudades(),
+            onAplicarRecursos: (recursos) => this.aplicarRecursosManuales(recursos),
             onCancelar: () => {
                 this.selectedCell = null;
                 this.actualizarUI();
@@ -278,6 +279,33 @@ class App {
 
         await this.view.animarRuta(resultado.ruta);
         this.view.setEstadoRuta(`Ruta encontrada. Distancia: ${resultado.ruta.length - 1} celdas.`);
+    }
+
+    aplicarRecursosManuales(recursos = {}) {
+        if (!this.manager.ciudad) {
+            this.view.showToast('No hay ciudad cargada para ajustar recursos.', { tipo: 'warning' });
+            return;
+        }
+
+        const electricidad = Number(recursos.electricidad ?? 0);
+        const agua = Number(recursos.agua ?? 0);
+        const alimentos = Number(recursos.alimentos ?? 0);
+
+        if ([electricidad, agua, alimentos].some((v) => Number.isNaN(v))) {
+            this.view.showToast('Ingresa valores numéricos válidos para los recursos.', { tipo: 'error' });
+            return;
+        }
+
+        this.manager.ciudad.configurarRecursoDesdeIU('electricidad', electricidad);
+        this.manager.ciudad.configurarRecursoDesdeIU('agua', agua);
+        this.manager.ciudad.configurarRecursoDesdeIU('alimentos', alimentos);
+
+        this.manager.save();
+        this.actualizarUI();
+        this.view.showToast(
+            `Recursos ajustados manualmente: E=${electricidad}, A=${agua}, Al=${alimentos}.`,
+            { tipo: 'success' }
+        );
     }
 
     exportarCiudad() {

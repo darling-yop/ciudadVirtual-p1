@@ -126,7 +126,7 @@ const configuraciones = {
     // Parques
     P1: {
         costo: 5000,
-        consumoElectricidad: 1,
+        consumoElectricidad: 0,
         consumoAgua: 1,
         capacidad: 0,
         beneficio: 20,
