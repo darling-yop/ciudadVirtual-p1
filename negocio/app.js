@@ -247,10 +247,14 @@ class App {
             this.view.setEstadoRuta('Turno procesado. Selecciona edificios para calcular una ruta.');
             this.actualizarUI();
             
-            // Feedback visual
             const estado = this.manager.obtenerEstado();
+            if (estado && estado.juegoFinalizado) {
+                this.view.showToast(`Juego finalizado: ${estado.motivoFinJuego || 'Recursos negativos detectados'}`, { tipo: 'error', durationMs: 6000 });
+            }
+
+            // Feedback visual
             if (estado) {
-                console.log(`Dinero: ${estado.dinero} | Electricidad: ${estado.electricidad} | Agua: ${estado.agua}`);
+                console.log(`Dinero: ${estado.recursos.dinero} | Electricidad: ${estado.recursos.electricidad} | Agua: ${estado.recursos.agua}`);
             }
         } catch (error) {
             console.error('Error al procesar turno:', error);
@@ -309,6 +313,11 @@ class App {
         this.view.renderizarMapa(estado.mapa);
         this.view.renderOpcionesRuta(estado.edificios.lista || []);
         this.view.saveLastRenderMatrix(estado.mapa);
+        if (estado.juegoFinalizado) {
+            this.view.renderGameOverState(estado);
+        } else {
+            this.view.renderActiveState();
+        }
     }
 
     actualizarEstadisticas(estado) {

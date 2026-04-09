@@ -328,13 +328,7 @@ class Ciudad {
         this.turnoActual++;
 
         // Verificar condiciones críticas de derrota antes de procesar el turno
-        if (
-            this.recursos.electricidad < 0 ||
-            this.recursos.agua < 0 ||
-            this.recursos.dinero < 0 ||
-            this.recursos.comida < 0
-        ) {
-            this.finalizarJuego("Recursos negativos detectados");
+        if (this.verificarRecursosCriticos()) {
             return;
         }
 
@@ -345,13 +339,7 @@ class Ciudad {
         this.procesarCostos();
 
         // Verificar nuevamente después de aplicar costos y consumos
-        if (
-            this.recursos.electricidad < 0 ||
-            this.recursos.agua < 0 ||
-            this.recursos.dinero < 0 ||
-            this.recursos.comida < 0
-        ) {
-            this.finalizarJuego("Recursos negativos detectados");
+        if (this.verificarRecursosCriticos()) {
             return;
         }
 
@@ -562,8 +550,23 @@ class Ciudad {
         return this.poblacion.reduce((a, b) => a + b.nivelFelicidad, 0) / this.poblacion.length;
     }
 
+    verificarRecursosCriticos() {
+        const electricidad = Number(this.recursos.electricidad ?? 0);
+        const agua = Number(this.recursos.agua ?? 0);
+        const dinero = Number(this.recursos.dinero ?? 0);
+        const comida = Number(this.recursos.comida ?? 0);
+
+        if (electricidad < 0 || agua < 0 || dinero < 0 || comida < 0) {
+            this.finalizarJuego('Recursos negativos detectados');
+            return true;
+        }
+        return false;
+    }
+
     finalizarJuego(motivo) {
+        if (this.juegoFinalizado) return;
         this.juegoFinalizado = true;
+        this.motivoFinJuego = motivo;
         console.error(`GAME OVER: ${motivo}`);
         if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('game-over', { detail: { motivo } }));
@@ -1136,6 +1139,7 @@ class Ciudad {
         c.historicoRecursos = (data.historicoRecursos || []).slice(-20);
         c.crecimiento = data.crecimiento || c.crecimiento;
         c.juegoFinalizado = Boolean(data.juegoFinalizado);
+        c.motivoFinJuego = data.motivoFinJuego || null;
 
         // Si el mapa vino vacío o incompleto, reconstruirlo desde vías y edificios.
         const mapaVacio = !Array.isArray(c.mapa.grid)
@@ -1167,6 +1171,9 @@ class Ciudad {
      * Obtiene el estado general de la ciudad
      */
     obtenerEstadoGeneral() {
+        if (!this.juegoFinalizado) {
+            this.verificarRecursosCriticos();
+        }
         return {
             cityId: this.cityId,
             nombre: this.nombre,
@@ -1200,6 +1207,7 @@ class Ciudad {
                 comida: this.recursos.comida
             },
             juegoFinalizado: Boolean(this.juegoFinalizado),
+            motivoFinJuego: this.motivoFinJuego || null,
             clima: { ...this.datosClima },
             noticias: [...this.noticias],
             mapa: {
