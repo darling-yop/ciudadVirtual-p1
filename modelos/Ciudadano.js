@@ -66,3 +66,5 @@ class Ciudadano {
         };
     }
 }
+
+export { Ciudadano };
