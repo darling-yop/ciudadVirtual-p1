@@ -50,6 +50,7 @@ export class ViewController {
         this.routeCells = [];
         this.routeWalkerCell = null;
         this.routeAnimationToken = 0;
+        this._toastTimeoutId = null;
 
         this.colombiaMunicipios = {
             'Cundinamarca': {
@@ -119,6 +120,32 @@ export class ViewController {
             inputMapaArchivo: document.getElementById('input-mapa-archivo'),
             estadoMapa: document.getElementById('estado-mapa')
         };
+    }
+
+    showToast(mensaje, { tipo = 'info', durationMs = 2600 } = {}) {
+        if (!mensaje) return;
+
+        let toastEl = document.getElementById('game-toast');
+        if (!toastEl) {
+            toastEl = document.createElement('div');
+            toastEl.id = 'game-toast';
+            toastEl.className = 'game-toast';
+            toastEl.setAttribute('role', 'status');
+            toastEl.setAttribute('aria-live', 'polite');
+            document.body.appendChild(toastEl);
+        }
+
+        toastEl.textContent = mensaje;
+        toastEl.className = `game-toast game-toast--${tipo}`;
+        toastEl.classList.add('game-toast--visible');
+
+        if (this._toastTimeoutId) {
+            clearTimeout(this._toastTimeoutId);
+        }
+
+        this._toastTimeoutId = setTimeout(() => {
+            toastEl.classList.remove('game-toast--visible');
+        }, Math.max(1200, Number(durationMs) || 2600));
     }
 
     _bindEvents() {
