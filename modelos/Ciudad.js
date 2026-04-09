@@ -325,12 +325,7 @@ class Ciudad {
             return true;
         }
 
-        // Si no hay ninguna vía construida aún, permitimos construir en cualquier lugar
-        // (esto facilita empezar la ciudad, luego ya habrá calles para conectar).
-        const tieneVias = this.mapa.obtenerPosicionesPorTipo('r').length > 0;
-        if (!tieneVias) return true;
-
-        // Si ya hay vías, exigir que la construcción esté junto a una vía para conectividad.
+        // Para cualquier edificio (distinto de vía), exigir conexión vial adyacente.
         const vecinos = this.mapa.obtenerVecinos(x, y);
         const tieneViaAdyacente = vecinos.some(([vx, vy]) => this.mapa.obtenerCelda(vx, vy) === 'r');
 
