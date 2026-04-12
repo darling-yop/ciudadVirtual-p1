@@ -909,3 +909,71 @@ button:disabled {
     background: #bdc3c7;
     cursor: not-allowed;
 }
+
+/* Estilos para la vista de ranking */
+#ranking-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+#ranking-content {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+#ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+#ranking-table th,
+#ranking-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+#ranking-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+#ranking-table tr.current-city {
+    background-color: #e3f2fd;
+    font-weight: bold;
+}
+
+#ranking-actions {
+    text-align: center;
+}
+
+#ranking-actions button {
+    margin: 0 10px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#ranking-actions button:hover {
+    background-color: #0056b3;
+}
+
+#current-city-info {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.current-city-position {
+    color: #007bff;
+    font-weight: bold;
+}

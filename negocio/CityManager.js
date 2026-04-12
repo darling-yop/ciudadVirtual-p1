@@ -5,6 +5,7 @@
 
 import { CityRepository } from '../acceso_datos/CityRepository.js';
 import { GameRepository } from '../acceso_datos/GameRepository.js';
+import { RankingLocal } from '../acceso_datos/RankingLocal.js';
 import { Ciudad } from '../modelos/Ciudad.js';
 
 class CityManager {
@@ -12,6 +13,8 @@ class CityManager {
 
     constructor() {
         if (CityManager.instance) return CityManager.instance;
+
+        this.rankingLocal = new RankingLocal();
 
         this.ciudad = null;
         this.activeCityId = null;
@@ -32,7 +35,7 @@ class CityManager {
         return CityManager.instance;
     }
 
-    init(cityId = null) {
+    async init(cityId = null) {
         const saved = CityRepository.load(cityId);
         if (saved) {
             this.ciudad = Ciudad.fromJSON(saved);
@@ -53,6 +56,9 @@ class CityManager {
             );
             this.activeCityId = this.ciudad.cityId;
         }
+
+        // Iniciar servicios externos
+        await this.ciudad.iniciarServiciosExternos();
 
         // Cargar estado desde backend si está disponible (no bloquea el render inicial)
         if (this.backendSyncEnabled) {
@@ -144,6 +150,7 @@ class CityManager {
                 this.detenerCicloTurnos();
             }
             this.save();
+            this.rankingLocal.guardarPuntuacion(this.ciudad);
         } catch (error) {
             console.error('Error en procesarTurno:', error);
         }

@@ -2,23 +2,22 @@
  * Servicio para gestionar la integración con OpenWeatherMap API
  * Proporciona datos climáticos reales para la simulación de la ciudad
  */
+import { Clima } from '../modelos/Clima.js';
+import { OPENWEATHER_API_KEY } from './config.js';
+
 export class ServicioClima {
-    constructor(apiKey, lat = -34.6037, lon = -58.3816) { // Buenos Aires por defecto
-        this.apiKey = apiKey;
+    constructor(lat = -34.6037, lon = -58.3816, ciudad = 'Ciudad Desconocida') { // Buenos Aires por defecto
+        this.apiKey = OPENWEATHER_API_KEY;
         this.lat = lat;
         this.lon = lon;
-        this.datosClima = {
-            temperatura: 0,
-            condicion: '',
-            humedad: 0,
-            velocidadViento: 0,
-            ultimaActualizacion: null
-        };
+        this.ciudad = ciudad;
+        this.datosClima = null; // Instancia de Clima
         this.intervaloActualizacion = null;
     }
 
     /**
-     * Obtiene datos climáticos actuales de OpenWeatherMap
+     * Obtiene datos climáticos actuales de OpenWeatherMap y retorna un objeto Clima
+     * @returns {Clima} - Instancia de Clima con los datos actuales
      */
     async obtenerClima() {
         try {
@@ -31,19 +30,26 @@ export class ServicioClima {
 
             const data = await response.json();
 
-            this.datosClima = {
-                temperatura: Math.round(data.main.temp),
-                condicion: this.traducirCondicion(data.weather[0].main),
-                humedad: data.main.humidity,
-                velocidadViento: Math.round(data.wind.speed * 3.6), // m/s a km/h
-                ultimaActualizacion: new Date()
-            };
+            // Validar que los datos necesarios estén presentes
+            if (!data.main || !data.weather || !data.weather[0]) {
+                throw new Error('Datos climáticos incompletos en la respuesta de la API');
+            }
 
-            console.log('Datos climáticos actualizados:', this.datosClima);
+            const temperatura = Math.round(data.main.temp);
+            const descripcion = this.traducirCondicion(data.weather[0].main);
+            const humedad = data.main.humidity;
+            const viento = Math.round((data.wind?.speed || 0) * 3.6); // m/s a km/h, con valor por defecto
+
+            this.datosClima = new Clima(temperatura, descripcion, humedad, viento, this.ciudad);
+
+            console.log('Datos climáticos actualizados:', this.datosClima.toString());
             return this.datosClima;
         } catch (error) {
             console.error('Error obteniendo datos climáticos:', error);
-            // En caso de error, mantener datos anteriores o usar valores por defecto
+            // Devolver datos por defecto si falla la API
+            if (!this.datosClima) {
+                this.datosClima = new Clima(20, 'Soleado', 50, 10, this.ciudad);
+            }
             return this.datosClima;
         }
     }
@@ -68,8 +74,8 @@ export class ServicioClima {
     /**
      * Inicia la actualización automática cada 30 minutos
      */
-    iniciarActualizacionAutomatica() {
-        this.obtenerClima(); // Obtener datos iniciales
+    async iniciarActualizacionAutomatica() {
+        await this.obtenerClima(); // Obtener datos iniciales
         this.intervaloActualizacion = setInterval(() => {
             this.obtenerClima();
         }, 30 * 60 * 1000); // 30 minutos
@@ -86,10 +92,11 @@ export class ServicioClima {
     }
 
     /**
-     * Retorna los datos climáticos actuales
+     * Retorna los datos climáticos actuales como instancia de Clima
+     * @returns {Clima|null} - Instancia de Clima o null si no hay datos
      */
     obtenerDatosClimaActuales() {
-        return { ...this.datosClima };
+        return this.datosClima;
     }
 
     /**
