@@ -57,8 +57,16 @@ class CityManager {
             this.activeCityId = this.ciudad.cityId;
         }
 
-        // Iniciar servicios externos
-        await this.ciudad.iniciarServiciosExternos();
+        // Iniciar servicios externos sin bloquear la carga de partida.
+        this.ciudad.iniciarServiciosExternos()
+            .then(() => {
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('city-external-services-updated'));
+                }
+            })
+            .catch((error) => {
+                console.warn('Servicios externos no iniciados durante init:', error);
+            });
 
         // Cargar estado desde backend si está disponible (no bloquea el render inicial)
         if (this.backendSyncEnabled) {

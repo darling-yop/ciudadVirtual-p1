@@ -120,6 +120,10 @@ class App {
             }
         });
 
+        window.addEventListener('city-external-services-updated', () => {
+            this.actualizarUI();
+        });
+
         if (CityRepository.hasSaves()) {
             this.mostrarSelectorCiudades();
         } else {

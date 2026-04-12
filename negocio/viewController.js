@@ -500,9 +500,9 @@ export class ViewController {
         }
 
         const regiones = {
-            buenosaires: { nombre: 'Buenos Aires', coordenadas: { lat: -34.6037, lon: -58.3816 } },
-            mexico: { nombre: 'Ciudad de México', coordenadas: { lat: 19.4326, lon: -99.1332 } },
-            madrid: { nombre: 'Madrid', coordenadas: { lat: 40.4168, lon: -3.7038 } }
+            buenosaires: { nombre: 'Buenos Aires', coordenadas: { lat: -34.6037, lon: -58.3816 }, countryCode: 'ar' },
+            mexico: { nombre: 'Ciudad de México', coordenadas: { lat: 19.4326, lon: -99.1332 }, countryCode: 'mx' },
+            madrid: { nombre: 'Madrid', coordenadas: { lat: 40.4168, lon: -3.7038 }, countryCode: 'es' }
         };
 
         let region = regiones[regionKey];
@@ -523,7 +523,8 @@ export class ViewController {
 
             region = {
                 nombre: `${municipio}, ${departamento}`,
-                coordenadas
+                coordenadas,
+                countryCode: 'co'
             };
         }
 
@@ -534,7 +535,7 @@ export class ViewController {
                 alert('Ingresa latitud y longitud válidas.');
                 return null;
             }
-            region = { nombre: 'Personalizada', coordenadas: { lat, lon } };
+            region = { nombre: 'Personalizada', coordenadas: { lat, lon }, countryCode: 'co' };
         }
 
         return {
@@ -809,7 +810,13 @@ export class ViewController {
 
     renderClima(clima) {
         if (!this.el.climaContenido) return;
-        if (clima) {
+        const tieneDatosValidos = clima
+            && typeof clima.descripcion !== 'undefined'
+            && typeof clima.temperatura !== 'undefined'
+            && typeof clima.humedad !== 'undefined'
+            && typeof clima.viento !== 'undefined';
+
+        if (tieneDatosValidos) {
             this.el.climaContenido.innerHTML = `
                 <div class="recurso">
                     <span>Condición:</span>
@@ -840,7 +847,9 @@ export class ViewController {
                 <div class="noticia-item">
                     <h3>${noticia.titulo}</h3>
                     <p>${noticia.descripcion || 'Sin descripción disponible'}</p>
-                    ${noticia.enlace ? `<a href="${noticia.enlace}" target="_blank" rel="noopener">Leer más</a>` : ''}
+                    ${noticia.fuente ? `<p class="noticia-meta">Fuente: ${noticia.fuente}</p>` : ''}
+                    ${noticia.fecha ? `<p class="noticia-meta">Actualización: ${new Date(noticia.fecha).toLocaleString('es-CO')}</p>` : ''}
+                    ${(noticia.enlace || noticia.url) ? `<a href="${noticia.enlace || noticia.url}" target="_blank" rel="noopener">Leer más</a>` : ''}
                 </div>
             `).join('');
         } else {

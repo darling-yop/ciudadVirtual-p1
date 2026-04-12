@@ -11,11 +11,14 @@ class Noticia {
      * @param {string} imagen - URL de la imagen asociada a la noticia
      * @param {string} url - URL completa de la noticia
      */
-    constructor(titulo, descripcion, imagen, url) {
+    constructor(titulo, descripcion, imagen, url, fuente = 'newsapi', fecha = null) {
         this.titulo = titulo;
         this.descripcion = descripcion;
         this.imagen = imagen;
         this.url = url;
+        this.enlace = url;
+        this.fuente = fuente;
+        this.fecha = fecha;
     }
 
     /**
