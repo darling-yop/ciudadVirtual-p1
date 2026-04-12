@@ -80,6 +80,7 @@ export class ViewController {
             puntuacion: document.getElementById('puntuacion'),
             saveStatus: document.getElementById('save-status'),
             botonElegirCiudad: document.getElementById('boton-elegir-ciudad'),
+            botonVerRanking: document.getElementById('boton-ver-ranking'),
             recursosContenido: document.getElementById('recursos-contenido'),
             climaContenido: document.getElementById('clima-contenido'),
             noticiasContenido: document.getElementById('noticias-contenido'),
@@ -206,6 +207,12 @@ export class ViewController {
         if (this.el.botonElegirCiudad) {
             this.el.botonElegirCiudad.addEventListener('click', () => {
                 this.onAbrirSelectorCiudades?.();
+            });
+        }
+
+        if (this.el.botonVerRanking) {
+            this.el.botonVerRanking.addEventListener('click', () => {
+                window.location.href = 'ranking.html';
             });
         }
 

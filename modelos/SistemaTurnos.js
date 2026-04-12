@@ -3,10 +3,15 @@
  * Clase que gestiona el sistema de turnos del juego de simulación urbana.
  * Ejecuta las 6 acciones secuenciales por cada turno según la documentación.
  */
+import { RankingLocal } from '../acceso_datos/RankingLocal.js';
+
 class SistemaTurnos {
     constructor(ciudad, duracionTurnoSegundos = 10) {
         // Referencia a la ciudad que gestiona
         this.ciudad = ciudad;
+
+        // Sistema de ranking
+        this.rankingLocal = new RankingLocal();
 
         // Configuración del turno
         this.duracionTurno = duracionTurnoSegundos * 1000; // Convertir a milisegundos
@@ -109,6 +114,9 @@ class SistemaTurnos {
 
             // 6. Guardar estado en localStorage
             this.guardarEnLocalStorage();
+
+            // 7. Actualizar ranking local
+            this.rankingLocal.guardarPuntuacion(this.ciudad);
 
             // Incrementar contador de turnos
             this.ciudad.turnoActual++;
