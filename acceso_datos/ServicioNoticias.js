@@ -183,11 +183,23 @@ export class ServicioNoticias {
         const source = FALLBACK_NEWS[this.country] || FALLBACK_NEWS.default;
         const ahora = new Date().toISOString();
 
-        return source.slice(0, 5).map((item, index) => this.#buildNoticia({
-            ...item,
-            enlace: '',
-            fecha: ahora
-        }, `fallback-local-simulado-${index + 1}`));
+        const slugify = (value = '') => String(value)
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+
+        return source.slice(0, 5).map((item, index) => {
+            const slug = slugify(item.titulo) || `noticia-${index + 1}`;
+            const enlace = `https://boletin.ciudad-virtual.local/${this.country}/${index + 1}-${slug}`;
+
+            return this.#buildNoticia({
+                ...item,
+                enlace,
+                fecha: ahora
+            }, 'boletin.ciudad-virtual.local');
+        });
     }
 
     /**
