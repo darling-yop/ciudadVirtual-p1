@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking de Ciudades - Ciudad Virtual</title>
+    <link rel="stylesheet" href="../estilos/estilos.css">
+</head>
+<body>
+    <div id="ranking-container">
+        <header>
+            <h1>🏆 Ranking de Ciudades</h1>
+            <p>Top 10 ciudades por puntuación acumulada</p>
+        </header>
+
+        <div id="ranking-content">
+            <table id="ranking-table">
+                <thead>
+                    <tr>
+                        <th>Posición</th>
+                        <th>Ciudad</th>
+                        <th>Alcalde</th>
+                        <th>Puntuación</th>
+                        <th>Turno</th>
+                        <th>Última Actualización</th>
+                    </tr>
+                </thead>
+                <tbody id="ranking-body">
+                    <!-- Las filas se generan dinámicamente -->
+                </tbody>
+            </table>
+
+            <div id="current-city-info">
+                <!-- Información de la ciudad actual si no está en el top 10 -->
+            </div>
+        </div>
+
+        <div id="ranking-actions">
+            <button id="btn-refresh-ranking">Actualizar Ranking</button>
+            <button id="btn-reset-ranking">Reiniciar Ranking</button>
+            <button id="btn-back-to-game">Volver al Juego</button>
+        </div>
+    </div>
+
+    <script type="module" src="ranking.js"></script>
+</body>
+</html>
