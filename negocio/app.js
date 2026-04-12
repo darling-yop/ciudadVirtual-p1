@@ -139,8 +139,8 @@ class App {
         this.view.showContinueGameModal();
     }
 
-    continuarPartidaGuardada(cityId = null) {
-        this.manager.init(cityId);
+    async continuarPartidaGuardada(cityId = null) {
+        await this.manager.init(cityId);
         this.manager.iniciarAutoGuardado();
         this.actualizarUI();
         this.view.hideContinueGameModal();

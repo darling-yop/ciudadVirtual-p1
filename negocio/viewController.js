@@ -809,11 +809,11 @@ export class ViewController {
 
     renderClima(clima) {
         if (!this.el.climaContenido) return;
-        if (clima?.ultimaActualizacion) {
+        if (clima) {
             this.el.climaContenido.innerHTML = `
                 <div class="recurso">
                     <span>Condición:</span>
-                    <span>${clima.condicion}</span>
+                    <span>${clima.descripcion}</span>
                 </div>
                 <div class="recurso">
                     <span>Temperatura:</span>
@@ -825,11 +825,7 @@ export class ViewController {
                 </div>
                 <div class="recurso">
                     <span>Viento:</span>
-                    <span>${clima.velocidadViento} km/h</span>
-                </div>
-                <div class="recurso">
-                    <span>Última actualización:</span>
-                    <span>${clima.ultimaActualizacion.toLocaleString()}</span>
+                    <span>${clima.viento} km/h</span>
                 </div>
             `;
         } else {

@@ -38,24 +38,13 @@ class Ciudad {
         this.mapa = new Mapa(this.ancho, this.alto);
 
         // Servicios externos
-        // En el navegador no existe `process.env`, por eso usamos una comprobación segura.
-        const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
-        const openWeatherKey = env.OPENWEATHER_API_KEY || 'API_KEY_PLACEHOLDER';
-        const newsApiKey = env.NEWS_API_KEY || 'API_KEY_PLACEHOLDER';
+        this.servicioClima = new ServicioClima(this.region.coordenadas.lat, this.region.coordenadas.lon, this.nombre);
+        this.servicioNoticias = new ServicioNoticias('ar');
 
-        this.servicioClima = new ServicioClima(openWeatherKey, this.region.coordenadas.lat, this.region.coordenadas.lon);
-        this.servicioNoticias = new ServicioNoticias(newsApiKey, 'ar');
+        // Datos climáticos - instancia de Clima
+        this.datosClima = null;
 
-        // Datos climáticos
-        this.datosClima = {
-            temperatura: 20,
-            condicion: 'Soleado',
-            humedad: 50,
-            velocidadViento: 10,
-            ultimaActualizacion: null
-        };
-
-        // Noticias actuales
+        // Noticias actuales - array de instancias de Noticia
         this.noticias = [];
 
         // Estado de la simulación
@@ -102,32 +91,19 @@ class Ciudad {
     /**
      * Inicia los servicios externos (clima y noticias)
      */
-    iniciarServiciosExternos() {
+    async iniciarServiciosExternos() {
         try {
-            // Validar que las API keys estén configuradas
-            const tieneClima = this.servicioClima && this.servicioClima.apiKey && this.servicioClima.apiKey !== 'API_KEY_PLACEHOLDER';
-            const tieneNoticias = this.servicioNoticias && this.servicioNoticias.apiKey && this.servicioNoticias.apiKey !== 'API_KEY_PLACEHOLDER';
+            // Los servicios ahora usan las API keys desde config.js
+            await this.servicioClima.iniciarActualizacionAutomatica();
+            console.log('Servicio de Clima iniciado correctamente');
 
-            if (!tieneClima && !tieneNoticias) {
-                console.warn('Servicios externos: API keys no configuradas. Continuando sin datos en tiempo real.');
-                console.warn('Para habilitar clima: Configura OPENWEATHER_API_KEY en ServicioClima.js');
-                console.warn('Para habilitar noticias: Configura NEWS_API_KEY en ServicioNoticias.js');
-                return;
-            }
+            await this.servicioNoticias.iniciarActualizacionAutomatica();
+            console.log('Servicio de Noticias iniciado correctamente');
 
-            if (tieneClima) {
-                this.servicioClima.iniciarActualizacionAutomatica();
-                console.log('Servicio de Clima iniciado correctamente');
-            } else {
-                console.warn('Servicio de Clima: API key no configurada');
-            }
-
-            if (tieneNoticias) {
-                this.servicioNoticias.iniciarActualizacionAutomatica();
-                console.log('Servicio de Noticias iniciado correctamente');
-            } else {
-                console.warn('Servicio de Noticias: API key no configurada');
-            }
+            // Actualizar datos locales después de la carga inicial
+            this.#actualizarDatosExternos();
+            console.log("Clima:", this.datosClima);
+            console.log("Noticias:", this.noticias);
         } catch (error) {
             console.error('Error al iniciar servicios externos:', error);
             throw error;
@@ -450,7 +426,8 @@ class Ciudad {
      * Calcula el ajuste de felicidad basado en el clima actual
      */
     #calcularAjusteFelicidadClima() {
-        const condicion = this.datosClima.condicion.toLowerCase();
+        if (!this.datosClima) return 0;
+        const condicion = this.datosClima.descripcion.toLowerCase();
         
         switch (condicion) {
             case 'soleado':
@@ -472,7 +449,8 @@ class Ciudad {
      * Calcula el multiplicador de producción de comida basado en el clima
      */
     #calcularMultiplicadorProduccionComida() {
-        const condicion = this.datosClima.condicion.toLowerCase();
+        if (!this.datosClima) return 1.0;
+        const condicion = this.datosClima.descripcion.toLowerCase();
         
         switch (condicion) {
             case 'lluvioso':
@@ -551,13 +529,10 @@ class Ciudad {
      * Actualiza los datos locales de servicios externos
      */
     #actualizarDatosExternos() {
-        // Actualizar clima
-        const climaActual = this.servicioClima.obtenerDatosClimaActuales();
-        if (climaActual.ultimaActualizacion) {
-            this.datosClima = { ...climaActual };
-        }
+        // Actualizar clima - asignar instancia de Clima
+        this.datosClima = this.servicioClima.obtenerDatosClimaActuales();
 
-        // Actualizar noticias
+        // Actualizar noticias - asignar array de instancias de Noticia
         this.noticias = this.servicioNoticias.obtenerNoticiasActuales();
     }
 
