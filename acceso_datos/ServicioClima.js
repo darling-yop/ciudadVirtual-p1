@@ -11,8 +11,14 @@ export class ServicioClima {
         this.lat = lat;
         this.lon = lon;
         this.ciudad = ciudad;
-        this.datosClima = null; // Instancia de Clima
+        this.datosClima = new Clima(20, 'Cargando...', 50, 10, this.ciudad); // estado inicial inmediato
         this.intervaloActualizacion = null;
+    }
+
+    #notificarActualizacion() {
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('city-external-services-updated'));
+        }
     }
 
     /**
@@ -75,9 +81,18 @@ export class ServicioClima {
      * Inicia la actualización automática cada 30 minutos
      */
     async iniciarActualizacionAutomatica() {
-        await this.obtenerClima(); // Obtener datos iniciales
+        // Publicar un estado inicial de inmediato y actualizar en segundo plano.
+        this.#notificarActualizacion();
+
+        const refrescar = async () => {
+            await this.obtenerClima();
+            this.#notificarActualizacion();
+        };
+
+        refrescar();
+
         this.intervaloActualizacion = setInterval(() => {
-            this.obtenerClima();
+            refrescar();
         }, 30 * 60 * 1000); // 30 minutos
     }
 

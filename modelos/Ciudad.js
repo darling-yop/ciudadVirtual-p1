@@ -6,6 +6,31 @@ import { Ciudadano } from './Ciudadano.js';
 import { crearEdificioDesdeTipo, reconstruirEdificioDesdeEstado } from './EdificioFactory.js';
 import { Mapa } from './Mapa.js';
 
+function inferirCountryCode(region = {}) {
+    const existente = String(region?.countryCode || '').trim().toLowerCase();
+    if (existente) return existente;
+
+    const nombre = String(region?.nombre || '').toLowerCase();
+    if (nombre.includes('mexico')) return 'mx';
+    if (nombre.includes('madrid') || nombre.includes('espa')) return 'es';
+    if (nombre.includes('buenos aires') || nombre.includes('argentina')) return 'ar';
+    if (nombre.includes('colombia') || nombre.includes('bogota') || nombre.includes('medellin') || nombre.includes('cali')) return 'co';
+
+    return 'co';
+}
+
+function normalizarRegion(region) {
+    const base = region || {
+        nombre: 'Bogotá',
+        coordenadas: { lat: 4.6097, lon: -74.0817 }
+    };
+
+    return {
+        ...base,
+        countryCode: inferirCountryCode(base)
+    };
+}
+
 function generarIdCiudad(nombre = 'ciudad') {
     const base = String(nombre)
         .toLowerCase()
@@ -25,10 +50,7 @@ class Ciudad {
         this.alcalde = new Alcalde(1, nombreAlcalde ? nombreAlcalde.substring(0, 50) : "Alcalde", this);
 
         // Región geográfica
-        this.region = region || {
-            nombre: "Bogotá",
-            coordenadas: { lat: 4.6097, lon: -74.0817 }
-        };
+        this.region = normalizarRegion(region);
 
         // Dimensiones del territorio
         this.ancho = Math.min(Math.max(Number(ancho) || 15, 15), 30);
@@ -39,7 +61,7 @@ class Ciudad {
 
         // Servicios externos
         this.servicioClima = new ServicioClima(this.region.coordenadas.lat, this.region.coordenadas.lon, this.nombre);
-        this.servicioNoticias = new ServicioNoticias('ar');
+        this.servicioNoticias = new ServicioNoticias(this.region.countryCode);
 
         // Datos climáticos - instancia de Clima
         this.datosClima = null;
@@ -1117,10 +1139,10 @@ class Ciudad {
         const alto = data.alto || data.gridSize?.height || data.mapa?.dimensiones?.alto || 20;
         const nombre = data.nombre || data.cityName || 'Nueva Ciudad';
         const alcalde = data.alcalde || data.mayor || 'Alcalde';
-        const region = data.region || {
+        const region = normalizarRegion(data.region || {
             nombre: 'Región desconocida',
             coordenadas: data.coordinates || { lat: 0, lon: 0 }
-        };
+        });
 
         const c = new Ciudad(nombre, alcalde, region, ancho, alto);
         c.cityId = data.cityId || generarIdCiudad(nombre);
@@ -1242,7 +1264,7 @@ class Ciudad {
             },
             juegoFinalizado: Boolean(this.juegoFinalizado),
             motivoFinJuego: this.motivoFinJuego || null,
-            clima: { ...this.datosClima },
+            clima: this.datosClima ? { ...this.datosClima } : null,
             noticias: [...this.noticias],
             mapa: {
                 ...this.mapa.obtenerEstadisticasMapa(),
