@@ -23,6 +23,7 @@ export class ViewController {
         onContinuarPartida,
         onNuevaPartida,
         onAbrirSelectorCiudades,
+        onVerRanking,
         onCrearCiudad,
         onAplicarRecursos,
         onCancelar
@@ -43,6 +44,7 @@ export class ViewController {
         this.onContinuarPartida = onContinuarPartida;
         this.onNuevaPartida = onNuevaPartida;
         this.onAbrirSelectorCiudades = onAbrirSelectorCiudades;
+        this.onVerRanking = onVerRanking;
         this.onCrearCiudad = onCrearCiudad;
         this.onAplicarRecursos = onAplicarRecursos;
         this.onCancelar = onCancelar;
