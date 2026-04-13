@@ -298,18 +298,6 @@ export class ViewController {
             });
         }
 
-        if (this.el.inputRegion) {
-            this.el.inputRegion.addEventListener('change', () => {
-                this._updateRegionInputs();
-            });
-        }
-
-        if (this.el.inputDepartamento) {
-            this.el.inputDepartamento.addEventListener('change', () => {
-                this._populateMunicipios(this.el.inputDepartamento.value);
-            });
-        }
-
         if (this.el.botonConstruir) {
             this.el.botonConstruir.addEventListener('click', () => {
                 this.onConstruir?.(this.selectedCell, this.selectedTipo);
@@ -493,7 +481,25 @@ export class ViewController {
     _populateMunicipios(departamento) {
         if (!this.el.inputMunicipio || !departamento) return;
 
-        const municipios = this.colombiaMunicipios[departamento] || {};
+        // Usar datos dinámicos si están disponibles, si no usar fallback
+        let municipios = {};
+        
+        if (this.dataColombia.departamentos.length > 0) {
+            // Buscar en datos dinámicos
+            const deptId = Number(departamento);
+            const municipiosArray = this.dataColombia.municipiosPorDepartamento[deptId];
+            if (municipiosArray && municipiosArray.length > 0) {
+                municipiosArray.forEach(mun => {
+                    municipios[mun.name] = { lat: mun.latitude, lon: mun.longitude };
+                });
+            }
+        }
+        
+        // Si no hay datos dinámicos o falló, usar datos locales
+        if (Object.keys(municipios).length === 0) {
+            municipios = this.colombiaMunicipios[departamento] || {};
+        }
+        
         this.el.inputMunicipio.innerHTML = '<option value="">Selecciona municipio</option>';
 
         Object.keys(municipios).forEach(mun => {
@@ -1070,11 +1076,13 @@ export class ViewController {
      */
     async _initializeColombia() {
         try {
+            console.log('Iniciando carga de datos de Colombia desde API...');
             const respDepts = await fetch('https://api-colombia.com/api/v1/Department');
             if (!respDepts.ok) throw new Error('No se pudo cargar departamentos');
             
             const departamentos = await respDepts.json();
             this.dataColombia.departamentos = departamentos;
+            console.log('Departamentos cargados:', departamentos.length);
 
             // Cargar municipios para cada departamento
             for (const dept of departamentos) {
@@ -1083,16 +1091,18 @@ export class ViewController {
                     if (respMunis.ok) {
                         const municipios = await respMunis.json();
                         this.dataColombia.municipiosPorDepartamento[dept.id] = municipios;
+                        console.log(`${dept.name}: ${municipios.length} municipios`);
                     }
                 } catch (e) {
-                    console.warn(`No se pudieron cargar municipios para ${dept.name}`);
+                    console.warn(`No se pudieron cargar municipios para ${dept.name}:`, e);
                 }
             }
 
-            console.log('Datos de Colombia cargados exitosamente desde API');
+            console.log('✅ Datos de Colombia cargados exitosamente desde API');
+            console.log('dataColombia:', this.dataColombia);
             this._populateDepartamentosModal();
         } catch (error) {
-            console.warn('Error cargando datos de Colombia, usando fallback local:', error);
+            console.error('❌ Error cargando datos de Colombia:', error);
             this._useColombiaFallback();
         }
     }
@@ -1130,11 +1140,13 @@ export class ViewController {
         
         this.el.inputDepartamento.innerHTML = '<option value="">Selecciona departamento</option>';
         
+        console.log('Poblando departamentos, cantidad:', this.dataColombia.departamentos.length);
         this.dataColombia.departamentos.forEach(dept => {
             const option = document.createElement('option');
             option.value = dept.id;
             option.textContent = dept.name;
             this.el.inputDepartamento.appendChild(option);
+            console.log(`  Agregado: ${dept.name} (id: ${dept.id})`);
         });
     }
 
@@ -1144,17 +1156,21 @@ export class ViewController {
     _populateMunicipiosModal(deptId) {
         if (!this.el.inputMunicipio) return;
         
+        console.log('_populateMunicipiosModal llamado con deptId:', deptId, 'tipo:', typeof deptId);
         this.el.inputMunicipio.innerHTML = '<option value="">Selecciona municipio</option>';
         
         // Convertir deptId a número porque viene como string del HTML
         const deptIdNum = Number(deptId);
+        console.log('Buscando con deptIdNum:', deptIdNum);
+        console.log('Claves disponibles en municipiosPorDepartamento:', Object.keys(this.dataColombia.municipiosPorDepartamento));
+        
         const municipios = this.dataColombia.municipiosPorDepartamento[deptIdNum];
         if (!municipios || municipios.length === 0) {
-            console.warn(`No hay municipios para departamento ${deptId} (búsqueda con key: ${deptIdNum})`);
-            console.warn('Claves disponibles:', Object.keys(this.dataColombia.municipiosPorDepartamento));
+            console.warn(`❌ No hay municipios para departamento ${deptId}`);
             return;
         }
         
+        console.log(`✅ Encontrados ${municipios.length} municipios`);
         municipios.forEach(mun => {
             const option = document.createElement('option');
             option.value = mun.id;
