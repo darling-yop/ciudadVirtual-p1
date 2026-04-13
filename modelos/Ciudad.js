@@ -81,7 +81,7 @@ class Ciudad {
         this.juegoFinalizado = false;
         this.motivoFinJuego = null;
         this.turnosConDeficit = 0; // Contador de turnos consecutivos con déficit crítico
-        this.MAX_TURNOS_DEFICIT = 3; // Máximo de turnos que puede haber déficit antes de game-over
+        this.MAX_TURNOS_DEFICIT = 0; // Fin de juego inmediato ante recurso negativo
 
         // Recursos iniciales (aumentados para evitar game-over inmediato)
         this.recursos = new Recursos();
@@ -275,19 +275,19 @@ class Ciudad {
      */
     obtenerCostoConstruccion(tipo) {
         const costos = {
-            r: 20,
-            R1: 200,
-            R2: 400,
-            C1: 300,
-            C2: 600,
-            I1: 500,
-            I2: 900,
-            S1: 400,
-            S2: 700,
-            S3: 1000,
-            U1: 350,
-            U2: 650,
-            P1: 250
+            r: 100,
+            R1: 1000,
+            R2: 3000,
+            C1: 2000,
+            C2: 8000,
+            I1: 5000,
+            I2: 3000,
+            S1: 4000,
+            S2: 4000,
+            S3: 6000,
+            U1: 10000,
+            U2: 8000,
+            P1: 1500
         };
         return costos[tipo] ?? 100;
     }
@@ -781,9 +781,16 @@ class Ciudad {
      * Actualiza la felicidad de todos los ciudadanos
      */
     actualizarFelicidadCiudadanos() {
-        const bonusServicios = this.edificios.filter(e =>
-            ['P1', 'S1', 'S2', 'S3'].includes(e.tipo)
-        ).length * 2; // 2 puntos por cada edificio de servicio/parque
+        const bonusServicios = this.edificios.reduce((total, edificio) => {
+            if (!edificio.estaOperativo) return total;
+            if (edificio.tipo === 'P1') {
+                return total + Number(edificio.beneficioFelicidad || 0);
+            }
+            if (['S1', 'S2', 'S3'].includes(edificio.tipo)) {
+                return total + Number(edificio.beneficioFelicidad || 0);
+            }
+            return total;
+        }, 0);
 
         const efectoClima = this.#calcularAjusteFelicidadClima();
         const poblacionTotal = this.poblacion.length;
@@ -913,7 +920,12 @@ class Ciudad {
             if (!edificio.estaOperativo) return;
 
             const tipo = edificio.tipo;
-            if (tipo === 'U1' || tipo === 'U2') {
+            if (tipo === 'U1') {
+                return;
+            }
+            if (tipo === 'U2') {
+                consumoElectricidad += Math.max(0, Number(edificio.consumoElectricidad || 0));
+                // U2 no consume agua, produce agua.
                 return;
             }
 
