@@ -530,10 +530,15 @@ export class ViewController {
         
         this.el.inputMunicipio.innerHTML = '<option value="">Selecciona municipio</option>';
 
-        Object.keys(municipios).forEach(mun => {
+        Object.entries(municipios).forEach(([munName, coords]) => {
             const option = document.createElement('option');
-            option.value = mun;
-            option.textContent = mun;
+            option.value = munName;
+            option.textContent = munName;
+            // Guardar coordenadas en dataset
+            if (coords.lat !== undefined && coords.lon !== undefined) {
+                option.dataset.lat = coords.lat;
+                option.dataset.lon = coords.lon;
+            }
             this.el.inputMunicipio.appendChild(option);
         });
     }
@@ -563,32 +568,68 @@ export class ViewController {
         let region = regiones[regionKey];
         if (regionKey === 'colombia') {
             const deptId = this.el.inputDepartamento?.value;
-            const munId = this.el.inputMunicipio?.value;
+            const munSelectIdx = this.el.inputMunicipio?.selectedIndex ?? -1;
 
-            if (!deptId || !munId) {
+            console.log('📍 Validando Colombia...');
+            console.log('  Departamento ID:', deptId);
+            console.log('  Municipio selectedIndex:', munSelectIdx);
+
+            if (!deptId || munSelectIdx < 1) { // < 1 because 0 is the placeholder option
                 alert('Selecciona departamento y municipio en Colombia.');
+                return null;
+            }
+
+            // Obtener el option seleccionado
+            const selectedOption = this.el.inputMunicipio?.options[munSelectIdx];
+            if (!selectedOption) {
+                console.error('❌ No se pudo obtener el option seleccionado');
+                alert('Error: municipio no seleccionado correctamente.');
                 return null;
             }
 
             // Convertir deptId a número para búsqueda consistente
             const deptIdNum = Number(deptId);
-            const depa = this.dataColombia.departamentos.find(d => d.id === deptIdNum);
-            const municipios = this.dataColombia.municipiosPorDepartamento[deptIdNum] || [];
-            const mun = municipios.find(m => m.id === munId);
+            console.log('  Departamento ID (número):', deptIdNum);
 
-            if (!depa || !mun) {
-                alert('No se encontraron los datos del departamento o municipio seleccionado.');
+            // Validar departamento
+            const depa = this.dataColombia.departamentos.find(d => d.id === deptIdNum);
+            console.log('  Departamento encontrado:', depa?.name);
+
+            if (!depa) {
+                console.error('❌ Departamento no encontrado en dataColombia');
+                alert('No se encontró el departamento seleccionado.');
                 return null;
             }
 
+            // Obtener nombre del municipio desde el option
+            const munName = selectedOption.textContent || selectedOption.value;
+            const munLat = selectedOption.dataset.lat;
+            const munLon = selectedOption.dataset.lon;
+
+            console.log('  Municipio seleccionado:', munName);
+            console.log('  Coordenadas en dataset - Lat:', munLat, 'Lon:', munLon);
+
+            // Validar que tenemos coordenadas
+            if (!munLat || !munLon) {
+                console.warn('⚠️ Coordenadas no encontradas en dataset');
+                const parsedLat = parseFloat(munLat);
+                const parsedLon = parseFloat(munLon);
+                if (Number.isNaN(parsedLat) || Number.isNaN(parsedLon)) {
+                    console.error('❌ Coordenadas inválidas');
+                    alert('No se encontraron coordenadas válidas para el municipio.');
+                    return null;
+                }
+            }
+
             region = {
-                nombre: `${mun.name}, ${depa.name}`,
+                nombre: `${munName}, ${depa.name}`,
                 coordenadas: {
-                    lat: mun.latitude || parseFloat(this.el.inputLat?.value || 0),
-                    lon: mun.longitude || parseFloat(this.el.inputLon?.value || 0)
+                    lat: parseFloat(munLat) || parseFloat(this.el.inputLat?.value || 0),
+                    lon: parseFloat(munLon) || parseFloat(this.el.inputLon?.value || 0)
                 },
                 countryCode: 'co'
             };
+            console.log('✅ Región Colombia válida:', region);
         }
 
         if (regionKey === 'custom') {
