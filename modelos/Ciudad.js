@@ -895,15 +895,23 @@ class Ciudad {
             }
         });
 
+        // Verificar si hay recursos suficientes para producción industrial completa
+        const hayElectricidad = this.recursos.electricidad > 0;
+        const hayAgua = this.recursos.agua > 0;
+        const multiplicadorIndustrial = (hayElectricidad && hayAgua) ? 1.0 : 0.5;
+
+        // Granjas (I2) - producen alimentos
         const granjas = this.edificios.filter(e => e.tipo === 'I2' && e.estaOperativo);
         let prodAlimentos = 0;
         granjas.forEach(granja => {
             if (granja.calcularProduccion) {
-                prodAlimentos += granja.calcularProduccion();
+                const produccionBase = granja.calcularProduccion();
+                // Si falta agua, producción al 50%
+                const multiplicadorGranja = hayAgua ? 1.0 : 0.5;
+                prodAlimentos += produccionBase * multiplicadorGranja;
             }
         });
 
-        // Los alimentos son acumulables y generados por granjas.
         const multiplicadorClima = this.#calcularMultiplicadorProduccionComida();
         prodAlimentos *= multiplicadorClima;
 
@@ -956,6 +964,12 @@ class Ciudad {
      */
     procesarIngresos() {
         let ingresosTotales = 0;
+        const hayElectricidad = this.recursos.electricidad > 0;
+
+        if (!hayElectricidad) {
+            // Si no hay electricidad, los comercios e industrias no generan ingresos
+            return;
+        }
 
         const comercios = this.edificios.filter(e => e.tipo.startsWith('C'));
         comercios.forEach(comercio => {
@@ -1265,7 +1279,30 @@ class Ciudad {
                 electricidad: this.recursos.electricidad,
                 agua: this.recursos.agua,
                 alimentos: this.recursos.alimentos,
-                comida: this.recursos.comida
+                comida: this.recursos.comida,
+                // Desglose para tooltips (HU-015)
+                produccionElectricidad: (() => {
+                    return this.edificios
+                        .filter(e => e.tipo === 'U1' && e.estaOperativo && e.producirRecurso)
+                        .reduce((acc, e) => acc + e.producirRecurso(), 0);
+                })(),
+                consumoElectricidad: this.recursos.consumoElectricidadTurno || 0,
+                produccionAgua: (() => {
+                    return this.edificios
+                        .filter(e => e.tipo === 'U2' && e.estaOperativo && e.producirRecurso)
+                        .reduce((acc, e) => acc + e.producirRecurso(), 0);
+                })(),
+                consumoAgua: this.recursos.consumoAguaTurno || 0,
+                produccionAlimentos: (() => {
+                    return this.edificios
+                        .filter(e => e.tipo === 'I2' && e.estaOperativo && e.calcularProduccion)
+                        .reduce((acc, e) => acc + e.calcularProduccion(), 0);
+                })(),
+                ingresosDinero: (() => {
+                    return this.edificios
+                        .filter(e => (e.tipo.startsWith('C') || e.tipo === 'I1') && e.estaOperativo && e.calcularIngresos)
+                        .reduce((acc, e) => acc + e.calcularIngresos(), 0);
+                })(),
             },
             juegoFinalizado: Boolean(this.juegoFinalizado),
             motivoFinJuego: this.motivoFinJuego || null,

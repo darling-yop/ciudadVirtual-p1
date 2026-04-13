@@ -12,6 +12,7 @@ class RankingController {
         this.currentCityInfo = document.getElementById('current-city-info');
         this.btnRefresh = document.getElementById('btn-refresh-ranking');
         this.btnReset = document.getElementById('btn-reset-ranking');
+        this.btnExport = document.getElementById('btn-export-ranking');
         this.btnBack = document.getElementById('btn-back-to-game');
 
         this.init();
@@ -25,6 +26,7 @@ class RankingController {
     configurarEventos() {
         this.btnRefresh.addEventListener('click', () => this.cargarRanking());
         this.btnReset.addEventListener('click', () => this.reiniciarRanking());
+        this.btnExport.addEventListener('click', () => this.exportarRanking());
         this.btnBack.addEventListener('click', () => this.volverAlJuego());
     }
 
@@ -63,6 +65,8 @@ class RankingController {
                 <td>${index + 1}</td>
                 <td>${ciudad.nombre}</td>
                 <td>${ciudad.alcaldeNombre}</td>
+                <td>${ciudad.poblacion ?? 0}</td>
+                <td>${ciudad.felicidadPromedio ?? 0}%</td>
                 <td>${ciudad.puntuacionAcumulada.toLocaleString()}</td>
                 <td>${ciudad.turnoActual}</td>
                 <td>${new Date(ciudad.fechaGuardado).toLocaleDateString()}</td>
@@ -74,7 +78,7 @@ class RankingController {
         // Si no hay ciudades en el ranking
         if (ranking.length === 0) {
             const filaVacia = document.createElement('tr');
-            filaVacia.innerHTML = '<td colspan="6">No hay ciudades en el ranking aún.</td>';
+            filaVacia.innerHTML = '<td colspan="8">No hay ciudades en el ranking aún.</td>';
             this.rankingTable.appendChild(filaVacia);
         }
     }
@@ -112,6 +116,18 @@ class RankingController {
         if (reiniciado) {
             this.cargarRanking();
         }
+    }
+
+    exportarRanking() {
+        const ranking = this.rankingLocal.obtenerRanking();
+        const contenido = JSON.stringify(ranking, null, 2);
+        const blob = new Blob([contenido], { type: 'application/json' });
+        const enlace = document.createElement('a');
+        enlace.href = URL.createObjectURL(blob);
+        enlace.download = `ranking_ciudad_virtual_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
     }
 
     volverAlJuego() {

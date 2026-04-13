@@ -77,3 +77,50 @@ body {
     font-size: 0.9rem;
     min-height: 28px;
 }
+
+/* Estilos para crear_ciudad.html */
+.crear-ciudad-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+}
+
+.crear-ciudad-main {
+    width: min(620px, 90%);
+}
+
+.crear-ciudad-modal {
+    background: rgba(15, 45, 75, 0.95);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(177, 211, 234, 0.25);
+}
+
+.crear-ciudad-title {
+    color: #ffd85b;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.mapa-carga {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.input-hidden {
+    display: none;
+}
+
+.modal-actions--spread {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 14px;
+}
+

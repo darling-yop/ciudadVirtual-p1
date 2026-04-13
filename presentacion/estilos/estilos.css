@@ -359,6 +359,20 @@ button:disabled {
     border-bottom: none;
 }
 
+.fila--actions {
+    margin-top: 10px;
+}
+
+.estado-operativo {
+    color: #4ade80;
+    font-weight: 700;
+}
+
+.estado-inoperativo {
+    color: #f87171;
+    font-weight: 700;
+}
+
 .edificio-detalles .etiqueta {
     font-weight: 600;
     color: #0f2e4b;
@@ -980,6 +994,94 @@ button:disabled {
     margin: 20px 0;
 }
 
+/* ==================== */
+/* HU-018: Desglose puntuación */
+/* ==================== */
+
+.score-details {
+    margin-top: 12px;
+}
+
+.score-details summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #2c3e50;
+    padding: 6px 0;
+    border-top: 2px solid #3498db;
+}
+
+.score-desglose {
+    font-size: 0.82rem;
+    margin-top: 8px;
+    line-height: 1.8;
+}
+
+.score-bonos {
+    color: #1a7a3c;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+.score-bonos-item {
+    color: #1a7a3c;
+    padding-left: 8px;
+}
+
+.score-penas {
+    color: #c0392b;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+.score-penas-item {
+    color: #c0392b;
+    padding-left: 8px;
+}
+
+.score-total {
+    margin-top: 6px;
+    border-top: 1px solid #ddd;
+    padding-top: 6px;
+    font-weight: 700;
+}
+
+/* ==================== */
+/* HU-009: Costo de vía antes de construir */
+/* ==================== */
+
+.costo-via-preview {
+    font-size: 0.82rem;
+    color: #2c3e50;
+    background: #eaf4fb;
+    border: 1px solid #aed6f1;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-top: 6px;
+    display: none;
+}
+
+.costo-via-preview.visible {
+    display: block;
+}
+
+/* ==================== */
+/* HU-015: Panel recursos colapsable móvil */
+/* ==================== */
+
+.recursos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.recursos-toggle-icon {
+    font-size: 1rem;
+    cursor: pointer;
+    user-select: none;
+}
+}
+
 #ranking-table {
     width: 100%;
     border-collapse: collapse;
@@ -1032,4 +1134,204 @@ button:disabled {
 .current-city-position {
     color: #007bff;
     font-weight: bold;
+}
+
+/* ==================== */
+/* HU-015: Tooltip de recursos */
+/* ==================== */
+
+.recurso {
+    position: relative;
+}
+
+.recurso[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 6px);
+    transform: translateX(-50%);
+    background: #2c3e50;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    white-space: pre-line;
+    z-index: 100;
+    min-width: 180px;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* ==================== */
+/* HU-022: Móvil — botones táctiles mínimo 44px */
+/* ==================== */
+
+@media (max-width: 768px) {
+    button,
+    .button-link,
+    .map-cell,
+    select,
+    input[type="number"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .map-cell {
+        width: 30px;
+        height: 30px;
+    }
+
+    /* Panel recursos colapsable en móvil */
+    .recursos-panel {
+        display: none;
+    }
+
+    .recursos-panel.show {
+        display: block;
+    }
+
+    .mob-only {
+        display: inline-block !important;
+        min-height: 44px;
+        padding: 10px 16px;
+    }
+
+    /* Menú construcción como tabs en parte inferior */
+    .construccion-menu .categoria {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .sidebar-left {
+        position: sticky;
+        bottom: 0;
+        z-index: 100;
+        background: white;
+        padding: 10px;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+    }
+
+    /* Noticias en carrusel horizontal en móvil */
+    #noticias-contenido {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 12px;
+        padding-bottom: 8px;
+    }
+
+    .noticia-item {
+        flex: 0 0 85%;
+        scroll-snap-align: start;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 10px;
+    }
+
+    /* Clima compacto en móvil */
+    .clima-widget .recurso {
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+    }
+
+    /* Modal ocupa 80% de pantalla en móvil */
+    .modal-content {
+        width: 90%;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    /* Notificaciones arriba */
+    .game-toast {
+        top: 10px;
+    }
+}
+
+/* ==================== */
+/* HU-023: Tablet — layout 70/30 */
+/* ==================== */
+
+@media (max-width: 1024px) and (min-width: 769px) {
+    .game-layout {
+        grid-template-columns: 70% 30%;
+        grid-template-areas:
+            'center right'
+            'left   right';
+        gap: 14px;
+    }
+
+    .sidebar-right {
+        grid-row: 1 / 3;
+    }
+
+    .sidebar-left {
+        grid-area: left;
+    }
+
+    /* Modales al 60% en tablet */
+    .modal-content {
+        width: 60%;
+    }
+
+    /* Tooltips más grandes */
+    .recurso[data-tooltip]:hover::after {
+        font-size: 0.88rem;
+        min-width: 220px;
+    }
+
+    button {
+        min-height: 40px;
+    }
+}
+
+/* ==================== */
+/* HU-024: Desktop — cursor construcción y zoom */
+/* ==================== */
+
+@media (min-width: 1025px) {
+    /* Cursor personalizado en modo construcción */
+    body.modo-construir {
+        cursor: cell;
+    }
+
+    body.modo-demoler {
+        cursor: crosshair;
+    }
+
+    body.modo-construir .map-cell:hover {
+        outline: 2px solid #27ae60;
+        box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.4);
+    }
+
+    body.modo-demoler .map-cell:hover {
+        outline: 2px solid #c0392b;
+        box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.4);
+    }
+
+    /* Hover effects en edificios */
+    .map-cell:not(.map-cell--g):not(.map-cell--r):hover {
+        transform: scale(1.15);
+        z-index: 10;
+        position: relative;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    /* Modales centrados al 50% */
+    .modal-content {
+        width: min(50%, 600px);
+    }
+
+    /* Animaciones suaves */
+    .sidebar-left,
+    .sidebar-right,
+    .mapa-central {
+        transition: box-shadow 0.2s ease;
+    }
+
+    .sidebar-left:hover,
+    .sidebar-right:hover,
+    .mapa-central:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
 }

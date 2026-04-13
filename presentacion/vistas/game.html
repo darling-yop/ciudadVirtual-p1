@@ -28,19 +28,19 @@
                 <section class="recursos-panel">
                     <h2>Recursos</h2>
                     <div id="recursos-contenido">
-                        <div class="recurso">
+                        <div class="recurso" data-tooltip="Moneda oficial de la ciudad. Se usa para construir edificios y vías. Se genera principalmente por comercios e industrias.">
                             <span>Dinero:</span>
                             <span id="dinero">0</span>
                         </div>
-                        <div class="recurso">
+                        <div class="recurso" data-tooltip="Energía eléctrica en MW. Es producida por plantas (U1) y consumida por la mayoría de edificios. Si falta, las fábricas producen al 50%.">
                             <span>Electricidad:</span>
                             <span id="electricidad">0</span>
                         </div>
-                        <div class="recurso">
+                        <div class="recurso" data-tooltip="Agua potable en m³. Es producida por plantas (U2) y consumida por edificios urbanos. Si falta, las granjas producen al 50%.">
                             <span>Agua:</span>
                             <span id="agua">0</span>
                         </div>
-                        <div class="recurso">
+                        <div class="recurso" data-tooltip="Alimentos en unidades. Son producidos por granjas (I2) y afectan la felicidad de los ciudadanos. Si faltan, la felicidad baja.">
                             <span>Alimentos:</span>
                             <span id="alimentos">0</span>
                         </div>
@@ -65,37 +65,40 @@
                     <h2>Construcción</h2>
                     <div class="categoria">
                         <h3>Residencial</h3>
-                        <button data-tipo="R1">R1</button>
-                        <button data-tipo="R2">R2</button>
+                        <button data-tipo="R1" title="Casa — Cap: 4 | $1,000">R1 Casa $1k</button>
+                        <button data-tipo="R2" title="Apartamento — Cap: 12 | $3,000">R2 Apto $3k</button>
                     </div>
                     <div class="categoria">
                         <h3>Comercial</h3>
-                        <button data-tipo="C1">C1</button>
-                        <button data-tipo="C2">C2</button>
+                        <button data-tipo="C1" title="Tienda — 6 empleos | $2,000 | +$500/turno">C1 Tienda $2k</button>
+                        <button data-tipo="C2" title="Centro Comercial — 20 empleos | $8,000 | +$2k/turno">C2 C.Comercial $8k</button>
                     </div>
                     <div class="categoria">
                         <h3>Industrial</h3>
-                        <button data-tipo="I1">I1</button>
-                        <button data-tipo="I2">I2</button>
+                        <button data-tipo="I1" title="Fábrica — 15 empleos | $5,000 | +$800/turno">I1 Fábrica $5k</button>
+                        <button data-tipo="I2" title="Granja — 8 empleos | $3,000 | +50 alimentos/turno">I2 Granja $3k</button>
                     </div>
                     <div class="categoria">
                         <h3>Vías</h3>
-                        <button data-tipo="r">Vía</button>
+                        <button data-tipo="r" title="Vía — $100 por celda">Vía $100</button>
+                        <div id="costo-via-preview" class="costo-via-preview">
+                            Costo estimado: <strong id="costo-via-valor">$0</strong>
+                        </div>
                     </div>
                     <div class="categoria">
                         <h3>Utilidades</h3>
-                        <button data-tipo="U1">U1</button>
-                        <button data-tipo="U2">U2</button>
+                        <button data-tipo="U1" title="Planta Eléctrica — $10,000 | +200 MW/turno">U1 Eléctrica $10k</button>
+                        <button data-tipo="U2" title="Planta de Agua — $8,000 | +150 m³/turno">U2 Agua $8k</button>
                     </div>
                     <div class="categoria">
                         <h3>Servicios</h3>
-                        <button data-tipo="S1">S1</button>
-                        <button data-tipo="S2">S2</button>
-                        <button data-tipo="S3">S3</button>
+                        <button data-tipo="S1" title="Policía — $4,000 | +10 felicidad | Radio: 5">S1 Policía $4k</button>
+                        <button data-tipo="S2" title="Bomberos — $4,000 | +10 felicidad | Radio: 5">S2 Bomberos $4k</button>
+                        <button data-tipo="S3" title="Hospital — $6,000 | +10 felicidad | Radio: 7">S3 Hospital $6k</button>
                     </div>
                     <div class="categoria">
                         <h3>Parques</h3>
-                        <button data-tipo="P1">P1</button>
+                        <button data-tipo="P1" title="Parque — $1,500 | +5 felicidad | Sin consumo">P1 Parque $1.5k</button>
                     </div>
                     <button id="boton-construir">Construir</button>
                     <button id="boton-demoler">Demoler</button>

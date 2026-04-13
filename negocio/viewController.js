@@ -318,6 +318,8 @@ export class ViewController {
 
         if (this.el.botonDemoler) {
             this.el.botonDemoler.addEventListener('click', () => {
+                document.body.classList.remove('modo-construir');
+                document.body.classList.add('modo-demoler');  // <-- HU-024: cursor personalizado
                 this.onDemoler?.(this.selectedCell);
             });
         }
@@ -366,6 +368,32 @@ export class ViewController {
                 default:
                     break;
             }
+        });
+
+        // HU-009: preview de costo de vía al seleccionar celda
+        const costoViaPreview = document.getElementById('costo-via-preview');
+        const costoViaValor = document.getElementById('costo-via-valor');
+
+        document.getElementById('grid-container')?.addEventListener('click', () => {
+            if (!costoViaPreview || !costoViaValor) return;
+            if (this.selectedTipo === 'r') {
+                costoViaPreview.classList.add('visible');
+                costoViaValor.textContent = '$100';
+            } else {
+                costoViaPreview.classList.remove('visible');
+            }
+        });
+
+        this.el.tipoButtons?.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!costoViaPreview) return;
+                if (btn.dataset.tipo === 'r') {
+                    costoViaPreview.classList.add('visible');
+                    costoViaValor.textContent = '$100 por celda';
+                } else {
+                    costoViaPreview.classList.remove('visible');
+                }
+            });
         });
     }
 
@@ -644,6 +672,12 @@ export class ViewController {
         if (tipoSelectedEl) {
             tipoSelectedEl.textContent = this.selectedTipo || 'r';
         }
+
+        // HU-024: cursor personalizado según modo
+        document.body.classList.remove('modo-construir', 'modo-demoler');
+        if (this.selectedTipo) {
+            document.body.classList.add('modo-construir');
+        }
     }
 
     renderizarMapa(matriz) {
@@ -741,8 +775,8 @@ export class ViewController {
         };
 
         const Estado = detalles.estaOperativo 
-            ? '<span style="color: #4ade80;">Operativo</span>' 
-            : '<span style="color: #f87171;">Inoperativo</span>';
+            ? '<span class="estado-operativo">Operativo</span>' 
+            : '<span class="estado-inoperativo">Inoperativo</span>';
 
         let html = `
             <div class="panel-edificio">
@@ -811,8 +845,8 @@ export class ViewController {
         }
 
         html += `
-                    <div class="fila" style="margin-top: 10px;">
-                        <button class="btn-demoler" onclick="window.dispatchEvent(new CustomEvent('demoler-edificio', {detail: {x: ${detalles.coordenadas.x}, y: ${detalles.coordenadas.y}}}))">
+                    <div class="fila fila--actions">
+                        <button class="btn-demoler" data-demoler-x="${detalles.coordenadas.x}" data-demoler-y="${detalles.coordenadas.y}">
                             Demoler (reembolso: $${detalles.reembolso})
                         </button>
                     </div>
@@ -821,6 +855,15 @@ export class ViewController {
         `;
 
         this.el.infoCelda.innerHTML = html;
+
+        const demolerBtn = this.el.infoCelda.querySelector('.btn-demoler');
+        if (demolerBtn) {
+            demolerBtn.addEventListener('click', () => {
+                const x = Number(demolerBtn.dataset.demolerX);
+                const y = Number(demolerBtn.dataset.demolerY);
+                window.dispatchEvent(new CustomEvent('demoler-edificio', { detail: { x, y } }));
+            });
+        }
     }
 
     renderHeader(estado) {
@@ -871,27 +914,71 @@ export class ViewController {
 
     renderEstadisticas(estado) {
         if (!this.el.estadisticasContenido) return;
+
+        const r = estado.recursos;
+        const p = estado.poblacion;
+        const desempleados = p.total - p.conEmpleo;
+
+        const porPoblacion = p.total * 10;
+        const porFelicidad = p.felicidadPromedio * 5;
+        const porDinero    = Math.round((r.dinero || 0) / 100);
+        const porEdificios = estado.edificios.total * 50;
+        const porElec      = Math.round((r.electricidad || 0) * 2);
+        const porAgua      = Math.round((r.agua || 0) * 2);
+
+        let bonos = 0;
+        const bonoDetalle = [];
+        if (desempleados === 0 && p.total > 0) { bonos += 500;  bonoDetalle.push('Todos empleados +500'); }
+        if (p.felicidadPromedio > 80)          { bonos += 300;  bonoDetalle.push('Felicidad >80 +300'); }
+        if (r.dinero > 0 && r.electricidad > 0 && r.agua > 0 && (r.alimentos || 0) > 0) {
+            bonos += 200; bonoDetalle.push('Recursos positivos +200');
+        }
+        if (p.total > 1000) { bonos += 1000; bonoDetalle.push('>1000 hab. +1000'); }
+
+        let penas = 0;
+        const penaDetalle = [];
+        if (r.dinero < 0)             { penas += 500;               penaDetalle.push('Dinero negativo -500'); }
+        if (r.electricidad < 0)       { penas += 300;               penaDetalle.push('Electricidad negativa -300'); }
+        if (r.agua < 0)               { penas += 300;               penaDetalle.push('Agua negativa -300'); }
+        if (p.felicidadPromedio < 40) { penas += 400;               penaDetalle.push('Felicidad <40 -400'); }
+        if (desempleados > 0)         { penas += desempleados * 10; penaDetalle.push(`${desempleados} desempleados -${desempleados * 10}`); }
+
+        const totalScore = Math.round(estado.puntuacion);
+
+        const bonosHtml = bonoDetalle.length > 0
+            ? `<div class="score-bonos">Bonificaciones: +${bonos}</div>
+               ${bonoDetalle.map(b => `<div class="score-bonos-item">✓ ${b}</div>`).join('')}`
+            : '';
+
+        const penasHtml = penaDetalle.length > 0
+            ? `<div class="score-penas">Penalizaciones: -${penas}</div>
+               ${penaDetalle.map(p => `<div class="score-penas-item">✗ ${p}</div>`).join('')}`
+            : '';
+
         this.el.estadisticasContenido.innerHTML = `
-            <div class="recurso">
-                <span>Población Total:</span>
-                <span>${estado.poblacion.total}</span>
-            </div>
-            <div class="recurso">
-                <span>Con Vivienda:</span>
-                <span>${estado.poblacion.conVivienda}</span>
-            </div>
-            <div class="recurso">
-                <span>Con Empleo:</span>
-                <span>${estado.poblacion.conEmpleo}</span>
-            </div>
-            <div class="recurso">
-                <span>Felicidad Promedio:</span>
-                <span>${estado.poblacion.felicidadPromedio}%</span>
-            </div>
-            <div class="recurso">
-                <span>Edificios Totales:</span>
-                <span>${estado.edificios.total}</span>
-            </div>
+            <div class="recurso"><span>Población total:</span><span>${p.total}</span></div>
+            <div class="recurso"><span>Con vivienda:</span><span>${p.conVivienda}</span></div>
+            <div class="recurso"><span>Con empleo:</span><span>${p.conEmpleo}</span></div>
+            <div class="recurso"><span>Desempleados:</span><span>${desempleados}</span></div>
+            <div class="recurso"><span>Felicidad promedio:</span><span>${p.felicidadPromedio}%</span></div>
+            <div class="recurso"><span>Edificios totales:</span><span>${estado.edificios.total}</span></div>
+
+            <details class="score-details">
+                <summary>Desglose puntuación: ${totalScore.toLocaleString()}</summary>
+                <div class="score-desglose">
+                    <div class="recurso"><span>Por población (×10):</span><span>+${porPoblacion}</span></div>
+                    <div class="recurso"><span>Por felicidad (×5):</span><span>+${porFelicidad}</span></div>
+                    <div class="recurso"><span>Por dinero (÷100):</span><span>+${porDinero}</span></div>
+                    <div class="recurso"><span>Por edificios (×50):</span><span>+${porEdificios}</span></div>
+                    <div class="recurso"><span>Por electricidad (×2):</span><span>+${porElec}</span></div>
+                    <div class="recurso"><span>Por agua (×2):</span><span>+${porAgua}</span></div>
+                    ${bonosHtml}
+                    ${penasHtml}
+                    <div class="recurso score-total">
+                        <span>Total:</span><span>${totalScore.toLocaleString()}</span>
+                    </div>
+                </div>
+            </details>
         `;
     }
 
@@ -900,42 +987,57 @@ export class ViewController {
         const electricidadEl = document.getElementById('electricidad');
         const aguaEl = document.getElementById('agua');
         const alimentosEl = document.getElementById('alimentos');
+        const r = estado.recursos;
 
         if (dineroEl) {
-            dineroEl.textContent = `$${estado.recursos.dinero}`;
+            dineroEl.textContent = `$${Math.round(r.dinero).toLocaleString()}`;
             const container = dineroEl.parentElement;
             container?.classList.remove('dinero-verde', 'dinero-amarillo', 'dinero-rojo');
-            if (estado.recursos.dinero > 10000) {
-                container?.classList.add('dinero-verde');
-            } else if (estado.recursos.dinero < 1000) {
-                container?.classList.add('dinero-rojo');
-            } else if (estado.recursos.dinero < 5000) {
-                container?.classList.add('dinero-amarillo');
-            }
+            if (r.dinero > 10000) container?.classList.add('dinero-verde');
+            else if (r.dinero < 1000) container?.classList.add('dinero-rojo');
+            else if (r.dinero < 5000) container?.classList.add('dinero-amarillo');
+
+            // Tooltip HU-015
+            container?.setAttribute('data-tooltip',
+                `Ingresos/turno: +$${Math.round(r.ingresosDinero || 0).toLocaleString()}\nSaldo actual: $${Math.round(r.dinero).toLocaleString()}`
+            );
         }
 
         if (electricidadEl) {
-            electricidadEl.textContent = `${estado.recursos.electricidad} MW`;
+            const balance = (r.produccionElectricidad || 0) - (r.consumoElectricidad || 0);
+            electricidadEl.textContent = `${Math.round(r.electricidad)} MW`;
+            const container = electricidadEl.parentElement;
+            container?.setAttribute('data-tooltip',
+                `Producción: +${Math.round(r.produccionElectricidad || 0)} MW\nConsumo: -${Math.round(r.consumoElectricidad || 0)} MW\nBalance neto: ${balance >= 0 ? '+' : ''}${Math.round(balance)} MW`
+            );
         }
+
         if (aguaEl) {
-            aguaEl.textContent = `${estado.recursos.agua} m³`;
+            const balance = (r.produccionAgua || 0) - (r.consumoAgua || 0);
+            aguaEl.textContent = `${Math.round(r.agua)} m³`;
+            const container = aguaEl.parentElement;
+            container?.setAttribute('data-tooltip',
+                `Producción: +${Math.round(r.produccionAgua || 0)} m³\nConsumo: -${Math.round(r.consumoAgua || 0)} m³\nBalance neto: ${balance >= 0 ? '+' : ''}${Math.round(balance)} m³`
+            );
         }
+
         if (alimentosEl) {
-            const alimentos = Number(estado.recursos.alimentos ?? estado.recursos.comida ?? 0);
+            const alimentos = Math.round(r.alimentos ?? r.comida ?? 0);
             alimentosEl.textContent = `${alimentos} unidades`;
+            const container = alimentosEl.parentElement;
+            container?.setAttribute('data-tooltip',
+                `Producción granjas: +${Math.round(r.produccionAlimentos || 0)} u/turno\nStock actual: ${alimentos} unidades`
+            );
         }
 
         if (this.el.inputRecursoElectricidad) {
-            this.el.inputRecursoElectricidad.value = String(Number(estado.recursos.electricidad ?? 0));
+            this.el.inputRecursoElectricidad.value = String(Math.round(r.electricidad ?? 0));
         }
-
         if (this.el.inputRecursoAgua) {
-            this.el.inputRecursoAgua.value = String(Number(estado.recursos.agua ?? 0));
+            this.el.inputRecursoAgua.value = String(Math.round(r.agua ?? 0));
         }
-
         if (this.el.inputRecursoAlimentos) {
-            const alimentos = Number(estado.recursos.alimentos ?? estado.recursos.comida ?? 0);
-            this.el.inputRecursoAlimentos.value = String(alimentos);
+            this.el.inputRecursoAlimentos.value = String(Math.round(r.alimentos ?? r.comida ?? 0));
         }
     }
 

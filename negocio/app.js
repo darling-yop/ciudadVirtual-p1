@@ -73,19 +73,38 @@ class App {
                     return;
                 }
 
-                console.log('Intento demoler en', cell);
+                // Obtener info del edificio antes de confirmar
+                const edificio = this.manager.ciudad?.obtenerEdificioPorCoordenadas(cell.x, cell.y);
+                let mensajeConfirmacion = '¿Demoler este edificio?';
+
+                if (edificio) {
+                    const reembolso = edificio.reembolsoDemolicion || 0;
+                    const ocupacion = edificio.ocupacionActual || 0;
+                    const esResidencial = edificio.tipo.startsWith('R');
+                    const tipoTexto = esResidencial ? 'vivienda' : 'empleo';
+
+                    mensajeConfirmacion = `¿Demoler ${edificio.tipo} en (${cell.x}, ${cell.y})?\n\n`;
+                    mensajeConfirmacion += `💰 Reembolso: $${reembolso.toLocaleString()} (50% del costo)\n`;
+                    if (ocupacion > 0) {
+                        mensajeConfirmacion += `⚠️ ${ocupacion} ciudadano${ocupacion > 1 ? 's' : ''} perder${ocupacion > 1 ? 'án' : 'á'} su ${tipoTexto}.`;
+                    }
+                }
+
+                const confirmar = window.confirm(mensajeConfirmacion);
+                if (!confirmar) return;
+
                 const resultado = this.manager.demoler(cell.x, cell.y);
                 if (!resultado.exito) {
                     this.view.showToast(`No se demolió: ${resultado.mensaje}`, { tipo: 'error' });
                 } else {
-                    const mensaje = resultado.reembolso > 0 
-                        ? `Demolición OK. Reembolso: $${resultado.reembolso} (50% de ${resultado.tipoDemolido})`
-                        : `Demolición OK: ${resultado.tipoDemolido}`;
+                    let mensaje = `Demolición OK. Reembolso: $${resultado.reembolso.toLocaleString()}`;
+                    if (resultado.ciudadanosAfectados > 0) {
+                        mensaje += ` | ${resultado.ciudadanosAfectados} ciudadano${resultado.ciudadanosAfectados > 1 ? 's' : ''} afectado${resultado.ciudadanosAfectados > 1 ? 's' : ''}.`;
+                    }
                     this.view.showToast(mensaje, { tipo: 'success' });
-                    console.log(`Demolición realizada @(${cell.x},${cell.y}) - Reembolso: $${resultado.reembolso}`);
                 }
+
                 this.view.limpiarRuta();
-                this.view.setEstadoRuta('Ruta limpiada por cambio en el mapa.');
                 this.actualizarUI();
             },
             onProcesarTurno: () => this.procesarTurno(),
