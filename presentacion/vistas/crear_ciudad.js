@@ -145,11 +145,6 @@ function populateMunicipios(deptId) {
         el.inputMunicipio.appendChild(option);
     });
 }
-        option.textContent = mun;
-        el.inputMunicipio.appendChild(option);
-    });
-}
-
 function getRegionData() {
     const region = el.inputRegion.value;
 
@@ -163,34 +158,18 @@ function getRegionData() {
         return { nombre: 'Madrid', coordenadas: { lat: 40.4168, lon: -3.7038 } };
     }
     if (region === 'colombia') {
-        const deptId = el.inputDepartamento.value;
-        const munId = el.inputMunicipio.value;
-        
-        if (!deptId || !munId) {
+        const depa = el.inputDepartamento.value;
+        const mun = el.inputMunicipio.value;
+        if (!depa || !mun) {
             alert('Selecciona departamento y municipio en Colombia');
             return null;
         }
-
-        // Obtener nombre del departamento
-        const dept = dataColombia.departamentos.find(d => d.id === parseInt(deptId) || d.id === deptId);
-        const deptName = dept?.name || '?';
-
-        // Obtener municipio y sus coordenadas
-        const municipios = dataColombia.municipiosPorDepartamento[deptId];
-        const mun = municipios?.find(m => m.id === munId);
-
-        if (!mun) {
-            alert('Municipio no encontrado');
+        const coordenadas = colombiaMunicipios[depa]?.[mun];
+        if (!coordenadas) {
+            alert('Municipio no encontrado en coordenadas');
             return null;
         }
-
-        const lat = parseFloat(mun.latitude || 0);
-        const lon = parseFloat(mun.longitude || 0);
-
-        return { 
-            nombre: `${mun.name}, ${deptName}`, 
-            coordenadas: { lat, lon } 
-        };
+        return { nombre: `${mun}, ${depa}`, coordenadas };
     }
     if (region === 'custom') {
         const lat = parseFloat(el.inputLat.value);
@@ -259,11 +238,4 @@ el.botonVolver.addEventListener('click', () => {
     window.location.href = './index.html';
 });
 
-// Inicializar la interfaz
 setRegionVisibilidad();
-
-// Cargar datos de Colombia desde api-colombia.com al iniciar
-cargarDatosColombia().catch(error => {
-    console.error('Error fatal cargando datos de Colombia:', error);
-    usarFallbackColombia();
-});
