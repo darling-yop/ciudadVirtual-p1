@@ -10,1761 +10,260 @@ Recordatorio obligatorio antes de todo:
 ═══════════════════════════════════════
 ### 2. ESTRUCTURA REAL DE ARCHIVOS
 ═══════════════════════════════════════
-**Frontend (ciudadVirtual-p1/):**
-
-**acceso_datos/**
-- [LISTO] CityRepository.js → Gestiona persistencia de ciudades en LocalStorage con métodos guardar/cargar
-- [LISTO] GameRepository.js → Maneja estados de juego guardados con claves específicas
-- [LISTO] RepositorioUsuarios.js → Almacena datos de usuarios registrados
-- [LISTO] RouteRepository.js → Cache de rutas calculadas para optimización
-- [LISTO] ServicioClima.js → Integración OpenWeatherMap API con actualización automática cada 30min
-- [LISTO] ServicioNoticias.js → Integración NewsAPI con actualización automática cada 30min
-
-**imagenes/**
-- [LISTO] edicifio_comercial.jpg → Imagen edificio comercial
-- [LISTO] edificio_industrial.jpg → Imagen edificio industrial  
-- [LISTO] edificio_residencial.jpg → Imagen edificio residencial
-- [LISTO] edificio_servicios.jpg → Imagen edificio servicios
-- [LISTO] edificio_utilidades.jpg → Imagen edificio utilidades
-- [LISTO] fondo.jpg → Fondo general
-- [LISTO] fondociudad.jpg → Fondo ciudad
-- [LISTO] parque.jpg → Imagen parque
-- [LISTO] parque.webp → Imagen parque alternativa
-
-**modelos/**
-- [LISTO] Alcalde.js → Modelo alcalde con nivel, experiencia y puntuación
-- [LISTO] Camino.js → Modelo vías con costo y conectividad
-- [LISTO] Ciudad.js → Clase principal ciudad con toda lógica de simulación
-- [LISTO] Ciudadano.js → Modelo ciudadanos con felicidad, consumo y empleo
-- [LISTO] Edificio.js → Clase base edificios con producción/consumo
-- [LISTO] Edificio_comercial.js → Edificios comerciales con ingresos
-- [LISTO] Edificio_industrial.js → Edificios industriales con producción alimentos
-- [LISTO] Edificio_parques.js → Parques con bonus felicidad
-- [LISTO] Edificio_residencial.js → Viviendas con capacidad ocupación
-- [LISTO] Edificio_servicios.js → Servicios públicos con mantenimiento
-- [LISTO] Edificio_utilidades.js → Plantas energía/agua con producción
-- [LISTO] EdificioFactory.js → Factory para crear edificios desde tipos
-- [LISTO] Mapa.js → Gestión grid mapa con validaciones coordenadas
-- [LISTO] Recursos.js → Gestión balances dinero, energía, agua, alimentos
-- [LISTO] SistemaTurnos.js → Sistema turnos automático con 6 acciones por turno
-
-**negocio/**
-- [LISTO] app.js → Punto entrada aplicación, inicialización servicios
-- [LISTO] CityManager.js → Gestor operaciones CRUD ciudad
-- [LISTO] viewController.js → Controlador navegación vistas
-
-**presentacion/estilos/**
-- [LISTO] estilos.css → Estilos principales interfaz
-- [LISTO] setup.css → Estilos configuración ciudad
-
-**presentacion/vistas/**
-- [LISTO] crear_ciudad.html → Formulario creación ciudad
-- [LISTO] crear_ciudad.js → Validación y envío formulario creación
-- [LISTO] game.html → Vista principal juego con mapa interactivo
-- [LISTO] index.html → Página inicio con navegación
-- [LISTO] setupController.js → Controlador configuración inicial
-
-**Backend (ms_smart_city-main/):**
-- [LISTO] main.py → API Flask endpoint /api/calculate-route con Dijkstra
-- [LISTO] requeriments.txt → flask, flask-cors
-- [LISTO] README.md → Documentación backend
-- [LISTO] mapa_ejemplo.png → Imagen ejemplo mapa
-- [LISTO] .idea/ → Configuración PyCharm
-- [LISTO] venv/ → Entorno virtual Python
-
-**Documentación:**
-- [LISTO] cambios.md → Registro cambios realizados
-- [LISTO] CiudadVirtual.md → Documentación general proyecto
+**Root del proyecto:**
+- [LISTO] README.md → Documentación principal del proyecto
+- [LISTO] README_CAMBIOS.md → Registro de cambios
+- [LISTO] project_handoff.txt → Resumen/handoff generado
+- [LISTO] cambios.md → Notas y cambios del proyecto
 - [LISTO] Creacion_clase_Alcalde.md → Documentación clase Alcalde
 - [LISTO] creacion_clase_Turnos.md → Documentación sistema turnos
-- [LISTO] DIAGRAMA_ARQUITECTURA.md → Diagrama arquitectura sistema
-- [LISTO] DOCUMENTACION_CIUDAD_VIRTUAL.md → Documentación completa
-- [LISTO] GUIA_PRUEBAS.md → Guía testing
-- [LISTO] PRUEBAS_CIUDAD_VIRTUAL.md → Casos prueba
-- [LISTO] README.md → README principal
-- [LISTO] README_CAMBIOS.md → Registro cambios
+- [LISTO] DIAGRAMA_ARQUITECTURA.md → Diagrama de arquitectura técnica
+- [LISTO] DOCUMENTACION_CIUDAD_VIRTUAL.md → Documentación general del juego
+- [LISTO] GUIA_PRUEBAS.md → Guía de pruebas
+- [LISTO] PRUEBAS_CIUDAD_VIRTUAL.md → Casos de prueba
+
+**.vscode/**
+- [LISTO] .vscode/settings.json → Configuración local de VS Code
+
+**acceso_datos/**
+- [LISTO] CityRepository.js → Persistencia de partidas en LocalStorage, listados y guardado automático
+- [EN PROGRESO] config.js → API keys OpenWeatherMap/NewsAPI placeholders
+- [LISTO] GameRepository.js → Cliente backend opcional /api/game (deshabilitado por defecto)
+- [LISTO] RankingLocal.js → Ranking local TOP 10 en LocalStorage
+- [LISTO] RepositorioUsuarios.js → Cliente REST para /api/v1/users (backend no incluido)
+- [LISTO] RouteRepository.js → Cliente de rutas Dijkstra con fallback local
+- [LISTO] ServicioClima.js → Integración OpenWeatherMap con actualización cada 30 min
+- [LISTO] ServicioNoticias.js → Integración NewsAPI/RSS/fallback local con actualización cada 30 min
+
+**imagenes/**
+- [LISTO] edicifio_comercial.jpg → Imagen comercial
+- [LISTO] edificio_industrial.jpg → Imagen industrial
+- [LISTO] edificio_residencial.jpg → Imagen residencial
+- [LISTO] edificio_servicios.jpg → Imagen servicios
+- [LISTO] edificio_utilidades.jpg → Imagen utilidades
+- [LISTO] fondo.jpg → Fondo general
+- [LISTO] fondociudad.jpg → Fondo ciudad
+- [LISTO] parque.jpg → Parque
+- [LISTO] parque.webp → Parque alternativa webp
+
+**modelos/**
+- [LISTO] Alcalde.js → Controlador de decisiones del jugador y rutas
+- [LISTO] Camino.js → Modelo de vías/caminos
+- [LISTO] Ciudad.js → Modelo central del juego con simulación completa
+- [LISTO] Ciudadano.js → Ciudadanos con felicidad, vivienda y empleo
+- [LISTO] Clima.js → Modelo de datos climáticos
+- [LISTO] Edificio.js → Clase base de edificaciones
+- [LISTO] Edificio_comercial.js → Comercios y cálculo de ingresos
+- [LISTO] Edificio_industrial.js → Industrias, producción y empleo
+- [LISTO] Edificio_parques.js → Parques y beneficio de felicidad
+- [LISTO] Edificio_residencial.js → Viviendas con capacidad y ocupación
+- [LISTO] Edificio_servicios.js → Servicios públicos con beneficio social
+- [LISTO] Edificio_utilidades.js → Plantas de electricidad/agua
+- [LISTO] EdificioFactory.js → Fábrica de edificios y restauración de estado
+- [LISTO] Mapa.js → Grid y validaciones de coordenadas
+- [LISTO] Noticia.js → Modelo de noticia
+- [LISTO] Recursos.js → Modelo de balances de recursos
+- [LISTO] SistemaTurnos.js → Motor de turnos automático (paralelo)
+
+**negocio/**
+- [LISTO] app.js → Orquestador UI y acciones del juego
+- [LISTO] CityManager.js → Singleton global, guardado, carga y ciclos de turno
+- [LISTO] viewController.js → Control DOM, renderizado de mapa y eventos
+
+**presentacion/estilos/**
+- [LISTO] estilos.css → Estilos principales y media queries
+- [LISTO] setup.css → Estilos de configuración inicial
+
+**presentacion/vistas/**
+- [LISTO] crear_ciudad.html → Formulario de nueva ciudad
+- [LISTO] crear_ciudad.js → Lógica de carga de mapa y creación
+- [LISTO] game.html → UI principal del juego
+- [LISTO] index.html → Página de inicio/navegación
+- [LISTO] ranking.html → Vista ranking local
+- [LISTO] ranking.js → Render ranking local
+- [LISTO] setupController.js → Controlador de setup inicial
+
+**Backend (ms_smart_city-main/):**
+- [LISTO] main.py → Flask API /api/calculate-route con Dijkstra
+- [LISTO] requeriments.txt → Dependencias Python
+- [LISTO] README.md → Documentación backend
 
 ═══════════════════════════════════════
 ### 3. ARQUITECTURA Y CLASES IMPLEMENTADAS
 ═══════════════════════════════════════
 
 **Ciudad.js**
-- Atributos: nombre (string), cityId (string), alcalde (Alcalde), region (object), ancho/alto (number), mapa (Mapa), servicios clima/noticias, turnoActual (number), puntuacionAcumulada (number), edificios (array), vias (array), poblacion (array), recursos (object), historicoRecursos (array), crecimiento (object)
+- Atributos: nombre, cityId, alcalde, region, ancho, alto, mapa, servicioClima, servicioNoticias, datosClima, noticias, turnoActual, puntuacionAcumulada, edificios, vias, poblacion, juegoFinalizado, motivoFinJuego, recursos, historicoRecursos, crecimiento, turnosConDeficit
 - Métodos implementados: constructor, iniciarServiciosExternos, detenerServiciosExternos, cargarMapaDesdeTexto, configurarRecursoDesdeIU, configurarCrecimiento, obtenerCostoConstruccion, puedeConstruir, procesarTurno, #registrarHistoricoRecursos, #gestionarCrecimientoPoblacional, #aplicarEfectosClimaticos, #calcularAjusteFelicidadClima, #calcularMultiplicadorProduccionComida, #procesarEventosNoticias, #actualizarDatosExternos, verificarRecursosCriticos, procesarProduccionRecursos, procesarConsumoRecursos, procesarIngresos, procesarCostos, actualizarFelicidadCiudadanos, obtenerFelicidadPromedio, calcularEmpleosDisponibles, #asignarAutomaticamente, #actualizarPuntuacion, obtenerEstadoParaJSON, reconstruirDesdeEstado, guardarEnLocalStorage, cargarDesdeLocalStorage, exportarEstadoJSON
-- Métodos pendientes: ninguno crítico
-- Relaciones: Composición con Alcalde, Mapa, Ciudadano; Agregación con Edificios, Vias; Usa Servicios externos
+- Métodos pendientes: demolición con reembolso completo y reconciliación mapa/estado avanzada
+- Relaciones: contiene Alcalde, Mapa, ServicioClima, ServicioNoticias; agrega Edificio y Ciudadano
 
 **SistemaTurnos.js**
-- Atributos: ciudad (Ciudad), duracionTurno (number), enEjecucion (boolean), intervalID (number), turnosEjecutados (number), ultimoTurno (Date)
+- Atributos: ciudad, duracionTurno, enEjecucion, intervalID, turnosEjecutados, ultimoTurno
 - Métodos implementados: constructor, iniciar, pausar, reanudar, detener, ejecutarTurnoManual, ejecutarTurno, calcularProduccionRecursos, calcularConsumoRecursos, aplicarCostosMantenimiento, actualizarFelicidadCiudadanos, actualizarPuntuacion, guardarEnLocalStorage, cargarDesdeLocalStorage, obtenerEstadisticas, configurarDuracionTurno
 - Métodos pendientes: ninguno
-- Relaciones: Asociación con Ciudad
+- Relaciones: asociación con Ciudad
 
 **Recursos.js**
-- Atributos: dinero (number), electricidad (number), produccionEnergia/consumoEnergia (number), agua (number), produccionAgua/consumoAgua (number), alimentos (number), produccionComida (number)
+- Atributos: dinero, electricidad, produccionEnergia, consumoEnergia, agua, produccionAgua, consumoAgua, alimentos, produccionComida
 - Métodos implementados: constructor, configurarRecurso, obtenerBalanceNetoEnergia, obtenerBalanceNetoAgua, verificarEstadoCritico, procesarFinanzas, acumularAlimentos
-- Métodos pendientes: ninguno
-- Relaciones: Usado por Ciudad
 
 **Alcalde.js**
-- Atributos: id (number), nombre (string), nivel (number), experiencia (number), puntuacion (number), ciudad (Ciudad)
+- Atributos: id, nombre, nivel, experiencia, puntuacion, ciudad
 - Métodos implementados: constructor, calcularExperienciaTurno, obtenerNivel, obtenerEstadisticas
-- Relaciones: Asociación con Ciudad
 
 **Ciudadano.js**
-- Atributos: id (string), name (string), username (string), email (string), nivelFelicidad (number), empleo (boolean), vivienda (boolean), consumoElectricidad (number), consumoAgua (number), consumoComida (number), edificioAsignado (Edificio)
+- Atributos: id, name, username, email, nivelFelicidad, empleo, vivienda, consumoElectricidad, consumoAgua, consumoComida, edificioAsignado
 - Métodos implementados: constructor, actualizarFelicidad, asignarEmpleo, asignarVivienda, obtenerEstadisticas
-- Relaciones: Asociación con Edificio
 
 **Mapa.js**
-- Atributos: ancho (number), alto (number), grid (array 2D)
+- Atributos: ancho, alto, grid
 - Métodos implementados: constructor, actualizarCelda, obtenerCelda, esCoordenadaValida, estaDisponible, obtenerVecinos, esTipoValido, obtenerGridComoArray, reconstruirDesdeArray
-- Relaciones: Usado por Ciudad
 
 **Edificio.js (base)**
-- Atributos: id (string), tipo (string), x/y (number), costoConstruccion (number), estaOperativo (boolean), capacidadMaxima (number), ocupacionActual (number), produccionRecurso (number), consumoElectricidad (number), consumoAgua (number)
+- Atributos: id, tipo, x, y, costoConstruccion, estaOperativo, capacidadMaxima, ocupacionActual, produccionRecurso, consumoElectricidad, consumoAgua
 - Métodos implementados: constructor, obtenerInformacion, calcularProduccion, producirRecurso, estaLleno, asignarCiudadano, desasignarCiudadano
-- Relaciones: Herencia por tipos específicos
 
 **EdificioFactory.js**
 - Métodos implementados: crearEdificioDesdeTipo, reconstruirEdificioDesdeEstado
-- Relaciones: Factory para Edificios
 
 ═══════════════════════════════════════
 ### 4. ESTADO DE CADA HISTORIA DE USUARIO
 ═══════════════════════════════════════
 
-HU-001: Creación de Nueva Ciudad → COMPLETA (constructor Ciudad + formulario crear_ciudad.html)
-
-HU-002: Cargar Mapa desde Archivo de Texto → COMPLETA (cargarMapaDesdeTexto en Ciudad.js con parsing de tokens R1,C1,I1,etc)
-
-HU-003: Construir Edificio Residencial → COMPLETA (puedeConstruir + construirEdificio en Ciudad.js)
-
-HU-004: Construir Edificio Comercial → COMPLETA (mismo sistema que HU-003)
-
-HU-005: Construir Edificio Industrial → COMPLETA (mismo sistema que HU-003)
-
-HU-006: Construir Edificios de Servicio → COMPLETA (mismo sistema que HU-003)
-
-HU-007: Construir Plantas de Utilidad → COMPLETA (mismo sistema que HU-003)
-
-HU-008: Construir Parques → COMPLETA (mismo sistema que HU-003)
-
-HU-009: Construir Vías/Caminos → COMPLETA (mismo sistema que HU-003)
-
-HU-010: Eliminar Edificios y Vías → COMPLETA (demolerEdificio en Ciudad.js con reembolso 50%)
-
-HU-011: Ver Información de Edificio → COMPLETA (obtenerInformacion en Edificio.js + UI)
-
-HU-012: Calcular Ruta Óptima (Dijkstra - backend) → COMPLETA (endpoint /api/calculate-route en main.py)
-
-HU-013: Sistema de Gestión de Ciudadanos → COMPLETA (Ciudadano.js + #gestionarCrecimientoPoblacional en Ciudad.js)
-
-HU-014: Gestión Automática de Recursos por Turno → COMPLETA (procesarTurno en Ciudad.js con 6 fases)
-
-HU-015: Visualizar Panel de Recursos → COMPLETA (UI en game.html con actualización en tiempo real)
-
-HU-016: Integración API del Clima → COMPLETA (ServicioClima.js con OpenWeatherMap)
-
-HU-017: Integración API de Noticias → COMPLETA (ServicioNoticias.js con NewsAPI)
-
-HU-018: Cálculo y Visualización de Puntuación → COMPLETA (#actualizarPuntuacion en Ciudad.js)
-
-HU-019: Sistema de Ranking Local → PENDIENTE (no implementado, solo puntuación individual)
-
-HU-020: Guardar y Cargar Partida (LocalStorage) → COMPLETA (guardarEnLocalStorage/cargarDesdeLocalStorage en Ciudad.js)
-
-HU-021: Exportar Estado de Ciudad a JSON → COMPLETA (exportarEstadoJSON en Ciudad.js)
-
-HU-022: Diseño Responsive Móvil → PENDIENTE (CSS básico, no responsive implementado)
-
-HU-023: Diseño Responsive Tablet → PENDIENTE (igual que HU-022)
-
-HU-024: Diseño Responsive Desktop → PENDIENTE (igual que HU-022)
+HU-001: Creación de Nueva Ciudad → COMPLETA
+HU-002: Cargar Mapa desde Archivo de Texto → COMPLETA
+HU-003: Construir Edificio Residencial → COMPLETA
+HU-004: Construir Edificio Comercial → COMPLETA
+HU-005: Construir Edificio Industrial → COMPLETA
+HU-006: Construir Edificios de Servicio → COMPLETA
+HU-007: Construir Plantas de Utilidad → COMPLETA
+HU-008: Construir Parques → COMPLETA
+HU-009: Construir Vías/Caminos → COMPLETA
+HU-010: Eliminar Edificios y Vías → EN PROGRESO
+HU-011: Ver Información de Edificio → EN PROGRESO
+HU-012: Calcular Ruta Óptima (Dijkstra - backend) → EN PROGRESO
+HU-013: Sistema de Gestión de Ciudadanos → EN PROGRESO
+HU-014: Gestión Automática de Recursos por Turno → COMPLETA
+HU-015: Visualizar Panel de Recursos → COMPLETA
+HU-016: Integración API del Clima → EN PROGRESO
+HU-017: Integración API de Noticias → EN PROGRESO
+HU-018: Cálculo y Visualización de Puntuación → COMPLETA
+HU-019: Sistema de Ranking Local → PENDIENTE
+HU-020: Guardar y Cargar Partida (LocalStorage) → COMPLETA
+HU-021: Exportar Estado de Ciudad a JSON → COMPLETA
+HU-022: Diseño Responsive Móvil → PENDIENTE
+HU-023: Diseño Responsive Tablet → PENDIENTE
+HU-024: Diseño Responsive Desktop → PENDIENTE
 
 ═══════════════════════════════════════
 ### 5. LÓGICA DE NEGOCIO IMPLEMENTADA
 ═══════════════════════════════════════
 
-**Sistema de turnos:** Duración configurable (default 10s), ejecuta automáticamente 6 acciones: 1) Calcular producción recursos, 2) Calcular consumo recursos, 3) Aplicar costos mantenimiento (10% costo construcción), 4) Actualizar felicidad ciudadanos, 5) Actualizar puntuación, 6) Guardar en LocalStorage
+- Sistema de turnos:
+  - `Ciudad.procesarTurno()` ejecuta producción, consumo, ingresos, costos, felicidad, puntuación, actualización externa y registro.
+  - `CityManager.iniciarCicloTurnos()` controla turnos automáticos con intervalo configurable.
+  - Guardado automático cada 30 segundos en `CityManager.iniciarAutoGuardado()`.
 
-**Sistema de recursos:** Balance neto = inicial + (producción - consumo). Energía/agua negativos = game over. Dinero aumenta por comerciales/industriales, disminuye por mantenimiento. Alimentos acumulables, afectan felicidad si suficientes.
+- Sistema de recursos:
+  - Producción: U1 produce electricidad, U2 produce agua, I2 produce alimentos.
+  - Consumo: ciudadanos (electricidad, agua, comida); edificios consumen energía/agua salvo utilidades y parques.
+  - Alimentos se restan y condicionan felicidad.
+  - Si electricidad o agua quedan negativos, se finaliza el juego.
 
-**Sistema de ciudadanos:** Creación automática por turno si felicidad >60%, capacidad vivienda disponible, empleos disponibles. Felicidad = base 50 + vivienda(+20) + empleo(+20) + recursos suficientes(+10) + clima. Consumo: 2 energía, 3 agua, 2 comida por ciudadano.
+- Sistema de ciudadanos:
+  - `Ciudad.#gestionarCrecimientoPoblacional()` crea nuevos ciudadanos si hay felicidad >60%, viviendas y empleos disponibles.
+  - `Ciudad.#asignarAutomaticamente()` ubica vivienda y trabajo en edificios con capacidad libre.
+  - `Ciudad.actualizarFelicidadCiudadanos()` aplica vivienda, empleo, clima y alimentos.
 
-**Sistema de puntuación:** Por turno = (felicidad_promedio/2) + min(30, recursos_bonus) + min(20, edificios_operativos*2). Bonificaciones: parques +5 felicidad adyacentes, clima afecta producción comida (lluvia +50%, tormenta -30%).
+- Sistema de puntuación:
+  - Base: `poblacion*10 + felicidad*5 + dinero/100 + edificios*50 + electricidad*2 + agua*2`.
+  - Penalizaciones: desempleo, dinero negativo, electricidad negativa, agua negativa, felicidad baja.
+  - Bonificaciones: desempleo 0, felicidad >80, recursos positivos, población >1000.
 
-**Sistema de construcción:** Validaciones: costo suficiente, celda disponible, conexión vial adyacente (excepto vías). Costos: R1=200, R2=400, C1=300, C2=600, I1=500, I2=900, S1=400, S2=700, S3=1000, U1=350, U2=650, P1=250, r=20.
+- Sistema de construcción:
+  - `Ciudad.puedeConstruir()` valida costo, celda libre y adyacencia vial.
+  - Vías `r` se pueden construir libremente en celda vacía.
+  - Edificios requieren vía adyacente.
 
-**Sistema de demolición:** Reembolso 50% costo construcción, libera celda, desasigna ciudadanos.
+- Sistema de demolición:
+  - `CityManager.demoler()` elimina contenido de mapa y remueve edificio.
+  - Falla reembolso completo y sincronización total con UI.
 
-**Sistema de rutas (Dijkstra):** Frontend envía grid binario (0=edificio,1=vía) + coordenadas start/end. Backend valida conexión vial, calcula ruta más corta, retorna array coordenadas o error.
+- Sistema de rutas (Dijkstra):
+  - Frontend `RouteRepository.calculateRoute()` envía grid binario + coordenadas start/end.
+  - Backend Flask en `ms_smart_city-main/main.py`.
+  - Fallback local BFS si backend no responde.
 
 ═══════════════════════════════════════
 ### 6. BACKEND
 ═══════════════════════════════════════
 - Framework/lenguaje: Python + Flask
 - Endpoint implementado: POST /api/calculate-route
-  * Request: {"map": [[0,1,0],[1,0,1]], "start": [0,0], "end": [2,2]}
-  * Response: {"route": [[0,0],[0,1],[1,1],[2,1],[2,2]]} o {"error": "mensaje"}
-- Cómo corre: python main.py, puerto 5000, debug=True
+  * Request exacto: {"map": [[0,1,...],...], "start": [fila,columna], "end": [fila,columna]}
+  * Response éxito: {"route": [[fila,columna], ...]}
+  * Response error: {"error": "mensaje"}
+- Cómo correr: python main.py
+- Puerto: 5000
 
 ═══════════════════════════════════════
 ### 7. INTEGRACIONES EXTERNAS
 ═══════════════════════════════════════
-- API Colombia: NO USADA (mencionada en documentación pero no implementada)
-- OpenWeatherMap: IMPLEMENTADA en ServicioClima.js, endpoint https://api.openweathermap.org/data/2.5/weather, API key en constructor (default 'API_KEY_PLACEHOLDER')
-- NewsAPI: IMPLEMENTADA en ServicioNoticias.js, endpoint https://newsapi.org/v2/top-headlines, API key en constructor (default 'API_KEY_PLACEHOLDER')
-- API keys: Hardcodeadas como placeholders, no en variables entorno (violación seguridad)
+- API Colombia: no usada en el código.
+- OpenWeatherMap: implementada en `acceso_datos/ServicioClima.js`.
+- NewsAPI: implementada en `acceso_datos/ServicioNoticias.js`.
+- Llaves guardadas en `acceso_datos/config.js`.
+- Actualmente `config.js` usa placeholders `TU_API_KEY`.
 
 ═══════════════════════════════════════
 ### 8. PERSISTENCIA (LocalStorage)
 ═══════════════════════════════════════
-- Estructura JSON: {nombre, alcalde:{nombre,nivel,experiencia,puntuacion}, turnoActual, puntuacionAcumulada, recursos:{dinero,electricidad,agua,alimentos}, poblacion:count, edificios:count, fechaGuardado}
-- Claves: 'ciudadVirtual_estado'
-- Guarda: Estado básico ciudad, NO mapa completo, NO edificios individuales, NO ciudadanos individuales
-- Guardado automático: Cada turno en SistemaTurnos.guardarEnLocalStorage()
+- Claves usadas:
+  - ciudadVirtual_partidas
+  - ciudadVirtual_partida_activa
+  - ciudadVirtual_estado
+  - ciudadVirtual_historial
+  - ciudadVirtual_ranking
+- Se guarda: estado completo de ciudad, edificios, vías, población, recursos, histórico de recursos, crecimiento, turno, puntuación.
+- No se guarda: estado UI, intervalos de servicios, fetchs en curso.
+- Guardado automático: cada 30 segundos en CityManager.
 
 ═══════════════════════════════════════
 ### 9. DECISIONES TÉCNICAS TOMADAS
 ═══════════════════════════════════════
-- Arquitectura MVC: modelos (lógica negocio), presentacion (vistas), negocio (controladores)
-- Patrón Factory: EdificioFactory para creación polimórfica edificios
-- Separación servicios externos: Clases dedicadas ServicioClima/ServicioNoticias con actualización automática
-- Sistema turnos desacoplado: SistemaTurnos como clase separada, inyectada en Ciudad
-- Grid mapa como array 2D: Fácil acceso coordenadas, validaciones eficientes
-- IDs únicos ciudadanos: timestamp + random para evitar colisiones
-- Recursos como objeto plano: Simple serialización LocalStorage
-- APIs keys como parámetros: Fácil configuración pero inseguro (no usar producción)
+- Arquitectura modular: `modelos/`, `acceso_datos/`, `negocio/`, `presentacion/`.
+- Persistencia local como fuente principal; backend opcional.
+- Rutas: backend preferido con fallback local.
+- Vanilla JS sin frameworks.
+- Soporte de mapas 15x15 a 30x30.
 
 ═══════════════════════════════════════
 ### 10. PROBLEMAS CONOCIDOS
 ═══════════════════════════════════════
-- APIs keys hardcodeadas: Violación seguridad, usar variables entorno
-- Persistencia incompleta: Solo guarda estado básico, pierde mapa y detalles edificios
-- No responsive: CSS básico, no mobile/tablet/desktop
-- Ranking local faltante: Solo puntuación individual, no comparación con otras ciudades
-- Validaciones construcción débiles: No verifica capacidad servicios antes construir
-- Crecimiento poblacional simplista: Solo basado felicidad, no considera densidad urbana
-- Efectos clima limitados: Solo afecta felicidad y producción comida, no otros recursos
-- Reembolso demolición fijo 50%: No considera estado edificio o tiempo construido
+- `Alcalde.demolerEdificio()` no sincroniza correctamente con `CityManager.demoler()`.
+- Reembolso demolición no está completo.
+- API keys en `acceso_datos/config.js` son placeholders.
+- `GameRepository` requiere `window.GAME_API_ENABLED`.
+- `RepositorioUsuarios.js` apunta a backend no incluido.
+- `SistemaTurnos` está separado del flujo de UI principal.
+- Falta panel detallado de edificio individual.
+- No hay pruebas automatizadas visibles.
 
 ═══════════════════════════════════════
 ### 11. PRÓXIMO PASO EXACTO
 ═══════════════════════════════════════
-Implementar sistema ranking local: Crear clase RankingLocal que compare puntuaciones entre ciudades guardadas en LocalStorage, mostrar top 10 en UI dedicada, actualizar rankings cada turno.
+- Corregir demolición: reembolso 50% + sincronización UI + ajuste de coordenadas.
+- Confirmar backend Flask activo en http://127.0.0.1:5000/api/calculate-route.
+- Reemplazar API keys reales en `acceso_datos/config.js`.
+- Añadir panel de detalles de edificio en `game.html`.
 
 ═══════════════════════════════════════
 ### 12. CÓDIGO CRÍTICO ACTUAL
 ═══════════════════════════════════════
-
-**Ciudad.js (COMPLETO):**
-```javascript
-import ServicioClima from '../acceso_datos/ServicioClima.js?v=2';
-import ServicioNoticias from '../acceso_datos/ServicioNoticias.js?v=2';
-import { Alcalde } from './Alcalde.js';
-import { Ciudadano } from './Ciudadano.js';
-import { crearEdificioDesdeTipo, reconstruirEdificioDesdeEstado } from './EdificioFactory.js';
-import { Mapa } from './Mapa.js';
-
-function generarIdCiudad(nombre = 'ciudad') {
-    const base = String(nombre)
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '') || 'ciudad';
-
-    return `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-class Ciudad {
-    constructor(nombre, nombreAlcalde, region, ancho, alto) {
-        // Identificación de la ciudad
-        this.nombre = (nombre || "Nueva Ciudad").substring(0, 50);
-        this.cityId = generarIdCiudad(this.nombre);
-        
-        // Alcalde que gestiona la ciudad
-        this.alcalde = new Alcalde(1, nombreAlcalde ? nombreAlcalde.substring(0, 50) : "Alcalde", this);
-
-        // Región geográfica
-        this.region = region || {
-            nombre: "Bogotá",
-            coordenadas: { lat: 4.6097, lon: -74.0817 }
-        };
-
-        // Dimensiones del territorio
-        this.ancho = Math.min(Math.max(Number(ancho) || 15, 15), 30);
-        this.alto = Math.min(Math.max(Number(alto) || 15, 15), 30);
-        
-        // Mapa de la ciudad
-        this.mapa = new Mapa(this.ancho, this.alto);
-
-        // Servicios externos
-        // En el navegador no existe `process.env`, por eso usamos una comprobación segura.
-        const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
-        const openWeatherKey = env.OPENWEATHER_API_KEY || 'API_KEY_PLACEHOLDER';
-        const newsApiKey = env.NEWS_API_KEY || 'API_KEY_PLACEHOLDER';
-
-        this.servicioClima = new ServicioClima(openWeatherKey, this.region.coordenadas.lat, this.region.coordenadas.lon);
-        this.servicioNoticias = new ServicioNoticias(newsApiKey, 'ar');
-
-        // Datos climáticos
-        this.datosClima = {
-            temperatura: 20,
-            condicion: 'Soleado',
-            humedad: 50,
-            velocidadViento: 10,
-            ultimaActualizacion: null
-        };
-
-        // Noticias actuales
-        this.noticias = [];
-
-        // Estado de la simulación
-        this.turnoActual = 0;
-        this.puntuacionAcumulada = 0;
-
-        // Composición urbana
-        this.edificios = [];
-        this.vias = [];
-        this.poblacion = [];
-        this.juegoFinalizado = false;
-        this.motivoFinJuego = null;
-        this.turnosConDeficit = 0; // Contador de turnos consecutivos con déficit crítico
-        this.MAX_TURNOS_DEFICIT = 3; // Máximo de turnos que puede haber déficit antes de game-over
-
-        // Recursos iniciales (aumentados para evitar game-over inmediato)
-        this.recursos = {
-            dinero: 50000,
-            electricidad: 0,
-            agua: 0,
-            alimentos: 0,
-            comida: 0
-        };
-
-        // Histórico de recursos para análisis y gráficos (últimos 20 turnos).
-        this.historicoRecursos = [];
-        this.#registrarHistoricoRecursos();
-
-        // Parámetros ajustables (crecimiento poblacional)
-        // puede ser modificado desde la IU si es necesario.
-        this.crecimiento = { min: 1, max: 3 }; // ciudadanos por turno
-    }
-
-    #normalizarRecursos() {
-        this.recursos.dinero = Number(this.recursos.dinero ?? 0);
-        this.recursos.electricidad = Number(this.recursos.electricidad ?? 0);
-        this.recursos.agua = Number(this.recursos.agua ?? 0);
-
-        const alimentos = Number(this.recursos.alimentos ?? this.recursos.comida ?? 0);
-        this.recursos.alimentos = alimentos;
-        this.recursos.comida = alimentos;
-    }
-
-    /**
-     * Inicia los servicios externos (clima y noticias)
-     */
-    iniciarServiciosExternos() {
-        try {
-            // Validar que las API keys estén configuradas
-            const tieneClima = this.servicioClima && this.servicioClima.apiKey && this.servicioClima.apiKey !== 'API_KEY_PLACEHOLDER';
-            const tieneNoticias = this.servicioNoticias && this.servicioNoticias.apiKey && this.servicioNoticias.apiKey !== 'API_KEY_PLACEHOLDER';
-
-            if (!tieneClima && !tieneNoticias) {
-                console.warn('Servicios externos: API keys no configuradas. Continuando sin datos en tiempo real.');
-                console.warn('Para habilitar clima: Configura OPENWEATHER_API_KEY en ServicioClima.js');
-                console.warn('Para habilitar noticias: Configura NEWS_API_KEY en ServicioNoticias.js');
-                return;
-            }
-
-            if (tieneClima) {
-                this.servicioClima.iniciarActualizacionAutomatica();
-                console.log('Servicio de Clima iniciado correctamente');
-            } else {
-                console.warn('Servicio de Clima: API key no configurada');
-            }
-
-            if (tieneNoticias) {
-                this.servicioNoticias.iniciarActualizacionAutomatica();
-                console.log('Servicio de Noticias iniciado correctamente');
-            } else {
-                console.warn('Servicio de Noticias: API key no configurada');
-            }
-        } catch (error) {
-            console.error('Error al iniciar servicios externos:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Detiene los servicios externos
-     */
-    detenerServiciosExternos() {
-        this.servicioClima.detenerActualizacion();
-        this.servicioNoticias.detenerActualizacion();
-    }
-
-    /**
-     * Carga un mapa desde un archivo de texto con el formato especificado.
-     * El archivo puede contener códigos como g, r, R1, C1, I1, S1, U1, P1, etc.
-     * @param {string} textoMapa
-     * @returns {{exito: boolean, mensaje?: string, ancho?: number, alto?: number}}
-     */
-    cargarMapaDesdeTexto(textoMapa) {
-        if (!textoMapa || typeof textoMapa !== 'string') {
-            return { exito: false, mensaje: 'El contenido del mapa no es válido.' };
-        }
-
-        const lineas = textoMapa
-            .split(/\r?\n/)
-            .map(line => line.trim())
-            .filter(line => line.length > 0);
-
-        if (lineas.length === 0) {
-            return { exito: false, mensaje: 'El archivo de mapa está vacío.' };
-        }
-
-        const tokenPattern = /(R[12]|C[12]|I[12]|S[123]|U[12]|P1|r|g)/g;
-        const grid = lineas.map(line => {
-            const tokens = [...line.matchAll(tokenPattern)].map(m => m[0]);
-            return tokens;
-        }).filter(row => row.length > 0);
-
-        if (grid.length === 0) {
-            return { exito: false, mensaje: 'No se detectaron celdas válidas en el archivo.' };
-        }
-
-        const alto = grid.length;
-        const ancho = Math.max(...grid.map(r => r.length));
-
-        if (alto < 15 || alto > 30 || ancho < 15 || ancho > 30) {
-            return {
-                exito: false,
-                mensaje: `Dimensiones inválidas: ${ancho}x${alto}. Deben estar entre 15x15 y 30x30.`
-            };
-        }
-
-        // Completar filas cortas con terreno vacío
-        const gridPadded = grid.map(row => {
-            if (row.length < ancho) {
-                return [...row, ...Array(ancho - row.length).fill(Mapa.TIPOS_VALIDOS.VACIO)];
-            }
-            return row;
-        });
-
-        // Validar tipos de celdas
-        for (const row of gridPadded) {
-            for (const token of row) {
-                if (!Mapa.esTipoValido(token)) {
-                    return { exito: false, mensaje: `Tipo de celda inválido: '${token}'.` };
-                }
-            }
-        }
-
-        // Reiniciar el mapa y los datos que dependen de él
-        this.ancho = ancho;
-        this.alto = alto;
-        this.mapa = new Mapa(ancho, alto);
-        this.edificios = [];
-        this.vias = [];
-        this.poblacion = [];
-
-        // Reiniciar recursos a valores iniciales y ajustar según edificaciones
-        this.recursos = {
-            dinero: 50000,
-            electricidad: 0,
-            agua: 0,
-            alimentos: 0,
-            comida: 0
-        };
-        this.historicoRecursos = [];
-
-        let costoTotal = 0;
-
-        gridPadded.forEach((row, y) => {
-            row.forEach((token, x) => {
-                if (token === Mapa.TIPOS_VALIDOS.VACIO) return;
-
-                if (token === Mapa.TIPOS_VALIDOS.VIA) {
-                    this.mapa.actualizarCelda(x, y, token);
-                    this.vias.push({ x, y, costoConstruccion: this.obtenerCostoConstruccion(token) });
-                    costoTotal += this.obtenerCostoConstruccion(token);
-                    return;
-                }
-
-                const edificio = crearEdificioDesdeTipo(token, x, y);
-                if (!edificio) return;
-
-                this.mapa.actualizarCelda(x, y, token);
-                this.edificios.push(edificio);
-                costoTotal += this.obtenerCostoConstruccion(token);
-
-                // Ajustar recursos iniciales según producción de utilidades
-                if (token === 'U1' && typeof edificio.producirRecurso === 'function') {
-                    this.recursos.electricidad += edificio.producirRecurso();
-                }
-                if (token === 'U2' && typeof edificio.producirRecurso === 'function') {
-                    this.recursos.agua += edificio.producirRecurso();
-                }
-                if (token === 'I2' && typeof edificio.calcularProduccion === 'function') {
-                    const produccionInicial = Number(edificio.calcularProduccion()) || 0;
-                    this.recursos.alimentos += produccionInicial;
-                    this.recursos.comida += produccionInicial;
-                }
-            });
-        });
-
-        // Aplicar costo de construcción al dinero disponible
-        this.recursos.dinero = Math.max(0, this.recursos.dinero - costoTotal);
-        this.#registrarHistoricoRecursos();
-
-        return { exito: true, ancho, alto };
-    }
-
-    /**
-     * Permite configurar recursos desde la interfaz
-     */
-    configurarRecursoDesdeIU(tipo, valor) {
-        if (this.recursos.hasOwnProperty(tipo)) {
-            this.recursos[tipo] = Number(valor);
-            if (tipo === 'alimentos' || tipo === 'comida') {
-                this.recursos.alimentos = Number(valor);
-                this.recursos.comida = Number(valor);
-            }
-        }
-    }
-
-    /**
-     * Ajusta los parámetros de crecimiento poblacional (min y max ciudadanos por turno).
-     * Ambos valores deben ser enteros positivos y min ≤ max.
-     */
-    configurarCrecimiento(min, max) {
-        min = Math.floor(Number(min));
-        max = Math.floor(Number(max));
-        if (min > 0 && max >= min) {
-            this.crecimiento.min = min;
-            this.crecimiento.max = max;
-        }
-    }
-
-    /**
-     * Obtiene el costo de construcción asociado a un tipo de edificio.
-     * @param {string} tipo
-     * @returns {number}
-     */
-    obtenerCostoConstruccion(tipo) {
-        const costos = {
-            r: 20,
-            R1: 200,
-            R2: 400,
-            C1: 300,
-            C2: 600,
-            I1: 500,
-            I2: 900,
-            S1: 400,
-            S2: 700,
-            S3: 1000,
-            U1: 350,
-            U2: 650,
-            P1: 250
-        };
-        return costos[tipo] ?? 100;
-    }
-
-    /**
-     * Valida si se puede construir en una ubicación (costo, vía adyacente y disponibilidad).
-     */
-    puedeConstruir(tipo, x, y) {
-        const costo = this.obtenerCostoConstruccion(tipo);
-        if (this.recursos.dinero < costo) return false;
-
-        // Validar coordenadas y disponibilidad
-        if (!this.mapa.esCoordenadaValida(x, y)) return false;
-        if (!this.mapa.estaDisponible(x, y)) return false;
-
-        // Las vías pueden construirse en cualquier celda libre (no necesitan estar adyacentes a otra vía)
-        if (tipo === 'r') {
-            return true;
-        }
-
-        // Para cualquier edificio (distinto de vía), exigir conexión vial adyacente.
-        const vecinos = this.mapa.obtenerVecinos(x, y);
-        const tieneViaAdyacente = vecinos.some(([vx, vy]) => this.mapa.obtenerCelda(vx, vy) === 'r');
-
-        return tieneViaAdyacente;
-    }
-
-    /**
-     * Construye un edificio en la ubicación especificada.
-     */
-    construirEdificio(tipo, x, y) {
-        if (!this.puedeConstruir(tipo, x, y)) {
-            return { exito: false, mensaje: 'No se puede construir en esta ubicación.' };
-        }
-
-        const costo = this.obtenerCostoConstruccion(tipo);
-        this.recursos.dinero -= costo;
-
-        if (tipo === 'r') {
-            // Construir vía
-            this.mapa.actualizarCelda(x, y, tipo);
-            this.vias.push({ x, y, costoConstruccion: costo });
-            return { exito: true, edificio: null };
-        }
-
-        // Construir edificio
-        const edificio = crearEdificioDesdeTipo(tipo, x, y);
-        if (!edificio) {
-            return { exito: false, mensaje: 'Tipo de edificio no válido.' };
-        }
-
-        this.mapa.actualizarCelda(x, y, tipo);
-        this.edificios.push(edificio);
-
-        // Asignar automáticamente ciudadanos si hay capacidad disponible
-        this.#asignarAutomaticamente();
-
-        return { exito: true, edificio };
-    }
-
-    /**
-     * Demuele un edificio o vía en la ubicación especificada.
-     */
-    demolerEdificio(x, y) {
-        const celda = this.mapa.obtenerCelda(x, y);
-        if (celda === Mapa.TIPOS_VALIDOS.VACIO) {
-            return { exito: false, mensaje: 'No hay nada que demoler en esta ubicación.' };
-        }
-
-        // Calcular reembolso (50% del costo de construcción)
-        const costoOriginal = this.obtenerCostoConstruccion(celda);
-        const reembolso = Math.floor(costoOriginal * 0.5);
-        this.recursos.dinero += reembolso;
-
-        // Limpiar la celda
-        this.mapa.actualizarCelda(x, y, Mapa.TIPOS_VALIDOS.VACIO);
-
-        if (celda === 'r') {
-            // Remover vía
-            this.vias = this.vias.filter(v => !(v.x === x && v.y === y));
-        } else {
-            // Remover edificio y desasignar ciudadanos
-            const indexEdificio = this.edificios.findIndex(e => e.x === x && e.y === y);
-            if (indexEdificio !== -1) {
-                const edificio = this.edificios[indexEdificio];
-                
-                // Desasignar ciudadanos del edificio demolido
-                if (edificio.ocupacionActual > 0) {
-                    // Buscar ciudadanos asignados a este edificio
-                    const ciudadanosAsignados = this.poblacion.filter(c => c.edificioAsignado === edificio);
-                    ciudadanosAsignados.forEach(ciudadano => {
-                        ciudadano.desasignarVivienda();
-                    });
-                }
-
-                this.edificios.splice(indexEdificio, 1);
-            }
-        }
-
-        return { exito: true, reembolso };
-    }
-
-    /**
-     * Procesa un turno de la simulación
-     */
-    procesarTurno() {
-        if (this.juegoFinalizado) {
-            console.warn('Turno omitido: el juego ya se ha finalizado.');
-            return;
-        }
-
-        this.#normalizarRecursos();
-
-        this.turnoActual++;
-
-        // Verificar condiciones críticas de derrota antes de procesar el turno
-        if (this.verificarRecursosCriticos()) {
-            return;
-        }
-
-        // Procesar producción y consumo de recursos
-        this.procesarProduccionRecursos();
-        this.procesarConsumoRecursos();
-        this.procesarIngresos();
-        this.procesarCostos();
-
-        // Verificar nuevamente después de aplicar costos y consumos
-        if (this.verificarRecursosCriticos()) {
-            return;
-        }
-
-        // Actualizar ciudadanos
-        this.actualizarFelicidadCiudadanos();
-        this.#procesarEventosNoticias();
-        this.#gestionarCrecimientoPoblacional();
-        // Asignaciones automáticas tras la creación de nuevos residentes
-        this.#asignarAutomaticamente();
-
-        // Actualizar puntuación
-        this.#actualizarPuntuacion();
-
-        // Actualizar datos de servicios externos
-        this.#actualizarDatosExternos();
-
-        // Registrar snapshot de recursos al final del turno
-        this.#registrarHistoricoRecursos();
-    }
-
-    #registrarHistoricoRecursos() {
-        this.historicoRecursos.push({
-            turno: this.turnoActual,
-            dinero: this.recursos.dinero,
-            electricidad: this.recursos.electricidad,
-            agua: this.recursos.agua,
-            alimentos: this.recursos.alimentos,
-            comida: this.recursos.comida
-        });
-
-        if (this.historicoRecursos.length > 20) {
-            this.historicoRecursos = this.historicoRecursos.slice(-20);
-        }
-    }
-
-    /**
-     * Gestiona el crecimiento poblacional
-     */
-    #gestionarCrecimientoPoblacional() {
-        const felicidadPromedio = this.obtenerFelicidadPromedio();
-        const capacidadVivienda = this.edificios
-            .filter(e => e.tipo.startsWith('R'))
-            .reduce((acc, e) => acc + (e.capacidadMaxima || 0), 0);
-
-        const hogaresOcupados = this.edificios
-            .filter(e => e.tipo.startsWith('R'))
-            .reduce((acc, e) => acc + (e.ocupacionActual || 0), 0);
-
-        const capacidadDisponible = Math.max(0, capacidadVivienda - hogaresOcupados);
-        const empleosDisponibles = this.calcularEmpleosDisponibles();
-
-        if (
-            felicidadPromedio > 60 &&
-            capacidadDisponible > 0 &&
-            empleosDisponibles > 0
-        ) {
-            const rango = this.crecimiento.max - this.crecimiento.min + 1;
-            const maxNuevos = Math.min(capacidadDisponible, empleosDisponibles);
-            const nuevos = Math.min(
-                maxNuevos,
-                Math.floor(Math.random() * rango) + this.crecimiento.min
-            );
-
-            for (let i = 0; i < nuevos; i++) {
-                const nextIndex = this.poblacion.length + i + 1;
-                const nuevoCiudadano = new Ciudadano(
-                    Date.now() + nextIndex,
-                    `Ciudadano ${nextIndex}`,
-                    `ciudadano${nextIndex}`,
-                    `ciudadano${nextIndex}@ciudadvirtual.com`
-                );
-                this.poblacion.push(nuevoCiudadano);
-            }
-        }
-    }
-
-    /**
-     * Aplica efectos climáticos a la felicidad de los ciudadanos
-     */
-    #aplicarEfectosClimaticos() {
-        const ajusteClima = this.#calcularAjusteFelicidadClima();
-        
-        this.poblacion.forEach(ciudadano => {
-            ciudadano.nivelFelicidad += ajusteClima;
-            ciudadano.nivelFelicidad = Math.max(0, Math.min(100, ciudadano.nivelFelicidad));
-        });
-    }
-
-    /**
-     * Calcula el ajuste de felicidad basado en el clima actual
-     */
-    #calcularAjusteFelicidadClima() {
-        const condicion = this.datosClima.condicion.toLowerCase();
-        
-        switch (condicion) {
-            case 'soleado':
-                return 5;
-            case 'lluvioso':
-            case 'llovizna':
-                return -3;
-            case 'tormenta':
-                return -10;
-            case 'nevado':
-                return -5;
-            case 'nublado':
-                return -5;
-            default:
-                return 0;
-        }
-    }
-
-    /**
-     * Calcula el multiplicador de producción de comida basado en el clima
-     */
-    #calcularMultiplicadorProduccionComida() {
-        const condicion = this.datosClima.condicion.toLowerCase();
-        
-        switch (condicion) {
-            case 'lluvioso':
-            case 'llovizna':
-                return 1.5; // Lluvia aumenta producción agrícola
-            case 'soleado':
-                return 1.2; // Sol bueno para agricultura
-            case 'tormenta':
-                return 0.7; // Tormentas dañan cosechas
-            case 'nevado':
-                return 0.5; // Nieve reduce producción
-            case 'nublado':
-                return 0.9; // Nublado reduce ligeramente
-            default:
-                return 1.0; // Condición normal
-        }
-    }
-
-    /**
-     * Procesa eventos aleatorios basados en noticias que afectan la simulación
-     */
-    #procesarEventosNoticias() {
-        if (this.noticias.length === 0 || Math.random() > 0.1) return; // 10% chance de evento
-        
-        const noticiaAleatoria = this.noticias[Math.floor(Math.random() * this.noticias.length)];
-        // Aquí se podrían implementar efectos específicos basados en el contenido de la noticia
-        // Por ahora, solo se registra en el log
-        console.log('Evento de noticia procesado:', noticiaAleatoria.titulo);
-    }
-
-    /**
-     * Actualiza los datos de servicios externos (clima y noticias)
-     */
-    #actualizarDatosExternos() {
-        // Actualizar clima
-        if (this.servicioClima) {
-            this.datosClima = { ...this.servicioClima.obtenerDatosClimaActuales() };
-        }
-
-        // Actualizar noticias
-        if (this.servicioNoticias) {
-            this.noticias = [...this.servicioNoticias.obtenerNoticiasActuales()];
-        }
-
-        // Aplicar efectos climáticos
-        this.#aplicarEfectosClimaticos();
-    }
-
-    /**
-     * Verifica si hay recursos críticos que lleven al fin del juego
-     */
-    verificarRecursosCriticos() {
-        const estadoRecursos = this.recursos.verificarEstadoCritico();
-        if (estadoRecursos.derrota) {
-            this.turnosConDeficit++;
-            if (this.turnosConDeficit >= this.MAX_TURNOS_DEFICIT) {
-                this.juegoFinalizado = true;
-                this.motivoFinJuego = estadoRecursos.motivo;
-                console.log(`Juego finalizado: ${this.motivoFinJuego}`);
-                return true;
-            }
-        } else {
-            this.turnosConDeficit = 0; // Resetear contador si no hay déficit
-        }
-        return false;
-    }
-
-    /**
-     * Procesa la producción de recursos de todos los edificios
-     */
-    procesarProduccionRecursos() {
-        let produccionElectricidad = 0;
-        let produccionAgua = 0;
-        let produccionAlimentos = 0;
-
-        this.edificios.forEach(edificio => {
-            if (!edificio.estaOperativo) return;
-
-            switch (edificio.tipo) {
-                case 'U1': // Planta de energía
-                    produccionElectricidad += edificio.producirRecurso();
-                    break;
-                case 'U2': // Planta de agua
-                    produccionAgua += edificio.producirRecurso();
-                    break;
-                case 'I1': // Granja pequeña
-                case 'I2': // Granja grande
-                    const multiplicadorClima = this.#calcularMultiplicadorProduccionComida();
-                    produccionAlimentos += edificio.calcularProduccion() * multiplicadorClima;
-                    break;
-                case 'C1': // Comercio pequeño
-                case 'C2': // Comercio grande
-                    // Los comercios generan ingresos, no producción de recursos físicos
-                    break;
-            }
-        });
-
-        // Actualizar recursos
-        this.recursos.electricidad += produccionElectricidad;
-        this.recursos.agua += produccionAgua;
-        this.recursos.alimentos += produccionAlimentos;
-        this.recursos.comida += produccionAlimentos;
-    }
-
-    /**
-     * Procesa el consumo de recursos
-     */
-    procesarConsumoRecursos() {
-        let consumoElectricidad = 0;
-        let consumoAgua = 0;
-        let consumoAlimentos = 0;
-
-        // Consumo de ciudadanos
-        this.poblacion.forEach(ciudadano => {
-            consumoElectricidad += ciudadano.consumoElectricidad;
-            consumoAgua += ciudadano.consumoAgua;
-            consumoAlimentos += ciudadano.consumoComida;
-        });
-
-        // Consumo de edificios (excepto parques)
-        this.edificios.forEach(edificio => {
-            if (!edificio.estaOperativo || edificio.tipo === 'P1') return;
-            consumoElectricidad += edificio.consumoElectricidad;
-            consumoAgua += edificio.consumoAgua;
-        });
-
-        // Aplicar consumo
-        this.recursos.electricidad -= consumoElectricidad;
-        this.recursos.agua -= consumoAgua;
-        this.recursos.alimentos -= consumoAlimentos;
-        this.recursos.comida -= consumoAlimentos;
-
-        // Evitar valores negativos
-        if (this.recursos.alimentos < 0) this.recursos.alimentos = 0;
-        if (this.recursos.comida < 0) this.recursos.comida = 0;
-    }
-
-    /**
-     * Procesa los ingresos generados por edificios comerciales
-     */
-    procesarIngresos() {
-        let ingresosTotales = 0;
-
-        this.edificios.forEach(edificio => {
-            if (!edificio.estaOperativo) return;
-
-            if (edificio.tipo === 'C1' || edificio.tipo === 'C2') {
-                ingresosTotales += edificio.calcularIngresos();
-            }
-        });
-
-        this.recursos.dinero += ingresosTotales;
-    }
-
-    /**
-     * Procesa los costos de mantenimiento de todos los edificios
-     */
-    procesarCostos() {
-        let costosTotales = 0;
-
-        this.edificios.forEach(edificio => {
-            if (!edificio.estaOperativo) return;
-
-            const costoMantenimiento = Math.floor(edificio.costoConstruccion * 0.1);
-            costosTotales += costoMantenimiento;
-
-            // Verificar si hay suficiente dinero
-            if (this.recursos.dinero >= costoMantenimiento) {
-                this.recursos.dinero -= costoMantenimiento;
-            } else {
-                // Edificio deja de operar
-                edificio.estaOperativo = false;
-                console.log(`Edificio ${edificio.tipo} en (${edificio.x},${edificio.y}) dejó de operar por falta de fondos`);
-            }
-        });
-    }
-
-    /**
-     * Actualiza la felicidad de todos los ciudadanos
-     */
-    actualizarFelicidadCiudadanos() {
-        this.poblacion.forEach(ciudadano => {
-            ciudadano.actualizarFelicidad();
-
-            // Verificar si la felicidad es crítica
-            if (ciudadano.nivelFelicidad < 20) {
-                console.log(`Ciudadano ${ciudadano.name} tiene felicidad crítica (${ciudadano.nivelFelicidad})`);
-            }
-        });
-    }
-
-    /**
-     * Obtiene la felicidad promedio de la ciudad
-     */
-    obtenerFelicidadPromedio() {
-        if (this.poblacion.length === 0) return 0;
-        const totalFelicidad = this.poblacion.reduce((sum, c) => sum + c.nivelFelicidad, 0);
-        return totalFelicidad / this.poblacion.length;
-    }
-
-    /**
-     * Calcula el número de empleos disponibles en la ciudad
-     */
-    calcularEmpleosDisponibles() {
-        let empleosTotales = 0;
-
-        this.edificios.forEach(edificio => {
-            if (!edificio.estaOperativo) return;
-
-            switch (edificio.tipo) {
-                case 'C1': empleosTotales += 5; break;
-                case 'C2': empleosTotales += 10; break;
-                case 'I1': empleosTotales += 3; break;
-                case 'I2': empleosTotales += 8; break;
-                case 'S1': empleosTotales += 4; break;
-                case 'S2': empleosTotales += 8; break;
-                case 'S3': empleosTotales += 12; break;
-            }
-        });
-
-        const empleosOcupados = this.poblacion.filter(c => c.empleo).length;
-        return Math.max(0, empleosTotales - empleosOcupados);
-    }
-
-    /**
-     * Asigna automáticamente ciudadanos a viviendas y empleos disponibles
-     */
-    #asignarAutomaticamente() {
-        // Asignar viviendas
-        const viviendasDisponibles = this.edificios
-            .filter(e => e.tipo.startsWith('R') && !e.estaLleno());
-
-        this.poblacion.forEach(ciudadano => {
-            if (!ciudadano.vivienda && viviendasDisponibles.length > 0) {
-                const vivienda = viviendasDisponibles.find(v => !v.estaLleno());
-                if (vivienda) {
-                    vivienda.asignarCiudadano(ciudadano);
-                    ciudadano.asignarVivienda(vivienda);
-                }
-            }
-        });
-
-        // Asignar empleos
-        const empleosDisponibles = this.calcularEmpleosDisponibles();
-        let ciudadanosSinEmpleo = this.poblacion.filter(c => !c.empleo);
-
-        for (let i = 0; i < Math.min(empleosDisponibles, ciudadanosSinEmpleo.length); i++) {
-            ciudadanosSinEmpleo[i].asignarEmpleo();
-        }
-    }
-
-    /**
-     * Actualiza la puntuación acumulada de la ciudad
-     */
-    #actualizarPuntuacion() {
-        let puntuacionTurno = 0;
-
-        // Puntuación por felicidad
-        const felicidadPromedio = this.obtenerFelicidadPromedio();
-        puntuacionTurno += Math.floor(felicidadPromedio / 2);
-
-        // Puntuación por recursos
-        const recursosBonus = Math.min(30, Math.floor(
-            (this.recursos.dinero / 10000) +
-            (this.recursos.obtenerBalanceNetoEnergia() / 10) +
-            (this.recursos.obtenerBalanceNetoAgua() / 10) +
-            (this.recursos.alimentos / 100)
-        ));
-        puntuacionTurno += recursosBonus;
-
-        // Puntuación por desarrollo urbano
-        const desarrolloBonus = Math.min(20, this.edificios.filter(e => e.estaOperativo).length * 2);
-        puntuacionTurno += desarrolloBonus;
-
-        // Actualizar alcalde
-        this.alcalde.calcularExperienciaTurno();
-
-        this.puntuacionAcumulada += puntuacionTurno;
-    }
-
-    /**
-     * Obtiene el estado completo de la ciudad para exportar a JSON
-     */
-    obtenerEstadoParaJSON() {
-        return {
-            nombre: this.nombre,
-            cityId: this.cityId,
-            alcalde: {
-                nombre: this.alcalde.nombre,
-                nivel: this.alcalde.nivel,
-                experiencia: this.alcalde.experiencia,
-                puntuacion: this.alcalde.puntuacion
-            },
-            region: this.region,
-            ancho: this.ancho,
-            alto: this.alto,
-            mapa: this.mapa.obtenerGridComoArray(),
-            turnoActual: this.turnoActual,
-            puntuacionAcumulada: this.puntuacionAcumulada,
-            recursos: { ...this.recursos },
-            edificios: this.edificios.map(e => ({
-                tipo: e.tipo,
-                x: e.x,
-                y: e.y,
-                costoConstruccion: e.costoConstruccion,
-                estaOperativo: e.estaOperativo,
-                capacidadMaxima: e.capacidadMaxima,
-                ocupacionActual: e.ocupacionActual
-            })),
-            vias: [...this.vias],
-            poblacion: this.poblacion.map(c => ({
-                id: c.id,
-                name: c.name,
-                username: c.username,
-                email: c.email,
-                nivelFelicidad: c.nivelFelicidad,
-                empleo: c.empleo,
-                vivienda: c.vivienda
-            })),
-            datosClima: { ...this.datosClima },
-            noticias: [...this.noticias],
-            crecimiento: { ...this.crecimiento },
-            fechaExportacion: new Date().toISOString()
-        };
-    }
-
-    /**
-     * Reconstruye la ciudad desde un estado JSON
-     */
-    reconstruirDesdeEstado(estado) {
-        this.nombre = estado.nombre;
-        this.cityId = estado.cityId;
-        this.alcalde = new Alcalde(estado.alcalde.nivel, estado.alcalde.nombre, this);
-        this.alcalde.experiencia = estado.alcalde.experiencia;
-        this.alcalde.puntuacion = estado.alcalde.puntuacion;
-        this.region = estado.region;
-        this.ancho = estado.ancho;
-        this.alto = estado.alto;
-        this.mapa = new Mapa(this.ancho, this.alto);
-        this.mapa.reconstruirDesdeArray(estado.mapa);
-        this.turnoActual = estado.turnoActual;
-        this.puntuacionAcumulada = estado.puntuacionAcumulada;
-        this.recursos = { ...estado.recursos };
-        this.edificios = estado.edificios.map(e => reconstruirEdificioDesdeEstado(e));
-        this.vias = [...estado.vias];
-        this.poblacion = estado.poblacion.map(c => {
-            const ciudadano = new Ciudadano(c.id, c.name, c.username, c.email);
-            ciudadano.nivelFelicidad = c.nivelFelicidad;
-            ciudadano.empleo = c.empleo;
-            ciudadano.vivienda = c.vivienda;
-            return ciudadano;
-        });
-        this.datosClima = { ...estado.datosClima };
-        this.noticias = [...estado.noticias];
-        this.crecimiento = { ...estado.crecimiento };
-        this.historicoRecursos = [];
-        this.#registrarHistoricoRecursos();
-    }
-
-    /**
-     * Guarda el estado de la ciudad en localStorage
-     */
-    guardarEnLocalStorage() {
-        try {
-            const estado = {
-                nombre: this.nombre,
-                alcalde: {
-                    nombre: this.alcalde.nombre,
-                    nivel: this.alcalde.nivel,
-                    experiencia: this.alcalde.experiencia,
-                    puntuacion: this.alcalde.puntuacion
-                },
-                turnoActual: this.turnoActual,
-                puntuacionAcumulada: this.puntuacionAcumulada,
-                recursos: this.recursos,
-                poblacion: this.poblacion.length,
-                edificios: this.edificios.length,
-                fechaGuardado: new Date().toISOString()
-            };
-
-            localStorage.setItem('ciudadVirtual_estado', JSON.stringify(estado));
-            console.log('Estado guardado en localStorage');
-        } catch (error) {
-            console.error('Error guardando en localStorage:', error);
-        }
-    }
-
-    /**
-     * Carga el estado de la ciudad desde localStorage
-     */
-    cargarDesdeLocalStorage() {
-        try {
-            const estadoGuardado = localStorage.getItem('ciudadVirtual_estado');
-            if (estadoGuardado) {
-                const estado = JSON.parse(estadoGuardado);
-                console.log('Estado cargado desde localStorage:', estado.fechaGuardado);
-                return estado;
-            }
-        } catch (error) {
-            console.error('Error cargando desde localStorage:', error);
-        }
-        return null;
-    }
-
-    /**
-     * Exporta el estado completo de la ciudad a JSON
-     */
-    exportarEstadoJSON() {
-        const estado = this.obtenerEstadoParaJSON();
-        const blob = new Blob([JSON.stringify(estado, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `ciudad_${this.nombre}_${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        console.log('Estado exportado a JSON');
-    }
-}
-
-export { Ciudad };
-```
-
-**SistemaTurnos.js (COMPLETO):**
-```javascript
-/**
- * SistemaTurnos.js
- * Clase que gestiona el sistema de turnos del juego de simulación urbana.
- * Ejecuta las 6 acciones secuenciales por cada turno según la documentación.
- */
-class SistemaTurnos {
-    constructor(ciudad, duracionTurnoSegundos = 10) {
-        // Referencia a la ciudad que gestiona
-        this.ciudad = ciudad;
-
-        // Configuración del turno
-        this.duracionTurno = duracionTurnoSegundos * 1000; // Convertir a milisegundos
-        this.enEjecucion = false;
-        this.intervalID = null;
-
-        // Estadísticas del sistema
-        this.turnosEjecutados = 0;
-        this.ultimoTurno = new Date();
-    }
-
-    /**
-     * Inicia el sistema de turnos automáticos
-     */
-    iniciar() {
-        if (this.enEjecucion) {
-            console.log('El sistema de turnos ya está en ejecución');
-            return;
-        }
-
-        console.log(`Iniciando sistema de turnos cada ${this.duracionTurno / 1000} segundos`);
-        this.enEjecucion = true;
-
-        this.intervalID = setInterval(() => {
-            this.ejecutarTurno();
-        }, this.duracionTurno);
-    }
-
-    /**
-     * Pausa el sistema de turnos
-     */
-    pausar() {
-        if (!this.enEjecucion) {
-            console.log('El sistema de turnos ya está pausado');
-            return;
-        }
-
-        console.log('Pausando sistema de turnos');
-        this.enEjecucion = false;
-        clearInterval(this.intervalID);
-        this.intervalID = null;
-    }
-
-    /**
-     * Reanuda el sistema de turnos
-     */
-    reanudar() {
-        if (this.enEjecucion) {
-            console.log('El sistema de turnos ya está en ejecución');
-            return;
-        }
-
-        console.log('Reanudando sistema de turnos');
-        this.iniciar();
-    }
-
-    /**
-     * Detiene completamente el sistema de turnos
-     */
-    detener() {
-        this.pausar();
-        console.log('Sistema de turnos detenido');
-    }
-
-    /**
-     * Ejecuta manualmente un turno (útil para pruebas o control manual)
-     */
-    ejecutarTurnoManual() {
-        if (this.enEjecucion) {
-            console.log('No se puede ejecutar turno manual mientras el sistema automático está activo');
-            return false;
-        }
-
-        this.ejecutarTurno();
-        return true;
-    }
-
-    /**
-     * Ejecuta todas las acciones del turno en orden secuencial
-     * Según la documentación: 6 acciones por turno
-     */
-    ejecutarTurno() {
-        console.log(`Ejecutando turno ${this.ciudad.turnoActual + 1}`);
-
-        try {
-            // 1. Calcular producción de recursos
-            this.calcularProduccionRecursos();
-
-            // 2. Calcular consumo de recursos
-            this.calcularConsumoRecursos();
-
-            // 3. Aplicar costos de mantenimiento
-            this.aplicarCostosMantenimiento();
-
-            // 4. Actualizar felicidad de ciudadanos
-            this.actualizarFelicidadCiudadanos();
-
-            // 5. Actualizar puntuación
-            this.actualizarPuntuacion();
-
-            // 6. Guardar estado en localStorage
-            this.guardarEnLocalStorage();
-
-            // Incrementar contador de turnos
-            this.ciudad.turnoActual++;
-            this.turnosEjecutados++;
-            this.ultimoTurno = new Date();
-
-            console.log(`Turno ${this.ciudad.turnoActual} completado exitosamente`);
-
-        } catch (error) {
-            console.error('Error durante la ejecución del turno:', error);
-            // En caso de error, pausar el sistema para evitar bucles infinitos
-            this.pausar();
-        }
-    }
-
-    /**
-     * 1. CALCULAR PRODUCCIÓN DE RECURSOS
-     * Suma la producción de todos los edificios productores
-     */
-    calcularProduccionRecursos() {
-        let produccionEnergia = 0;
-        let produccionAgua = 0;
-        let produccionComida = 0;
-
-        // Recorrer todos los edificios para calcular producción
-        this.ciudad.edificios.forEach(edificio => {
-            if (edificio.estaOperativo) {
-                switch (edificio.tipo) {
-                    case 'P1': // Planta de energía
-                        produccionEnergia += edificio.produccionRecurso;
-                        break;
-                    case 'U1': // Planta de agua
-                    case 'U2':
-                        produccionAgua += edificio.produccionRecurso;
-                        break;
-                    case 'F1': // Granja
-                        produccionComida += edificio.produccionRecurso;
-                        break;
-                }
-            }
-        });
-
-        // Actualizar recursos de la ciudad
-        this.ciudad.recursos.produccionEnergia = produccionEnergia;
-        this.ciudad.recursos.produccionAgua = produccionAgua;
-        this.ciudad.recursos.produccionComida = produccionComida;
-
-        console.log(`Producción calculada - Energía: ${produccionEnergia}, Agua: ${produccionAgua}, Comida: ${produccionComida}`);
-    }
-
-    /**
-     * 2. CALCULAR CONSUMO DE RECURSOS
-     * Suma el consumo de ciudadanos y edificios
-     */
-    calcularConsumoRecursos() {
-        let consumoEnergia = 0;
-        let consumoAgua = 0;
-        let consumoComida = 0;
-
-        // Consumo de ciudadanos
-        this.ciudad.poblacion.forEach(ciudadano => {
-            consumoAgua += ciudadano.consumoAgua;
-            consumoEnergia += ciudadano.consumoElectricidad;
-            consumoComida += ciudadano.consumoComida;
-        });
-
-        // Consumo de edificios (excepto parques que no consumen energía)
-        this.ciudad.edificios.forEach(edificio => {
-            if (edificio.estaOperativo && edificio.tipo !== 'S1' && edificio.tipo !== 'S2' && edificio.tipo !== 'S3') {
-                consumoEnergia += edificio.consumoElectricidad;
-                consumoAgua += edificio.consumoAgua;
-            }
-        });
-
-        // Actualizar recursos de la ciudad
-        this.ciudad.recursos.consumoEnergia = consumoEnergia;
-        this.ciudad.recursos.consumoAgua = consumoAgua;
-
-        // Aplicar consumo de comida (se resta directamente)
-        this.ciudad.recursos.alimentos -= consumoComida;
-        if (this.ciudad.recursos.alimentos < 0) {
-            this.ciudad.recursos.alimentos = 0; // No puede ser negativo
-        }
-
-        console.log(`Consumo calculado - Energía: ${consumoEnergia}, Agua: ${consumoAgua}, Comida: ${consumoComida}`);
-    }
-
-    /**
-     * 3. APLICAR COSTOS DE MANTENIMIENTO
-     * Cada edificio tiene un costo de mantenimiento por turno
-     */
-    aplicarCostosMantenimiento() {
-        let costoTotalMantenimiento = 0;
-
-        this.ciudad.edificios.forEach(edificio => {
-            if (edificio.estaOperativo) {
-                // Costo de mantenimiento aproximado (10% del costo de construcción)
-                const costoMantenimiento = Math.floor(edificio.costoConstruccion * 0.1);
-                costoTotalMantenimiento += costoMantenimiento;
-
-                // Verificar si hay suficiente dinero
-                if (this.ciudad.recursos.dinero >= costoMantenimiento) {
-                    this.ciudad.recursos.dinero -= costoMantenimiento;
-                } else {
-                    // Si no hay dinero suficiente, el edificio deja de operar
-                    edificio.estaOperativo = false;
-                    console.log(`Edificio ${edificio.id} (${edificio.tipo}) dejó de operar por falta de fondos de mantenimiento`);
-                }
-            }
-        });
-
-        console.log(`Costos de mantenimiento aplicados: $${costoTotalMantenimiento}`);
-    }
-
-    /**
-     * 4. ACTUALIZAR FELICIDAD DE CIUDADANOS
-     * Basado en vivienda, empleo y recursos disponibles
-     */
-    actualizarFelicidadCiudadanos() {
-        this.ciudad.poblacion.forEach(ciudadano => {
-            ciudadano.actualizarFelicidad();
-
-            // Verificar si la felicidad es demasiado baja (riesgo de emigración)
-            if (ciudadano.nivelFelicidad < 20) {
-                console.log(`Ciudadano ${ciudadano.name} tiene felicidad muy baja (${ciudadano.nivelFelicidad})`);
-            }
-        });
-
-        // Calcular felicidad promedio de la ciudad
-        const felicidadPromedio = this.ciudad.poblacion.length > 0
-            ? this.ciudad.poblacion.reduce((sum, c) => sum + c.nivelFelicidad, 0) / this.ciudad.poblacion.length
-            : 0;
-
-        console.log(`Felicidad promedio de ciudadanos: ${felicidadPromedio.toFixed(1)}`);
-    }
-
-    /**
-     * 5. ACTUALIZAR PUNTUACIÓN
-     * Basado en felicidad, recursos y desarrollo urbano
-     */
-    actualizarPuntuacion() {
-        let puntuacionTurno = 0;
-
-        // Puntuación por felicidad de ciudadanos (0-50 puntos)
-        const felicidadPromedio = this.ciudad.poblacion.length > 0
-            ? this.ciudad.poblacion.reduce((sum, c) => sum + c.nivelFelicidad, 0) / this.ciudad.poblacion.length
-            : 0;
-        puntuacionTurno += Math.floor(felicidadPromedio / 2);
-
-        // Puntuación por recursos acumulados (0-30 puntos)
-        const recursosBonus = Math.min(30, Math.floor(
-            (this.ciudad.recursos.dinero / 10000) +
-            (this.ciudad.recursos.obtenerBalanceNetoEnergia() / 10) +
-            (this.ciudad.recursos.obtenerBalanceNetoAgua() / 10)
-        ));
-        puntuacionTurno += recursosBonus;
-
-        // Puntuación por desarrollo urbano (0-20 puntos)
-        const desarrolloBonus = Math.min(20, this.ciudad.edificios.filter(e => e.estaOperativo).length * 2);
-        puntuacionTurno += desarrolloBonus;
-
-        // Actualizar puntuación acumulada
-        this.ciudad.puntuacionAcumulada += puntuacionTurno;
-
-        // Actualizar experiencia del alcalde
-        if (this.ciudad.alcalde) {
-            this.ciudad.alcalde.calcularExperienciaTurno();
-        }
-
-        console.log(`Puntuación del turno: ${puntuacionTurno} (Total acumulado: ${this.ciudad.puntuacionAcumulada})`);
-    }
-
-    /**
-     * 6. GUARDAR ESTADO EN LOCALSTORAGE
-     * Persistir el estado completo de la ciudad
-     */
-    guardarEnLocalStorage() {
-        try {
-            const estadoCiudad = {
-                nombre: this.ciudad.nombre,
-                alcalde: {
-                    nombre: this.ciudad.alcalde.nombre,
-                    nivel: this.ciudad.alcalde.nivel,
-                    experiencia: this.ciudad.alcalde.experiencia,
-                    puntuacion: this.ciudad.alcalde.puntuacion
-                },
-                turnoActual: this.ciudad.turnoActual,
-                puntuacionAcumulada: this.ciudad.puntuacionAcumulada,
-                recursos: this.ciudad.recursos,
-                poblacion: this.ciudad.poblacion.length,
-                edificios: this.ciudad.edificios.length,
-                fechaGuardado: new Date().toISOString()
-            };
-
-            localStorage.setItem('ciudadVirtual_estado', JSON.stringify(estadoCiudad));
-            console.log('Estado guardado en localStorage');
-
-        } catch (error) {
-            console.error('Error al guardar en localStorage:', error);
-        }
-    }
-
-    /**
-     * Carga el estado desde localStorage
-     */
-    cargarDesdeLocalStorage() {
-        try {
-            const estadoGuardado = localStorage.getItem('ciudadVirtual_estado');
-            if (estadoGuardado) {
-                const estado = JSON.parse(estadoGuardado);
-                console.log('Estado cargado desde localStorage:', estado.fechaGuardado);
-                return estado;
-            }
-        } catch (error) {
-            console.error('Error al cargar desde localStorage:', error);
-        }
-        return null;
-    }
-
-    /**
-     * Obtiene estadísticas del sistema de turnos
-     */
-    obtenerEstadisticas() {
-        return {
-            turnosEjecutados: this.turnosEjecutados,
-            ultimoTurno: this.ultimoTurno,
-            enEjecucion: this.enEjecucion,
-            duracionTurnoSegundos: this.duracionTurno / 1000,
-            turnoActualCiudad: this.ciudad.turnoActual
-        };
-    }
-
-    /**
-     * Configura la duración del turno
-     */
-    configurarDuracionTurno(segundos) {
-        const nuevaDuracion = Math.max(1, Math.min(300, segundos)); // Entre 1 y 300 segundos
-
-        if (this.enEjecucion) {
-            this.pausar();
-            this.duracionTurno = nuevaDuracion * 1000;
-            this.iniciar();
-        } else {
-            this.duracionTurno = nuevaDuracion * 1000;
-        }
-
-        console.log(`Duración del turno configurada a ${nuevaDuracion} segundos`);
-    }
-}
-
-export { SistemaTurnos };
-```
-
-**Recursos.js (COMPLETO):**
-```javascript
-/**
- * Recursos.js
- * Clase de modelo que gestiona los balances económicos, energéticos y alimentarios.
- * Cumple con las restricciones de la Sección 4 de la documentación del juego.
- */
-class Recursos {
-    constructor() {
-        // A. DINERO (Money)
-        this.dinero = 50000; // Inicial: $50,000 [1]
-
-        // B. ELECTRICIDAD (Electricity) - Unidades/Turno [2]
-        this.electricidad = 0; // Inicial: 0 (Configurable en cualquier momento)
-        this.produccionEnergia = 0;
-        this.consumoEnergia = 0;
-
-        // C. AGUA (Water) - Unidades/Turno [2]
-        this.agua = 0; // Inicial: 0 (Configurable en cualquier momento)
-        this.produccionAgua = 0;
-        this.consumoAgua = 0;
-
-        // D. ALIMENTOS (Food) - Unidades Acumulables [3]
-        this.alimentos = 0; // Inicial: 0 (Configurable en cualquier momento)
-        this.produccionComida = 0;
-    }
-
-    /**
-     * Permite la configuración externa desde la interfaz (cajas de texto)
-     * para Electricidad, Agua y Alimentos en cualquier momento [2, 3].
-     */
-    configurarRecurso(tipo, nuevoValor) {
-        const valor = Number(nuevoValor);
-        if (isNaN(valor)) return;
-
-        switch (tipo) {
-            case 'electricidad': this.electricidad = valor; break;
-            case 'agua': this.agua = valor; break;
-            case 'alimentos': this.alimentos = valor; break;
-            case 'comida': this.alimentos = valor; break;
-        }
-    }
-
-    /**
-     * Calcula el balance neto de servicios (Producción - Consumo).
-     * Nota: La electricidad es consumida por todos excepto parques [2].
-     */
-    obtenerBalanceNetoEnergia() {
-        return this.electricidad + (this.produccionEnergia - this.consumoEnergia);
-    }
-
-    obtenerBalanceNetoAgua() {
-        return this.agua + (this.produccionAgua - this.consumoAgua);
-    }
-
-    /**
-     * REGLA CRÍTICA: Verifica si se cumplen las condiciones de Fin de Juego.
-     * Si la energía o el agua son negativos, el juego termina [2, 3].
-     * @returns {Object} { derrota: boolean, motivo: string }
-     */
-    verificarEstadoCritico() {
-        if (this.obtenerBalanceNetoEnergia() < 0) {
-            return { derrota: true, motivo: "Energía negativa" };
-        }
-        if (this.obtenerBalanceNetoAgua() < 0) {
-            return { derrota: true, motivo: "Balance de agua negativo" };
-        }
-        return { derrota: false, motivo: "" };
-    }
-
-    /**
-     * Actualiza el capital acumulado basado en ingresos y mantenimiento.
-     * El dinero aumenta por edificios comerciales e industriales [2].
-     */
-    procesarFinanzas(ingresos, costosMantenimiento) {
-        this.dinero += (ingresos - costosMantenimiento);
-    }
-
-    /**
-     * Los alimentos son acumulables y generados por granjas [3].
-     * Impacto: Aumentan la felicidad si son suficientes.
-     */
-    acumularAlimentos() {
-        this.alimentos += this.produccionComida;
-    }
-}
-
-export { Recursos };
-```
-
-**Firmas de otros archivos críticos:**
-
-**Alcalde.js:**
-- constructor(id, nombre, ciudad)
-- calcularExperienciaTurno()
-- obtenerNivel()
-- obtenerEstadisticas()
-
-**Ciudadano.js:**
-- constructor(id, name, username, email)
-- actualizarFelicidad()
-- asignarEmpleo()
-- asignarVivienda(vivienda)
-- obtenerEstadisticas()
-
-**Mapa.js:**
-- constructor(ancho, alto)
-- actualizarCelda(x, y, tipo)
-- obtenerCelda(x, y)
-- esCoordenadaValida(x, y)
-- estaDisponible(x, y)
-- obtenerVecinos(x, y)
-- esTipoValido(tipo)
-- obtenerGridComoArray()
-- reconstruirDesdeArray(grid)
-
-**Edificio.js (base):**
-- constructor(tipo, x, y, costoConstruccion)
-- obtenerInformacion()
-- calcularProduccion()
-- producirRecurso()
-- estaLleno()
-- asignarCiudadano(ciudadano)
-- desasignarCiudadano(ciudadano)
-
-**EdificioFactory.js:**
-- crearEdificioDesdeTipo(tipo, x, y)
-- reconstruirEdificioDesdeEstado(estado)
-
-**ServicioClima.js:**
-- constructor(apiKey, lat, lon)
-- obtenerClima()
-- traducirCondicion(condicion)
-- iniciarActualizacionAutomatica()
-- detenerActualizacion()
-- obtenerDatosClimaActuales()
-- actualizarCoordenadas(lat, lon)
-
-**ServicioNoticias.js:**
-- constructor(apiKey, country)
-- obtenerNoticias()
-- iniciarActualizacionAutomatica()
-- detenerActualizacion()
-- obtenerNoticiasActuales()
-- actualizarPais(country)
-
-**main.py (backend):**
-- tiene_acceso_a_vias(grid, pos)
-- dijkstra(grid, start, end)
-- calculate_route() - endpoint POST /api/calculate-route
-
-**CityManager.js:**
-- constructor()
-- crearCiudad(datos)
-- cargarCiudadDesdeJSON(json)
-- guardarCiudad(ciudad)
-- obtenerCiudadGuardada()
-
-**viewController.js:**
-- inicializarAplicacion()
-- mostrarVista(vista)
-- configurarEventos()
-- actualizarPanelRecursos(recursos)
-- actualizarMapa(mapa)
-- mostrarMensaje(mensaje, tipo)
+- `modelos/Ciudad.js`
+- `modelos/SistemaTurnos.js`
+- `modelos/Recursos.js`
+- `acceso_datos/RouteRepository.js`
+- `negocio/CityManager.js`
+- `negocio/app.js`
+- `negocio/viewController.js`

@@ -20,6 +20,7 @@ class Recursos {
 
         // D. ALIMENTOS (Food) - Unidades Acumulables [3]
         this.alimentos = 0; // Inicial: 0 (Configurable en cualquier momento)
+        this.comida = 0;
         this.produccionComida = 0;
     }
 
@@ -34,8 +35,11 @@ class Recursos {
         switch (tipo) {
             case 'electricidad': this.electricidad = valor; break;
             case 'agua': this.agua = valor; break;
-            case 'alimentos': this.alimentos = valor; break;
-            case 'comida': this.alimentos = valor; break;
+            case 'alimentos':
+            case 'comida':
+                this.alimentos = valor;
+                this.comida = valor;
+                break;
         }
     }
 
@@ -80,5 +84,8 @@ class Recursos {
      */
     acumularAlimentos() {
         this.alimentos += this.produccionComida;
+        this.comida = this.alimentos;
     }
 }
+
+export default Recursos;

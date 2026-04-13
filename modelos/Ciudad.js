@@ -5,6 +5,7 @@ import { Alcalde } from './Alcalde.js';
 import { Ciudadano } from './Ciudadano.js';
 import { crearEdificioDesdeTipo, reconstruirEdificioDesdeEstado } from './EdificioFactory.js';
 import { Mapa } from './Mapa.js';
+import Recursos from './Recursos.js';
 
 function inferirCountryCode(region = {}) {
     const existente = String(region?.countryCode || '').trim().toLowerCase();
@@ -83,13 +84,7 @@ class Ciudad {
         this.MAX_TURNOS_DEFICIT = 3; // Máximo de turnos que puede haber déficit antes de game-over
 
         // Recursos iniciales (aumentados para evitar game-over inmediato)
-        this.recursos = {
-            dinero: 50000,
-            electricidad: 0,
-            agua: 0,
-            alimentos: 0,
-            comida: 0
-        };
+        this.recursos = new Recursos();
 
         // Histórico de recursos para análisis y gráficos (últimos 20 turnos).
         this.historicoRecursos = [];
@@ -206,13 +201,7 @@ class Ciudad {
         this.poblacion = [];
 
         // Reiniciar recursos a valores iniciales y ajustar según edificaciones
-        this.recursos = {
-            dinero: 50000,
-            electricidad: 0,
-            agua: 0,
-            alimentos: 0,
-            comida: 0
-        };
+        this.recursos = new Recursos();
         this.historicoRecursos = [];
 
         let costoTotal = 0;
@@ -261,12 +250,8 @@ class Ciudad {
      * Permite configurar recursos desde la interfaz
      */
     configurarRecursoDesdeIU(tipo, valor) {
-        if (this.recursos.hasOwnProperty(tipo)) {
-            this.recursos[tipo] = Number(valor);
-            if (tipo === 'alimentos' || tipo === 'comida') {
-                this.recursos.alimentos = Number(valor);
-                this.recursos.comida = Number(valor);
-            }
+        if (typeof this.recursos.configurarRecurso === 'function') {
+            this.recursos.configurarRecurso(tipo, valor);
         }
     }
 
@@ -1178,7 +1163,8 @@ class Ciudad {
             ciudadano.estadoEmpleo = Boolean(item.estadoEmpleo);
             return ciudadano;
         }).filter(Boolean);
-        c.recursos = data.recursos || c.recursos;
+        c.recursos = new Recursos();
+        Object.assign(c.recursos, data.recursos || {});
         c.recursos.dinero = Number(c.recursos.dinero ?? 0);
         c.recursos.electricidad = Number(c.recursos.electricidad ?? 0);
         c.recursos.agua = Number(c.recursos.agua ?? 0);
