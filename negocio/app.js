@@ -283,11 +283,16 @@ class App {
     }
 
     abrirPaginaRanking() {
+        console.log('📊 Abriendo página de ranking...');
         // Guardar estado actual de la ciudad antes de ir a ranking
         if (this.manager.ciudad) {
+            console.log('💾 Guardando puntuación de ciudad actual:', this.manager.ciudad.nombre);
             this.ranking.guardarPuntuacion(this.manager.ciudad);
+        } else {
+            console.warn('⚠️ No hay ciudad activa para guardar en ranking');
         }
         // Abrir página de ranking
+        console.log('🔗 Navegando a ranking.html');
         window.location.href = './ranking.html';
     }
 

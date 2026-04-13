@@ -27,6 +27,8 @@ export class ViewController {
         onAplicarRecursos,
         onCancelar
     } = {}) {
+        console.log('🏗️ ViewController constructor llamado');
+
         this.onCellSelected = onCellSelected;
         this.onConstruir = onConstruir;
         this.onDemoler = onDemoler;
@@ -76,9 +78,21 @@ export class ViewController {
             municipiosPorDepartamento: {}
         };
 
-        this._bindElements();
-        this._bindEvents();
-        this._initializeColombia();
+        // Esperar a que el DOM esté listo antes de inicializar
+        if (document.readyState === 'loading') {
+            console.log('⏳ DOM aún cargando, esperando...');
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('✅ DOM listo, inicializando ViewController');
+                this._bindElements();
+                this._bindEvents();
+                this._initializeColombia();
+            });
+        } else {
+            console.log('✅ DOM ya listo, inicializando ViewController');
+            this._bindElements();
+            this._bindEvents();
+            this._initializeColombia();
+        }
     }
 
     _bindElements() {
@@ -219,9 +233,15 @@ export class ViewController {
         }
 
         if (this.el.botonVerRanking) {
+            console.log('✅ Botón ranking encontrado:', this.el.botonVerRanking);
             this.el.botonVerRanking.addEventListener('click', () => {
+                console.log('🎯 Botón ranking clickeado, llamando onVerRanking');
+                alert('Botón ranking clickeado - probando funcionalidad');
                 this.onVerRanking?.();
             });
+        } else {
+            console.error('❌ Botón ranking NO encontrado en el DOM');
+            alert('ERROR: Botón ranking no encontrado en el DOM');
         }
 
         if (this.el.botonNuevaPartida) {
