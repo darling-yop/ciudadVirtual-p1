@@ -13,6 +13,35 @@
             <p>Top 10 ciudades por puntuación acumulada</p>
         </header>
 
+        <!-- Información de la ciudad actual -->
+        <div id="player-stats">
+            <div id="player-current-score">
+                <h2>Tu Puntuación Actual</h2>
+                <div id="score-display">
+                    <span id="current-score">0</span>
+                    <span id="score-trend">↗️ +0</span>
+                </div>
+                <p id="motivational-message">¡Sigue mejorando tu ciudad!</p>
+            </div>
+            <div id="player-position">
+                <h3>Tu Posición</h3>
+                <div id="position-badge">#--</div>
+                <p id="position-message">Fuera del top 10</p>
+            </div>
+        </div>
+
+        <!-- Comparación con el líder -->
+        <div id="competition-section">
+            <h3>🏁 Desafío del Líder</h3>
+            <div id="leader-comparison">
+                <p>El líder tiene <span id="leader-score">0</span> puntos</p>
+                <p>Necesitas <span id="points-needed">0</span> puntos más para superarlo</p>
+                <div id="progress-bar">
+                    <div id="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+
         <div id="ranking-content">
             <table id="ranking-table">
                 <thead>
@@ -34,6 +63,29 @@
 
             <div id="current-city-info">
                 <!-- Información de la ciudad actual si no está en el top 10 -->
+            </div>
+        </div>
+
+        <!-- Estadísticas del ranking -->
+        <div id="ranking-stats">
+            <h3>📊 Estadísticas del Ranking</h3>
+            <div id="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Total de Ciudades:</span>
+                    <span id="total-cities" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Puntuación Promedio:</span>
+                    <span id="avg-score" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Ciudad Más Antigua:</span>
+                    <span id="oldest-city" class="stat-value">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Ciudad Más Feliz:</span>
+                    <span id="happiest-city" class="stat-value">-</span>
+                </div>
             </div>
         </div>
 
