@@ -54,6 +54,7 @@ export class ViewController {
         this.routeAnimationToken = 0;
         this._toastTimeoutId = null;
 
+        // Datos locales de Colombia (fallback)
         this.colombiaMunicipios = {
             'Cundinamarca': {
                 'Bogotá': { lat: 4.711, lon: -74.072 },
@@ -69,8 +70,15 @@ export class ViewController {
             }
         };
 
+        // Datos dinámicos de Colombia desde API
+        this.dataColombia = {
+            departamentos: [],
+            municipiosPorDepartamento: {}
+        };
+
         this._bindElements();
         this._bindEvents();
+        this._initializeColombia();
     }
 
     _bindElements() {
@@ -245,6 +253,19 @@ export class ViewController {
                     this.hideNewCityModal();
                     this.onCrearCiudad?.(data);
                 }
+            });
+        }
+
+        // Listeners para región en formulario modal
+        if (this.el.inputRegion) {
+            this.el.inputRegion.addEventListener('change', () => {
+                this._handleRegionVisibility();
+            });
+        }
+
+        if (this.el.inputDepartamento) {
+            this.el.inputDepartamento.addEventListener('change', () => {
+                this._populateMunicipiosModal(this.el.inputDepartamento.value);
             });
         }
 
@@ -507,23 +528,31 @@ export class ViewController {
 
         let region = regiones[regionKey];
         if (regionKey === 'colombia') {
-            const departamento = this.el.inputDepartamento?.value;
-            const municipio = this.el.inputMunicipio?.value;
+            const deptId = this.el.inputDepartamento?.value;
+            const munId = this.el.inputMunicipio?.value;
 
-            if (!departamento || !municipio) {
+            if (!deptId || !munId) {
                 alert('Selecciona departamento y municipio en Colombia.');
                 return null;
             }
 
-            const coordenadas = this.colombiaMunicipios[departamento]?.[municipio];
-            if (!coordenadas) {
-                alert('No se encontraron coordenadas para el municipio seleccionado.');
+            // Convertir deptId a número para búsqueda consistente
+            const deptIdNum = Number(deptId);
+            const depa = this.dataColombia.departamentos.find(d => d.id === deptIdNum);
+            const municipios = this.dataColombia.municipiosPorDepartamento[deptIdNum] || [];
+            const mun = municipios.find(m => m.id === munId);
+
+            if (!depa || !mun) {
+                alert('No se encontraron los datos del departamento o municipio seleccionado.');
                 return null;
             }
 
             region = {
-                nombre: `${municipio}, ${departamento}`,
-                coordenadas,
+                nombre: `${mun.name}, ${depa.name}`,
+                coordenadas: {
+                    lat: mun.latitude || parseFloat(this.el.inputLat?.value || 0),
+                    lon: mun.longitude || parseFloat(this.el.inputLon?.value || 0)
+                },
                 countryCode: 'co'
             };
         }
@@ -1033,5 +1062,128 @@ export class ViewController {
         if (!this.el.estadoRuta) return;
         this.el.estadoRuta.textContent = mensaje;
         this.el.estadoRuta.classList.toggle('error', Boolean(esError));
+    }
+
+    /**
+     * Inicializa datos de Colombia desde api-colombia.com
+     * Usa fallback local si la API no está disponible
+     */
+    async _initializeColombia() {
+        try {
+            const respDepts = await fetch('https://api-colombia.com/api/v1/Department');
+            if (!respDepts.ok) throw new Error('No se pudo cargar departamentos');
+            
+            const departamentos = await respDepts.json();
+            this.dataColombia.departamentos = departamentos;
+
+            // Cargar municipios para cada departamento
+            for (const dept of departamentos) {
+                try {
+                    const respMunis = await fetch(`https://api-colombia.com/api/v1/Department/${dept.id}/cities`);
+                    if (respMunis.ok) {
+                        const municipios = await respMunis.json();
+                        this.dataColombia.municipiosPorDepartamento[dept.id] = municipios;
+                    }
+                } catch (e) {
+                    console.warn(`No se pudieron cargar municipios para ${dept.name}`);
+                }
+            }
+
+            console.log('Datos de Colombia cargados exitosamente desde API');
+            this._populateDepartamentosModal();
+        } catch (error) {
+            console.warn('Error cargando datos de Colombia, usando fallback local:', error);
+            this._useColombiaFallback();
+        }
+    }
+
+    /**
+     * Usa datos locales como fallback
+     */
+    _useColombiaFallback() {
+        this.dataColombia.departamentos = Object.keys(this.colombiaMunicipios).map((nombre, idx) => ({
+            id: idx,
+            name: nombre
+        }));
+        
+        this.dataColombia.municipiosPorDepartamento = {};
+        Object.entries(this.colombiaMunicipios).forEach(([depa, municipios]) => {
+            const deptId = this.dataColombia.departamentos.find(d => d.name === depa)?.id;
+            if (deptId !== undefined) {
+                this.dataColombia.municipiosPorDepartamento[deptId] = Object.entries(municipios).map(([name, coords]) => ({
+                    id: `${depa}-${name}`,
+                    name: name,
+                    latitude: coords.lat,
+                    longitude: coords.lon
+                }));
+            }
+        });
+        
+        this._populateDepartamentosModal();
+    }
+
+    /**
+     * Puebla el selector de departamentos en el modal
+     */
+    _populateDepartamentosModal() {
+        if (!this.el.inputDepartamento) return;
+        
+        this.el.inputDepartamento.innerHTML = '<option value="">Selecciona departamento</option>';
+        
+        this.dataColombia.departamentos.forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept.id;
+            option.textContent = dept.name;
+            this.el.inputDepartamento.appendChild(option);
+        });
+    }
+
+    /**
+     * Puebla el selector de municipios en el modal
+     */
+    _populateMunicipiosModal(deptId) {
+        if (!this.el.inputMunicipio) return;
+        
+        this.el.inputMunicipio.innerHTML = '<option value="">Selecciona municipio</option>';
+        
+        // Convertir deptId a número porque viene como string del HTML
+        const deptIdNum = Number(deptId);
+        const municipios = this.dataColombia.municipiosPorDepartamento[deptIdNum];
+        if (!municipios || municipios.length === 0) {
+            console.warn(`No hay municipios para departamento ${deptId} (búsqueda con key: ${deptIdNum})`);
+            console.warn('Claves disponibles:', Object.keys(this.dataColombia.municipiosPorDepartamento));
+            return;
+        }
+        
+        municipios.forEach(mun => {
+            const option = document.createElement('option');
+            option.value = mun.id;
+            option.textContent = mun.name;
+            option.dataset.lat = mun.latitude || 0;
+            option.dataset.lon = mun.longitude || 0;
+            this.el.inputMunicipio.appendChild(option);
+        });
+    }
+
+    /**
+     * Maneja la visibilidad de campos según la región seleccionada
+     */
+    _handleRegionVisibility() {
+        const region = this.el.inputRegion?.value;
+        
+        if (this.el.regionColombia) {
+            this.el.regionColombia.classList.toggle('hidden', region !== 'colombia');
+        }
+        if (this.el.regionCustom) {
+            this.el.regionCustom.classList.toggle('hidden', region !== 'custom');
+        }
+
+        // Limpiar selects cuando cambia región
+        if (this.el.inputDepartamento) {
+            this.el.inputDepartamento.value = '';
+        }
+        if (this.el.inputMunicipio) {
+            this.el.inputMunicipio.value = '';
+        }
     }
 }

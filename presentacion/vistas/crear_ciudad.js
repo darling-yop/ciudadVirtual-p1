@@ -239,3 +239,9 @@ el.botonVolver.addEventListener('click', () => {
 });
 
 setRegionVisibilidad();
+
+// Cargar datos de Colombia desde api-colombia.com al iniciar
+cargarDatosColombia().catch(error => {
+    console.error('Error fatal cargando datos de Colombia:', error);
+    usarFallbackColombia();
+});
