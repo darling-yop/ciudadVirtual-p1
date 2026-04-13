@@ -212,7 +212,7 @@ export class ViewController {
 
         if (this.el.botonVerRanking) {
             this.el.botonVerRanking.addEventListener('click', () => {
-                window.location.href = 'ranking.html';
+                this.onVerRanking?.();
             });
         }
 
@@ -690,6 +690,108 @@ export class ViewController {
         } else {
             this.el.infoCelda.textContent = 'Seleccione una celda para construir o demoler.';
         }
+    }
+
+    renderDetallesEdificio(detalles) {
+        if (!this.el.infoCelda) return;
+
+        if (!detalles) {
+            this._renderSelectedCellInfo();
+            return;
+        }
+
+        // Construir HTML detallado del edificio
+        const tiposNombres = {
+            'R1': 'Residencial 1', 'R2': 'Residencial 2',
+            'C1': 'Comercial 1', 'C2': 'Comercial 2',
+            'I1': 'Industrial 1', 'I2': 'Industrial 2',
+            'U1': 'Utilidad - Electricidad', 'U2': 'Utilidad - Agua',
+            'S1': 'Servicio - Policía', 'S2': 'Servicio - Bomberos', 'S3': 'Servicio - Hospital',
+            'P1': 'Parque',
+            'r': 'Vía'
+        };
+
+        const Estado = detalles.estaOperativo 
+            ? '<span style="color: #4ade80;">Operativo</span>' 
+            : '<span style="color: #f87171;">Inoperativo</span>';
+
+        let html = `
+            <div class="panel-edificio">
+                <h3>${tiposNombres[detalles.tipo] || detalles.tipo}</h3>
+                <div class="edificio-detalles">
+                    <div class="fila">
+                        <span class="etiqueta">Posición:</span>
+                        <span>(${detalles.coordenadas.x}, ${detalles.coordenadas.y})</span>
+                    </div>
+                    <div class="fila">
+                        <span class="etiqueta">Estado:</span>
+                        <span>${Estado}</span>
+                    </div>
+                    <div class="fila">
+                        <span class="etiqueta">Costo construcción:</span>
+                        <span>$${detalles.costoConstruccion}</span>
+                    </div>
+                    <div class="fila">
+                        <span class="etiqueta">Mantenimiento/turno:</span>
+                        <span>$${detalles.costoMantenimiento}</span>
+                    </div>
+        `;
+
+        if (detalles.capacidad > 0) {
+            html += `
+                    <div class="fila">
+                        <span class="etiqueta">Ocupación:</span>
+                        <span>${detalles.ocupacion} / ${detalles.capacidad}</span>
+                    </div>
+            `;
+            if (detalles.ciudadanosInfo) {
+                html += `
+                    <div class="fila">
+                        <span class="etiqueta">Asignados:</span>
+                        <span>${detalles.ciudadanosInfo}</span>
+                    </div>
+                `;
+            }
+        }
+
+        if (detalles.recursosConsumidos.length > 0) {
+            html += `
+                    <div class="fila">
+                        <span class="etiqueta">Consume:</span>
+                        <span>${detalles.recursosConsumidos.join(', ')}</span>
+                    </div>
+            `;
+        }
+
+        if (detalles.recursosProducidos.length > 0) {
+            html += `
+                    <div class="fila">
+                        <span class="etiqueta">Produce:</span>
+                        <span>${detalles.recursosProducidos.join(', ')}</span>
+                    </div>
+            `;
+        }
+
+        if (detalles.felicidadResidencial !== null) {
+            html += `
+                    <div class="fila">
+                        <span class="etiqueta">Felicidad promedio:</span>
+                        <span>${detalles.felicidadResidencial}%</span>
+                    </div>
+            `;
+        }
+
+        html += `
+                    <div class="fila" style="margin-top: 10px;">
+                        <button class="btn-demoler" onclick="window.dispatchEvent(new CustomEvent('demoler-edificio', {detail: {x: ${detalles.coordenadas.x}, y: ${detalles.coordenadas.y}}}))">
+                            Demoler (reembolso: $${detalles.reembolso})
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        this.el.infoCelda.innerHTML = html;
     }
 
     renderHeader(estado) {

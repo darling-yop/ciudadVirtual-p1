@@ -677,6 +677,13 @@ class Ciudad {
         });
     }
 
+    /**
+     * Obtiene un edificio en las coordenadas especificadas
+     */
+    obtenerEdificioPorCoordenadas(x, y) {
+        return this.edificios.find(e => e.x === x && e.y === y) || null;
+    }
+
     // ============================================
     // GESTIÓN DE CIUDADANOS
     // ============================================

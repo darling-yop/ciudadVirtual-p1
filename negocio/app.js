@@ -1,4 +1,5 @@
 import { CityRepository } from '../acceso_datos/CityRepository.js';
+import { RankingLocal } from '../acceso_datos/RankingLocal.js';
 import { Ciudad } from '../modelos/Ciudad.js';
 import { CityManager } from './CityManager.js';
 import { ViewController } from './viewController.js';
@@ -23,9 +24,12 @@ const BUILDING_TYPE_LABELS = {
 class App {
     constructor() {
         this.manager = CityManager.getInstance();
+        this.ranking = new RankingLocal();
         this.selectedCell = null;
         this.selectedTipo = 'r';
         this.serviciosIniciados = false;
+        this.turnosDesdeUltimaActualizacionRanking = 0;
+        this.TURNOS_POR_ACTUALIZACION_RANKING = 5; // Actualizar ranking cada 5 turnos
 
         this.view = new ViewController({
             onCellSelected: ({ x, y, tipo }) => {
@@ -72,9 +76,13 @@ class App {
                 console.log('Intento demoler en', cell);
                 const resultado = this.manager.demoler(cell.x, cell.y);
                 if (!resultado.exito) {
-                    alert(`No se demolió: ${resultado.mensaje}`);
+                    this.view.showToast(`No se demolió: ${resultado.mensaje}`, { tipo: 'error' });
                 } else {
-                    console.log(`Demolición OK @(${cell.x},${cell.y})`);
+                    const mensaje = resultado.reembolso > 0 
+                        ? `Demolición OK. Reembolso: $${resultado.reembolso} (50% de ${resultado.tipoDemolido})`
+                        : `Demolición OK: ${resultado.tipoDemolido}`;
+                    this.view.showToast(mensaje, { tipo: 'success' });
+                    console.log(`Demolición realizada @(${cell.x},${cell.y}) - Reembolso: $${resultado.reembolso}`);
                 }
                 this.view.limpiarRuta();
                 this.view.setEstadoRuta('Ruta limpiada por cambio en el mapa.');
@@ -82,6 +90,7 @@ class App {
             },
             onProcesarTurno: () => this.procesarTurno(),
             onIniciarServicios: () => this.iniciarServiciosExternos(),
+            onVerRanking: () => this.abrirPaginaRanking(),
             onIniciarTurnos: () => {
                 this.manager.iniciarCicloTurnos(() => this.actualizarUI());
                 this.view.el.botonIniciarTurnos.disabled = true;
@@ -121,6 +130,27 @@ class App {
         });
 
         window.addEventListener('city-external-services-updated', () => {
+            this.actualizarUI();
+        });
+
+        window.addEventListener('demoler-edificio', (event) => {
+            const { x, y } = event.detail || {};
+            if (x === undefined || y === undefined) return;
+            
+            const confirmar = window.confirm('¿Seguro que deseas demoler este edificio?');
+            if (!confirmar) return;
+
+            const resultado = this.manager.demoler(x, y);
+            if (!resultado.exito) {
+                this.view.showToast(`No se demolió: ${resultado.mensaje}`, { tipo: 'error' });
+            } else {
+                const mensaje = resultado.reembolso > 0 
+                    ? `Demolición OK. Reembolso: $${resultado.reembolso}`
+                    : 'Demolición completada';
+                this.view.showToast(mensaje, { tipo: 'success' });
+            }
+            
+            this.selectedCell = null;
             this.actualizarUI();
         });
 
@@ -233,6 +263,15 @@ class App {
         }
     }
 
+    abrirPaginaRanking() {
+        // Guardar estado actual de la ciudad antes de ir a ranking
+        if (this.manager.ciudad) {
+            this.ranking.guardarPuntuacion(this.manager.ciudad);
+        }
+        // Abrir página de ranking
+        window.location.href = './ranking.html';
+    }
+
     procesarTurno() {
         try {
             if (!this.manager.ciudad) {
@@ -255,6 +294,16 @@ class App {
             const estado = this.manager.obtenerEstado();
             if (estado && estado.juegoFinalizado) {
                 this.view.showToast(`Juego finalizado: ${estado.motivoFinJuego || 'Recursos negativos detectados'}`, { tipo: 'error', durationMs: 6000 });
+                // Guardar en ranking cuando finaliza el juego
+                this.ranking.guardarPuntuacion(this.manager.ciudad);
+                console.log('Ciudad guardada en ranking');
+            }
+
+            // Actualizar ranking periódicamente (cada X turnos)
+            this.turnosDesdeUltimaActualizacionRanking++;
+            if (this.turnosDesdeUltimaActualizacionRanking >= this.TURNOS_POR_ACTUALIZACION_RANKING) {
+                this.ranking.guardarPuntuacion(this.manager.ciudad);
+                this.turnosDesdeUltimaActualizacionRanking = 0;
             }
 
             // Feedback visual
@@ -345,11 +394,86 @@ class App {
         this.view.renderizarMapa(estado.mapa);
         this.view.renderOpcionesRuta(estado.edificios.lista || []);
         this.view.saveLastRenderMatrix(estado.mapa);
+        
+        // Renderizar información de la celda seleccionada si existe
+        if (this.selectedCell) {
+            const detallesEdificio = this.obtenerDetallesEdificio(this.selectedCell.x, this.selectedCell.y);
+            this.view.renderDetallesEdificio(detallesEdificio);
+        } else {
+            this.view.renderDetallesEdificio(null);
+        }
+        
         if (estado.juegoFinalizado) {
             this.view.renderGameOverState(estado);
         } else {
             this.view.renderActiveState();
         }
+    }
+
+    obtenerDetallesEdificio(x, y) {
+        const edificio = this.manager.ciudad?.obtenerEdificioPorCoordenadas(x, y);
+        if (!edificio) {
+            return null;
+        }
+
+        // Calcular costo de mantenimiento por turno
+        const costoMantenimiento = Math.max(1, Math.round(edificio.costoConstruccion * 0.0001));
+
+        // Construir array de recursos consumidos
+        const recursosConsumidos = [];
+        if (edificio.consumoElectricidad > 0) recursosConsumidos.push(`Electricidad: ${edificio.consumoElectricidad}`);
+        if (edificio.consumoAgua > 0) recursosConsumidos.push(`Agua: ${edificio.consumoAgua}`);
+
+        // Construir array de recursos producidos
+        const recursosProducidos = [];
+        if (edificio.produccionRecurso > 0) {
+            if (edificio.tipo === 'U1') recursosProducidos.push(`Electricidad: ${edificio.produccionRecurso}`);
+            else if (edificio.tipo === 'U2') recursosProducidos.push(`Agua: ${edificio.produccionRecurso}`);
+            else if (edificio.tipo === 'I2') recursosProducidos.push(`Alimentos: ${edificio.produccionRecurso}`);
+            else if (edificio.tipo === 'I1') recursosProducidos.push(`Dinero: ${edificio.ingresoPorTurno}`);
+        }
+
+        if (edificio.ingresoPorTurno > 0 && !['I1', 'C1', 'C2'].includes(edificio.tipo)) {
+            recursosProducidos.push(`Dinero: ${edificio.ingresoPorTurno}`);
+        }
+
+        // Calcular ciudadanos/empleados por type
+        let ciudadanosInfo = '';
+        if (edificio.tipo.startsWith('R')) {
+            ciudadanosInfo = `${edificio.ocupacionActual} / ${edificio.capacidadMaxima} ciudadanos`;
+        } else if (['C1', 'C2', 'I1', 'I2', 'S1', 'S2', 'S3', 'U1', 'U2'].includes(edificio.tipo)) {
+            ciudadanosInfo = `${edificio.ocupacionActual} / ${edificio.capacidadMaxima} empleados`;
+        }
+
+        // Calcular felicidad promedio si es residencial
+        let felicidadResidencial = null;
+        if (edificio.tipo.startsWith('R')) {
+            if (edificio.ciudadanosAsignados && edificio.ciudadanosAsignados.length > 0) {
+                const ciudadanos = edificio.ciudadanosAsignados
+                    .map(id => this.manager.ciudad?.obtenerCiudadano(id))
+                    .filter(c => c);
+                if (ciudadanos.length > 0) {
+                    const sumaFelicidad = ciudadanos.reduce((acc, c) => acc + (c.nivelFelicidad || 0), 0);
+                    felicidadResidencial = Math.round(sumaFelicidad / ciudadanos.length);
+                }
+            }
+        }
+
+        return {
+            id: edificio.id,
+            tipo: edificio.tipo,
+            coordenadas: { x: edificio.x, y: edificio.y },
+            costoConstruccion: edificio.costoConstruccion,
+            costoMantenimiento,
+            recursosConsumidos,
+            recursosProducidos,
+            capacidad: edificio.capacidadMaxima,
+            ocupacion: edificio.ocupacionActual,
+            ciudadanosInfo,
+            felicidadResidencial,
+            estaOperativo: edificio.estaOperativo,
+            reembolso: edificio.reembolsoDemolicion
+        };
     }
 
     actualizarEstadisticas(estado) {

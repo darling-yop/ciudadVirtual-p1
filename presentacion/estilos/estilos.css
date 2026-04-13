@@ -326,6 +326,62 @@ button:disabled {
     font-size: 0.9rem;
 }
 
+.panel-edificio {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.panel-edificio h3 {
+    margin: 0 0 8px 0;
+    color: #0f2e4b;
+    font-size: 1rem;
+}
+
+.edificio-detalles {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.edificio-detalles .fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e8e8e8;
+    padding-bottom: 6px;
+}
+
+.edificio-detalles .fila:last-child {
+    border-bottom: none;
+}
+
+.edificio-detalles .etiqueta {
+    font-weight: 600;
+    color: #0f2e4b;
+    min-width: 130px;
+}
+
+.btn-demoler {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+.btn-demoler:hover {
+    background: #b91c1c;
+}
+
 #grid-container {
     display: grid;
     gap: 2px;
