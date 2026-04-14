@@ -135,6 +135,77 @@
                     <button id="boton-limpiar-ruta" type="button">Limpiar Ruta</button>
                     <div id="estado-ruta" class="estado-ruta">Selecciona edificios para calcular una ruta.</div>
                 </section>
+
+                <section class="estadisticas-widget">
+                    <h2>Estadísticas Generales</h2>
+                    <div id="estadisticas-contenido"></div>
+                </section>
+
+                <section class="manual-jugador manual-jugador--central">
+                    <h2>Manual del Jugador</h2>
+                    <div class="manual-grid">
+
+                        <div class="manual-tip manual-tip--danger">
+                            <span class="manual-tip__icon">&#x26A0;&#xFE0F;</span>
+                            <div>
+                                <strong>Condiciones de derrota</strong>
+                                <p>Si el balance de electricidad o de agua llega a negativo, el juego termina inmediatamente. Mant&#xe9;n siempre producci&#xf3;n suficiente de ambos recursos.</p>
+                            </div>
+                        </div>
+
+                        <div class="manual-tip manual-tip--money">
+                            <span class="manual-tip__icon">&#x1F4B0;</span>
+                            <div>
+                                <strong>Edificios que generan dinero</strong>
+                                <ul>
+                                    <li><b>C1 Tienda</b> &rarr; +$500 / turno</li>
+                                    <li><b>C2 Centro Comercial</b> &rarr; +$2,000 / turno</li>
+                                    <li><b>I1 F&#xe1;brica</b> &rarr; +$800 / turno</li>
+                                </ul>
+                                <small>&#x26A1; Requieren electricidad activa para producir ingresos.</small>
+                            </div>
+                        </div>
+
+                        <div class="manual-tip manual-tip--resources">
+                            <span class="manual-tip__icon">&#x1F3ED;</span>
+                            <div>
+                                <strong>Edificios que generan recursos</strong>
+                                <ul>
+                                    <li><b>U1 Planta El&#xe9;ctrica</b> &rarr; +200 MW / turno</li>
+                                    <li><b>U2 Planta de Agua</b> &rarr; +150 m&#xb3; / turno</li>
+                                    <li><b>I2 Granja</b> &rarr; +50 alimentos / turno</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="manual-tip manual-tip--happiness">
+                            <span class="manual-tip__icon">&#x1F60A;</span>
+                            <div>
+                                <strong>Edificios que aumentan la felicidad</strong>
+                                <ul>
+                                    <li><b>S1 Polic&#xed;a / S2 Bomberos</b> &rarr; +10 felicidad (radio: 5)</li>
+                                    <li><b>S3 Hospital</b> &rarr; +10 felicidad (radio: 7)</li>
+                                    <li><b>P1 Parque</b> &rarr; +5 felicidad (sin consumo)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="manual-tip manual-tip--info manual-tip--full">
+                            <span class="manual-tip__icon">&#x1F4A1;</span>
+                            <div>
+                                <strong>Consejos generales</strong>
+                                <ul>
+                                    <li>Construye plantas de utilidades <em>antes</em> que comercios e industrias.</li>
+                                    <li>Cada edificio descuenta un costo de mantenimiento por turno.</li>
+                                    <li>Si no puedes pagar el mantenimiento, el edificio deja de operar.</li>
+                                    <li>Las v&#xed;as ($100 / celda) son necesarias para conectar edificios al calcular rutas.</li>
+                                    <li>Demoler un edificio devuelve el 50&#x25; de su costo de construcci&#xf3;n.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
             </section>
 
             <aside class="sidebar-right">
@@ -152,10 +223,6 @@
                     </div>
                 </section>
 
-                <section class="estadisticas-widget">
-                    <h2>Estadísticas Generales</h2>
-                    <div id="estadisticas-contenido"></div>
-                </section>
             </aside>
         </main>
     </div>

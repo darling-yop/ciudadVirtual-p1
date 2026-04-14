@@ -170,6 +170,8 @@ class CityManager {
             return;
         }
         const duracion = Number(duracionTurnoSegundos) || 10;
+        this._duracionTurno = duracion;
+        this._turnoCallback = callback;
         console.log(`Iniciando ciclo automático de turnos (${duracion} segundos por turno)`);
         this.turnIntervalId = setInterval(() => {
             this.procesarTurno();
@@ -181,6 +183,13 @@ class CityManager {
                 }
             }
         }, duracion * 1000);
+    }
+
+    reiniciarCicloTurnos() {
+        if (!this.turnIntervalId) return;
+        clearInterval(this.turnIntervalId);
+        this.turnIntervalId = null;
+        this.iniciarCicloTurnos(this._turnoCallback, this._duracionTurno || 10);
     }
 
     detenerCicloTurnos() {

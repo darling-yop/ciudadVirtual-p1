@@ -61,6 +61,7 @@ class App {
                     const tipoDescripcion = BUILDING_TYPE_LABELS[effectiveTipo] || `Tipo ${effectiveTipo}`;
                     this.view.showToast(`Construcción de ${tipoDescripcion} realizada en (${targetCell.x}, ${targetCell.y}).`, { tipo: 'success' });
                     console.log(`Construcción OK: ${effectiveTipo}@(${targetCell.x},${targetCell.y})`);
+                    this._procesarTurnoPorAccion();
                 }
 
                 this.view.limpiarRuta();
@@ -102,6 +103,7 @@ class App {
                         mensaje += ` | ${resultado.ciudadanosAfectados} ciudadano${resultado.ciudadanosAfectados > 1 ? 's' : ''} afectado${resultado.ciudadanosAfectados > 1 ? 's' : ''}.`;
                     }
                     this.view.showToast(mensaje, { tipo: 'success' });
+                    this._procesarTurnoPorAccion();
                 }
 
                 this.view.limpiarRuta();
@@ -167,6 +169,7 @@ class App {
                     ? `Demolición OK. Reembolso: $${resultado.reembolso}`
                     : 'Demolición completada';
                 this.view.showToast(mensaje, { tipo: 'success' });
+                this._procesarTurnoPorAccion();
             }
             
             this.selectedCell = null;
@@ -195,6 +198,8 @@ class App {
     async continuarPartidaGuardada(cityId = null) {
         await this.manager.init(cityId);
         this.manager.iniciarAutoGuardado();
+        this.serviciosIniciados = false;
+        this.iniciarServiciosExternos();
         this.actualizarUI();
         this.view.hideContinueGameModal();
     }
@@ -250,6 +255,8 @@ class App {
         this.manager.activeCityId = this.manager.ciudad.cityId;
         this.manager.save();
         this.manager.iniciarAutoGuardado();
+        this.serviciosIniciados = false;
+        this.iniciarServiciosExternos();
         this.actualizarUI();
     }
 
@@ -269,16 +276,10 @@ class App {
                     }
                     
                     console.log('Servicios externos iniciados (Clima y Noticias activos)');
-                    alert('Servicios externos iniciados correctamente.\nEl clima y las noticias se actualizarán cada 30 minutos.');
                 } catch (error) {
                     console.error('Error al iniciar servicios externos:', error);
-                    alert('Error al iniciar servicios externos. Revisar consola.');
                 }
-            } else {
-                alert('No hay ciudad cargada. Crea una ciudad primero.');
             }
-        } else {
-            alert('Los servicios exteriores ya están iniciados.');
         }
     }
 
@@ -402,6 +403,14 @@ class App {
         } catch (error) {
             console.error('Error al exportar ciudad:', error);
             alert('Error al exportar la ciudad. Revisar consola.');
+        }
+    }
+
+    _procesarTurnoPorAccion() {
+        if (!this.manager.ciudad || this.manager.ciudad.juegoFinalizado) return;
+        this.manager.procesarTurno();
+        if (this.manager.turnIntervalId) {
+            this.manager.reiniciarCicloTurnos();
         }
     }
 

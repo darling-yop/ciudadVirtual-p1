@@ -11,7 +11,7 @@ export class ServicioClima {
         this.lat = lat;
         this.lon = lon;
         this.ciudad = ciudad;
-        this.datosClima = new Clima(20, 'Cargando...', 50, 10, this.ciudad); // estado inicial inmediato
+        this.datosClima = new Clima(20, 'Soleado', 50, 10, this.ciudad); // estado inicial por defecto
         this.intervaloActualizacion = null;
     }
 
