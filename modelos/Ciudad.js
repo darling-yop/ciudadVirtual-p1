@@ -381,6 +381,7 @@ class Ciudad {
      */
     #gestionarCrecimientoPoblacional() {
         const felicidadPromedio = this.obtenerFelicidadPromedio();
+        const hayPoblacion = this.poblacion.length > 0;
         const capacidadVivienda = this.edificios
             .filter(e => e.tipo.startsWith('R'))
             .reduce((acc, e) => acc + (e.capacidadMaxima || 0), 0);
@@ -391,9 +392,10 @@ class Ciudad {
 
         const capacidadDisponible = Math.max(0, capacidadVivienda - hogaresOcupados);
         const empleosDisponibles = this.calcularEmpleosDisponibles();
+        const cumpleCondicionFelicidad = hayPoblacion ? felicidadPromedio > 60 : true;
 
         if (
-            felicidadPromedio > 60 &&
+            cumpleCondicionFelicidad &&
             capacidadDisponible > 0 &&
             empleosDisponibles > 0
         ) {
