@@ -23,10 +23,13 @@ export class ViewController {
         onContinuarPartida,
         onNuevaPartida,
         onAbrirSelectorCiudades,
+        onVerRanking,
         onCrearCiudad,
         onAplicarRecursos,
         onCancelar
     } = {}) {
+        console.log('🏗️ ViewController constructor llamado');
+
         this.onCellSelected = onCellSelected;
         this.onConstruir = onConstruir;
         this.onDemoler = onDemoler;
@@ -41,6 +44,7 @@ export class ViewController {
         this.onContinuarPartida = onContinuarPartida;
         this.onNuevaPartida = onNuevaPartida;
         this.onAbrirSelectorCiudades = onAbrirSelectorCiudades;
+        this.onVerRanking = onVerRanking;
         this.onCrearCiudad = onCrearCiudad;
         this.onAplicarRecursos = onAplicarRecursos;
         this.onCancelar = onCancelar;
@@ -54,6 +58,7 @@ export class ViewController {
         this.routeAnimationToken = 0;
         this._toastTimeoutId = null;
 
+        // Datos locales de Colombia (fallback)
         this.colombiaMunicipios = {
             'Cundinamarca': {
                 'Bogotá': { lat: 4.711, lon: -74.072 },
@@ -69,8 +74,27 @@ export class ViewController {
             }
         };
 
-        this._bindElements();
-        this._bindEvents();
+        // Datos dinámicos de Colombia desde API
+        this.dataColombia = {
+            departamentos: [],
+            municipiosPorDepartamento: {}
+        };
+
+        // Esperar a que el DOM esté listo antes de inicializar
+        if (document.readyState === 'loading') {
+            console.log('⏳ DOM aún cargando, esperando...');
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('✅ DOM listo, inicializando ViewController');
+                this._bindElements();
+                this._bindEvents();
+                this._initializeColombia();
+            });
+        } else {
+            console.log('✅ DOM ya listo, inicializando ViewController');
+            this._bindElements();
+            this._bindEvents();
+            this._initializeColombia();
+        }
     }
 
     _bindElements() {
@@ -211,9 +235,13 @@ export class ViewController {
         }
 
         if (this.el.botonVerRanking) {
+            console.log('✅ Botón ranking encontrado:', this.el.botonVerRanking);
             this.el.botonVerRanking.addEventListener('click', () => {
-                window.location.href = 'ranking.html';
+                console.log('🎯 Navegando al ranking');
+                this.onVerRanking?.();
             });
+        } else {
+            console.error('❌ Botón ranking NO encontrado en el DOM');
         }
 
         if (this.el.botonNuevaPartida) {
@@ -248,6 +276,19 @@ export class ViewController {
             });
         }
 
+        // Listeners para región en formulario modal
+        if (this.el.inputRegion) {
+            this.el.inputRegion.addEventListener('change', () => {
+                this._handleRegionVisibility();
+            });
+        }
+
+        if (this.el.inputDepartamento) {
+            this.el.inputDepartamento.addEventListener('change', () => {
+                this._populateMunicipiosModal(this.el.inputDepartamento.value);
+            });
+        }
+
         if (this.el.botonCargarMapa && this.el.inputMapaArchivo && this.el.estadoMapa) {
             this.el.botonCargarMapa.addEventListener('click', () => {
                 this.el.inputMapaArchivo.click();
@@ -277,18 +318,6 @@ export class ViewController {
             });
         }
 
-        if (this.el.inputRegion) {
-            this.el.inputRegion.addEventListener('change', () => {
-                this._updateRegionInputs();
-            });
-        }
-
-        if (this.el.inputDepartamento) {
-            this.el.inputDepartamento.addEventListener('change', () => {
-                this._populateMunicipios(this.el.inputDepartamento.value);
-            });
-        }
-
         if (this.el.botonConstruir) {
             this.el.botonConstruir.addEventListener('click', () => {
                 this.onConstruir?.(this.selectedCell, this.selectedTipo);
@@ -297,6 +326,8 @@ export class ViewController {
 
         if (this.el.botonDemoler) {
             this.el.botonDemoler.addEventListener('click', () => {
+                document.body.classList.remove('modo-construir');
+                document.body.classList.add('modo-demoler');  // <-- HU-024: cursor personalizado
                 this.onDemoler?.(this.selectedCell);
             });
         }
@@ -345,6 +376,32 @@ export class ViewController {
                 default:
                     break;
             }
+        });
+
+        // HU-009: preview de costo de vía al seleccionar celda
+        const costoViaPreview = document.getElementById('costo-via-preview');
+        const costoViaValor = document.getElementById('costo-via-valor');
+
+        document.getElementById('grid-container')?.addEventListener('click', () => {
+            if (!costoViaPreview || !costoViaValor) return;
+            if (this.selectedTipo === 'r') {
+                costoViaPreview.classList.add('visible');
+                costoViaValor.textContent = '$100';
+            } else {
+                costoViaPreview.classList.remove('visible');
+            }
+        });
+
+        this.el.tipoButtons?.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!costoViaPreview) return;
+                if (btn.dataset.tipo === 'r') {
+                    costoViaPreview.classList.add('visible');
+                    costoViaValor.textContent = '$100 por celda';
+                } else {
+                    costoViaPreview.classList.remove('visible');
+                }
+            });
         });
     }
 
@@ -472,13 +529,36 @@ export class ViewController {
     _populateMunicipios(departamento) {
         if (!this.el.inputMunicipio || !departamento) return;
 
-        const municipios = this.colombiaMunicipios[departamento] || {};
+        // Usar datos dinámicos si están disponibles, si no usar fallback
+        let municipios = {};
+        
+        if (this.dataColombia.departamentos.length > 0) {
+            // Buscar en datos dinámicos
+            const deptId = Number(departamento);
+            const municipiosArray = this.dataColombia.municipiosPorDepartamento[deptId];
+            if (municipiosArray && municipiosArray.length > 0) {
+                municipiosArray.forEach(mun => {
+                    municipios[mun.name] = { lat: mun.latitude, lon: mun.longitude };
+                });
+            }
+        }
+        
+        // Si no hay datos dinámicos o falló, usar datos locales
+        if (Object.keys(municipios).length === 0) {
+            municipios = this.colombiaMunicipios[departamento] || {};
+        }
+        
         this.el.inputMunicipio.innerHTML = '<option value="">Selecciona municipio</option>';
 
-        Object.keys(municipios).forEach(mun => {
+        Object.entries(municipios).forEach(([munName, coords]) => {
             const option = document.createElement('option');
-            option.value = mun;
-            option.textContent = mun;
+            option.value = munName;
+            option.textContent = munName;
+            // Guardar coordenadas en dataset
+            if (coords.lat !== undefined && coords.lon !== undefined) {
+                option.dataset.lat = coords.lat;
+                option.dataset.lon = coords.lon;
+            }
             this.el.inputMunicipio.appendChild(option);
         });
     }
@@ -507,25 +587,69 @@ export class ViewController {
 
         let region = regiones[regionKey];
         if (regionKey === 'colombia') {
-            const departamento = this.el.inputDepartamento?.value;
-            const municipio = this.el.inputMunicipio?.value;
+            const deptId = this.el.inputDepartamento?.value;
+            const munSelectIdx = this.el.inputMunicipio?.selectedIndex ?? -1;
 
-            if (!departamento || !municipio) {
+            console.log('📍 Validando Colombia...');
+            console.log('  Departamento ID:', deptId);
+            console.log('  Municipio selectedIndex:', munSelectIdx);
+
+            if (!deptId || munSelectIdx < 1) { // < 1 because 0 is the placeholder option
                 alert('Selecciona departamento y municipio en Colombia.');
                 return null;
             }
 
-            const coordenadas = this.colombiaMunicipios[departamento]?.[municipio];
-            if (!coordenadas) {
-                alert('No se encontraron coordenadas para el municipio seleccionado.');
+            // Obtener el option seleccionado
+            const selectedOption = this.el.inputMunicipio?.options[munSelectIdx];
+            if (!selectedOption) {
+                console.error('❌ No se pudo obtener el option seleccionado');
+                alert('Error: municipio no seleccionado correctamente.');
                 return null;
             }
 
+            // Convertir deptId a número para búsqueda consistente
+            const deptIdNum = Number(deptId);
+            console.log('  Departamento ID (número):', deptIdNum);
+
+            // Validar departamento
+            const depa = this.dataColombia.departamentos.find(d => d.id === deptIdNum);
+            console.log('  Departamento encontrado:', depa?.name);
+
+            if (!depa) {
+                console.error('❌ Departamento no encontrado en dataColombia');
+                alert('No se encontró el departamento seleccionado.');
+                return null;
+            }
+
+            // Obtener nombre del municipio desde el option
+            const munName = selectedOption.textContent || selectedOption.value;
+            const munLat = selectedOption.dataset.lat;
+            const munLon = selectedOption.dataset.lon;
+
+            console.log('  Municipio seleccionado:', munName);
+            console.log('  Coordenadas en dataset - Lat:', munLat, 'Lon:', munLon);
+
+            // Validar que tenemos coordenadas
+            if (!munLat || !munLon) {
+                console.warn('⚠️ Coordenadas no encontradas en dataset');
+                const parsedLat = parseFloat(munLat);
+                const parsedLon = parseFloat(munLon);
+                if (Number.isNaN(parsedLat) || Number.isNaN(parsedLon)) {
+                    console.error('❌ Coordenadas inválidas');
+                    alert('No se encontraron coordenadas válidas para el municipio.');
+                    return null;
+                }
+            }
+
             region = {
-                nombre: `${municipio}, ${departamento}`,
-                coordenadas,
+                nombre: `${munName}, ${depa.name}`,
+                coordenadas: {
+                    lat: parseFloat(munLat) || parseFloat(this.el.inputLat?.value || 0),
+                    lon: parseFloat(munLon) || parseFloat(this.el.inputLon?.value || 0)
+                },
                 countryCode: 'co'
             };
+            console.log('✅ Región Colombia válida:', region);
         }
 
         if (regionKey === 'custom') {
@@ -615,6 +739,12 @@ export class ViewController {
         if (tipoSelectedEl) {
             tipoSelectedEl.textContent = this.selectedTipo || 'r';
         }
+
+        // HU-024: cursor personalizado según modo
+        document.body.classList.remove('modo-construir', 'modo-demoler');
+        if (this.selectedTipo) {
+            document.body.classList.add('modo-construir');
+        }
     }
 
     renderizarMapa(matriz) {
@@ -692,6 +822,117 @@ export class ViewController {
         }
     }
 
+    renderDetallesEdificio(detalles) {
+        if (!this.el.infoCelda) return;
+
+        if (!detalles) {
+            this._renderSelectedCellInfo();
+            return;
+        }
+
+        // Construir HTML detallado del edificio
+        const tiposNombres = {
+            'R1': 'Residencial 1', 'R2': 'Residencial 2',
+            'C1': 'Comercial 1', 'C2': 'Comercial 2',
+            'I1': 'Industrial 1', 'I2': 'Industrial 2',
+            'U1': 'Utilidad - Electricidad', 'U2': 'Utilidad - Agua',
+            'S1': 'Servicio - Policía', 'S2': 'Servicio - Bomberos', 'S3': 'Servicio - Hospital',
+            'P1': 'Parque',
+            'r': 'Vía'
+        };
+
+        const Estado = detalles.estaOperativo 
+            ? '<span class="estado-operativo">Operativo</span>' 
+            : '<span class="estado-inoperativo">Inoperativo</span>';
+
+        let html = `
+            <div class="panel-edificio">
+                <h3>${tiposNombres[detalles.tipo] || detalles.tipo}</h3>
+                <div class="edificio-detalles">
+                    <div class="fila">
+                        <span class="etiqueta">Posición:</span>
+                        <span>(${detalles.coordenadas.x}, ${detalles.coordenadas.y})</span>
+                    </div>
+                    <div class="fila">
+                        <span class="etiqueta">Estado:</span>
+                        <span>${Estado}</span>
+                    </div>
+                    <div class="fila">
+                        <span class="etiqueta">Costo construcción:</span>
+                        <span>$${detalles.costoConstruccion}</span>
+                    </div>
+                    <div class="fila">
+                        <span class="etiqueta">Mantenimiento/turno:</span>
+                        <span>$${detalles.costoMantenimiento}</span>
+                    </div>
+        `;
+
+        if (detalles.capacidad > 0) {
+            html += `
+                    <div class="fila">
+                        <span class="etiqueta">Ocupación:</span>
+                        <span>${detalles.ocupacion} / ${detalles.capacidad}</span>
+                    </div>
+            `;
+            if (detalles.ciudadanosInfo) {
+                html += `
+                    <div class="fila">
+                        <span class="etiqueta">Asignados:</span>
+                        <span>${detalles.ciudadanosInfo}</span>
+                    </div>
+                `;
+            }
+        }
+
+        if (detalles.recursosConsumidos.length > 0) {
+            html += `
+                    <div class="fila">
+                        <span class="etiqueta">Consume:</span>
+                        <span>${detalles.recursosConsumidos.join(', ')}</span>
+                    </div>
+            `;
+        }
+
+        if (detalles.recursosProducidos.length > 0) {
+            html += `
+                    <div class="fila">
+                        <span class="etiqueta">Produce:</span>
+                        <span>${detalles.recursosProducidos.join(', ')}</span>
+                    </div>
+            `;
+        }
+
+        if (detalles.felicidadResidencial !== null) {
+            html += `
+                    <div class="fila">
+                        <span class="etiqueta">Felicidad promedio:</span>
+                        <span>${detalles.felicidadResidencial}%</span>
+                    </div>
+            `;
+        }
+
+        html += `
+                    <div class="fila fila--actions">
+                        <button class="btn-demoler" data-demoler-x="${detalles.coordenadas.x}" data-demoler-y="${detalles.coordenadas.y}">
+                            Demoler (reembolso: $${detalles.reembolso})
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        this.el.infoCelda.innerHTML = html;
+
+        const demolerBtn = this.el.infoCelda.querySelector('.btn-demoler');
+        if (demolerBtn) {
+            demolerBtn.addEventListener('click', () => {
+                const x = Number(demolerBtn.dataset.demolerX);
+                const y = Number(demolerBtn.dataset.demolerY);
+                window.dispatchEvent(new CustomEvent('demoler-edificio', { detail: { x, y } }));
+            });
+        }
+    }
+
     renderHeader(estado) {
         if (!estado) return;
         if (this.el.nombreCiudad) this.el.nombreCiudad.textContent = estado.nombre;
@@ -740,27 +981,71 @@ export class ViewController {
 
     renderEstadisticas(estado) {
         if (!this.el.estadisticasContenido) return;
+
+        const r = estado.recursos;
+        const p = estado.poblacion;
+        const desempleados = p.total - p.conEmpleo;
+
+        const porPoblacion = p.total * 10;
+        const porFelicidad = p.felicidadPromedio * 5;
+        const porDinero    = Math.round((r.dinero || 0) / 100);
+        const porEdificios = estado.edificios.total * 50;
+        const porElec      = Math.round((r.electricidad || 0) * 2);
+        const porAgua      = Math.round((r.agua || 0) * 2);
+
+        let bonos = 0;
+        const bonoDetalle = [];
+        if (desempleados === 0 && p.total > 0) { bonos += 500;  bonoDetalle.push('Todos empleados +500'); }
+        if (p.felicidadPromedio > 80)          { bonos += 300;  bonoDetalle.push('Felicidad >80 +300'); }
+        if (r.dinero > 0 && r.electricidad > 0 && r.agua > 0 && (r.alimentos || 0) > 0) {
+            bonos += 200; bonoDetalle.push('Recursos positivos +200');
+        }
+        if (p.total > 1000) { bonos += 1000; bonoDetalle.push('>1000 hab. +1000'); }
+
+        let penas = 0;
+        const penaDetalle = [];
+        if (r.dinero < 0)             { penas += 500;               penaDetalle.push('Dinero negativo -500'); }
+        if (r.electricidad < 0)       { penas += 300;               penaDetalle.push('Electricidad negativa -300'); }
+        if (r.agua < 0)               { penas += 300;               penaDetalle.push('Agua negativa -300'); }
+        if (p.felicidadPromedio < 40) { penas += 400;               penaDetalle.push('Felicidad <40 -400'); }
+        if (desempleados > 0)         { penas += desempleados * 10; penaDetalle.push(`${desempleados} desempleados -${desempleados * 10}`); }
+
+        const totalScore = Math.round(estado.puntuacion);
+
+        const bonosHtml = bonoDetalle.length > 0
+            ? `<div class="score-bonos">Bonificaciones: +${bonos}</div>
+               ${bonoDetalle.map(b => `<div class="score-bonos-item">✓ ${b}</div>`).join('')}`
+            : '';
+
+        const penasHtml = penaDetalle.length > 0
+            ? `<div class="score-penas">Penalizaciones: -${penas}</div>
+               ${penaDetalle.map(p => `<div class="score-penas-item">✗ ${p}</div>`).join('')}`
+            : '';
+
         this.el.estadisticasContenido.innerHTML = `
-            <div class="recurso">
-                <span>Población Total:</span>
-                <span>${estado.poblacion.total}</span>
-            </div>
-            <div class="recurso">
-                <span>Con Vivienda:</span>
-                <span>${estado.poblacion.conVivienda}</span>
-            </div>
-            <div class="recurso">
-                <span>Con Empleo:</span>
-                <span>${estado.poblacion.conEmpleo}</span>
-            </div>
-            <div class="recurso">
-                <span>Felicidad Promedio:</span>
-                <span>${estado.poblacion.felicidadPromedio}%</span>
-            </div>
-            <div class="recurso">
-                <span>Edificios Totales:</span>
-                <span>${estado.edificios.total}</span>
-            </div>
+            <div class="recurso"><span>Población total:</span><span>${p.total}</span></div>
+            <div class="recurso"><span>Con vivienda:</span><span>${p.conVivienda}</span></div>
+            <div class="recurso"><span>Con empleo:</span><span>${p.conEmpleo}</span></div>
+            <div class="recurso"><span>Desempleados:</span><span>${desempleados}</span></div>
+            <div class="recurso"><span>Felicidad promedio:</span><span>${p.felicidadPromedio}%</span></div>
+            <div class="recurso"><span>Edificios totales:</span><span>${estado.edificios.total}</span></div>
+
+            <details class="score-details">
+                <summary>Desglose puntuación: ${totalScore.toLocaleString()}</summary>
+                <div class="score-desglose">
+                    <div class="recurso"><span>Por población (×10):</span><span>+${porPoblacion}</span></div>
+                    <div class="recurso"><span>Por felicidad (×5):</span><span>+${porFelicidad}</span></div>
+                    <div class="recurso"><span>Por dinero (÷100):</span><span>+${porDinero}</span></div>
+                    <div class="recurso"><span>Por edificios (×50):</span><span>+${porEdificios}</span></div>
+                    <div class="recurso"><span>Por electricidad (×2):</span><span>+${porElec}</span></div>
+                    <div class="recurso"><span>Por agua (×2):</span><span>+${porAgua}</span></div>
+                    ${bonosHtml}
+                    ${penasHtml}
+                    <div class="recurso score-total">
+                        <span>Total:</span><span>${totalScore.toLocaleString()}</span>
+                    </div>
+                </div>
+            </details>
         `;
     }
 
@@ -769,42 +1054,57 @@ export class ViewController {
         const electricidadEl = document.getElementById('electricidad');
         const aguaEl = document.getElementById('agua');
         const alimentosEl = document.getElementById('alimentos');
+        const r = estado.recursos;
 
         if (dineroEl) {
-            dineroEl.textContent = `$${estado.recursos.dinero}`;
+            dineroEl.textContent = `$${Math.round(r.dinero).toLocaleString()}`;
             const container = dineroEl.parentElement;
             container?.classList.remove('dinero-verde', 'dinero-amarillo', 'dinero-rojo');
-            if (estado.recursos.dinero > 10000) {
-                container?.classList.add('dinero-verde');
-            } else if (estado.recursos.dinero < 1000) {
-                container?.classList.add('dinero-rojo');
-            } else if (estado.recursos.dinero < 5000) {
-                container?.classList.add('dinero-amarillo');
-            }
+            if (r.dinero > 10000) container?.classList.add('dinero-verde');
+            else if (r.dinero < 1000) container?.classList.add('dinero-rojo');
+            else if (r.dinero < 5000) container?.classList.add('dinero-amarillo');
+
+            // Tooltip HU-015
+            container?.setAttribute('data-tooltip',
+                `Ingresos/turno: +$${Math.round(r.ingresosDinero || 0).toLocaleString()}\nSaldo actual: $${Math.round(r.dinero).toLocaleString()}`
+            );
         }
 
         if (electricidadEl) {
-            electricidadEl.textContent = `${estado.recursos.electricidad} MW`;
+            const balance = (r.produccionElectricidad || 0) - (r.consumoElectricidad || 0);
+            electricidadEl.textContent = `${Math.round(r.electricidad)} MW`;
+            const container = electricidadEl.parentElement;
+            container?.setAttribute('data-tooltip',
+                `Producción: +${Math.round(r.produccionElectricidad || 0)} MW\nConsumo: -${Math.round(r.consumoElectricidad || 0)} MW\nBalance neto: ${balance >= 0 ? '+' : ''}${Math.round(balance)} MW`
+            );
         }
+
         if (aguaEl) {
-            aguaEl.textContent = `${estado.recursos.agua} m³`;
+            const balance = (r.produccionAgua || 0) - (r.consumoAgua || 0);
+            aguaEl.textContent = `${Math.round(r.agua)} m³`;
+            const container = aguaEl.parentElement;
+            container?.setAttribute('data-tooltip',
+                `Producción: +${Math.round(r.produccionAgua || 0)} m³\nConsumo: -${Math.round(r.consumoAgua || 0)} m³\nBalance neto: ${balance >= 0 ? '+' : ''}${Math.round(balance)} m³`
+            );
         }
+
         if (alimentosEl) {
-            const alimentos = Number(estado.recursos.alimentos ?? estado.recursos.comida ?? 0);
+            const alimentos = Math.round(r.alimentos ?? r.comida ?? 0);
             alimentosEl.textContent = `${alimentos} unidades`;
+            const container = alimentosEl.parentElement;
+            container?.setAttribute('data-tooltip',
+                `Producción granjas: +${Math.round(r.produccionAlimentos || 0)} u/turno\nStock actual: ${alimentos} unidades`
+            );
         }
 
         if (this.el.inputRecursoElectricidad) {
-            this.el.inputRecursoElectricidad.value = String(Number(estado.recursos.electricidad ?? 0));
+            this.el.inputRecursoElectricidad.value = String(Math.round(r.electricidad ?? 0));
         }
-
         if (this.el.inputRecursoAgua) {
-            this.el.inputRecursoAgua.value = String(Number(estado.recursos.agua ?? 0));
+            this.el.inputRecursoAgua.value = String(Math.round(r.agua ?? 0));
         }
-
         if (this.el.inputRecursoAlimentos) {
-            const alimentos = Number(estado.recursos.alimentos ?? estado.recursos.comida ?? 0);
-            this.el.inputRecursoAlimentos.value = String(alimentos);
+            this.el.inputRecursoAlimentos.value = String(Math.round(r.alimentos ?? r.comida ?? 0));
         }
     }
 
@@ -931,5 +1231,138 @@ export class ViewController {
         if (!this.el.estadoRuta) return;
         this.el.estadoRuta.textContent = mensaje;
         this.el.estadoRuta.classList.toggle('error', Boolean(esError));
+    }
+
+    /**
+     * Inicializa datos de Colombia desde api-colombia.com
+     * Usa fallback local si la API no está disponible
+     */
+    async _initializeColombia() {
+        try {
+            console.log('Iniciando carga de datos de Colombia desde API...');
+            const respDepts = await fetch('https://api-colombia.com/api/v1/Department');
+            if (!respDepts.ok) throw new Error('No se pudo cargar departamentos');
+            
+            const departamentos = await respDepts.json();
+            this.dataColombia.departamentos = departamentos;
+            console.log('Departamentos cargados:', departamentos.length);
+
+            // Cargar municipios para cada departamento
+            for (const dept of departamentos) {
+                try {
+                    const respMunis = await fetch(`https://api-colombia.com/api/v1/Department/${dept.id}/cities`);
+                    if (respMunis.ok) {
+                        const municipios = await respMunis.json();
+                        this.dataColombia.municipiosPorDepartamento[dept.id] = municipios;
+                        console.log(`${dept.name}: ${municipios.length} municipios`);
+                    }
+                } catch (e) {
+                    console.warn(`No se pudieron cargar municipios para ${dept.name}:`, e);
+                }
+            }
+
+            console.log('✅ Datos de Colombia cargados exitosamente desde API');
+            console.log('dataColombia:', this.dataColombia);
+            this._populateDepartamentosModal();
+        } catch (error) {
+            console.error('❌ Error cargando datos de Colombia:', error);
+            this._useColombiaFallback();
+        }
+    }
+
+    /**
+     * Usa datos locales como fallback
+     */
+    _useColombiaFallback() {
+        this.dataColombia.departamentos = Object.keys(this.colombiaMunicipios).map((nombre, idx) => ({
+            id: idx,
+            name: nombre
+        }));
+        
+        this.dataColombia.municipiosPorDepartamento = {};
+        Object.entries(this.colombiaMunicipios).forEach(([depa, municipios]) => {
+            const deptId = this.dataColombia.departamentos.find(d => d.name === depa)?.id;
+            if (deptId !== undefined) {
+                this.dataColombia.municipiosPorDepartamento[deptId] = Object.entries(municipios).map(([name, coords]) => ({
+                    id: `${depa}-${name}`,
+                    name: name,
+                    latitude: coords.lat,
+                    longitude: coords.lon
+                }));
+            }
+        });
+        
+        this._populateDepartamentosModal();
+    }
+
+    /**
+     * Puebla el selector de departamentos en el modal
+     */
+    _populateDepartamentosModal() {
+        if (!this.el.inputDepartamento) return;
+        
+        this.el.inputDepartamento.innerHTML = '<option value="">Selecciona departamento</option>';
+        
+        console.log('Poblando departamentos, cantidad:', this.dataColombia.departamentos.length);
+        this.dataColombia.departamentos.forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept.id;
+            option.textContent = dept.name;
+            this.el.inputDepartamento.appendChild(option);
+            console.log(`  Agregado: ${dept.name} (id: ${dept.id})`);
+        });
+    }
+
+    /**
+     * Puebla el selector de municipios en el modal
+     */
+    _populateMunicipiosModal(deptId) {
+        if (!this.el.inputMunicipio) return;
+        
+        console.log('_populateMunicipiosModal llamado con deptId:', deptId, 'tipo:', typeof deptId);
+        this.el.inputMunicipio.innerHTML = '<option value="">Selecciona municipio</option>';
+        
+        // Convertir deptId a número porque viene como string del HTML
+        const deptIdNum = Number(deptId);
+        console.log('Buscando con deptIdNum:', deptIdNum);
+        console.log('Claves disponibles en municipiosPorDepartamento:', Object.keys(this.dataColombia.municipiosPorDepartamento));
+        
+        const municipios = this.dataColombia.municipiosPorDepartamento[deptIdNum];
+        if (!municipios || municipios.length === 0) {
+            console.warn(`❌ No hay municipios para departamento ${deptId}`);
+            return;
+        }
+        
+        console.log(`✅ Encontrados ${municipios.length} municipios`);
+        municipios.forEach(mun => {
+            const option = document.createElement('option');
+            option.value = mun.id;
+            option.textContent = mun.name;
+            option.dataset.lat = mun.latitude || 0;
+            option.dataset.lon = mun.longitude || 0;
+            this.el.inputMunicipio.appendChild(option);
+        });
+    }
+
+    /**
+     * Maneja la visibilidad de campos según la región seleccionada
+     */
+    _handleRegionVisibility() {
+        const region = this.el.inputRegion?.value;
+        
+        if (this.el.regionColombia) {
+            this.el.regionColombia.classList.toggle('hidden', region !== 'colombia');
+        }
+        if (this.el.regionCustom) {
+            this.el.regionCustom.classList.toggle('hidden', region !== 'custom');
+        }
+
+        // Limpiar selects cuando cambia región
+        if (this.el.inputDepartamento) {
+            this.el.inputDepartamento.value = '';
+        }
+        if (this.el.inputMunicipio) {
+            this.el.inputMunicipio.value = '';
+        }
     }
 }

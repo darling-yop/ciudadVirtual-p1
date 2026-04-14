@@ -6,131 +6,131 @@
 
 import { EdificioComercial } from './Edificio_comercial.js';
 import { EdificioIndustrial } from './Edificio_industrial.js';
+import { EdificioParques } from './Edificio_parques.js';
 import { EdificioResidencial } from './Edificio_residencial.js';
 import { EdificioServicios } from './Edificio_servicios.js';
 import { EdificioUtilidades } from './Edificio_utilidades.js';
-import { EdificioParques } from './Edificio_parques.js';
 
 const configuraciones = {
     // Residenciales
     R1: {
-        costo: 2500,
-        consumoElectricidad: 4,
-        consumoAgua: 4,
-        ingreso: 20,
-        capacidad: 20,
+        costo: 1000,
+        consumoElectricidad: 5,
+        consumoAgua: 3,
+        ingreso: 0,
+        capacidad: 4,
         mantenimiento: 10
     },
     R2: {
-        costo: 4500,
-        consumoElectricidad: 6,
-        consumoAgua: 6,
-        ingreso: 35,
-        capacidad: 40,
+        costo: 3000,
+        consumoElectricidad: 15,
+        consumoAgua: 10,
+        ingreso: 0,
+        capacidad: 12,
         mantenimiento: 18
     },
 
     // Comerciales
     C1: {
-        costo: 4000,
+        costo: 2000,
         consumoElectricidad: 8,
-        consumoAgua: 5,
-        ingreso: 120,
-        capacidad: 15,
+        consumoAgua: 0,
+        ingreso: 500,
+        capacidad: 6,
         mantenimiento: 20
     },
     C2: {
-        costo: 8500,
-        consumoElectricidad: 12,
-        consumoAgua: 8,
-        ingreso: 240,
-        capacidad: 30,
+        costo: 8000,
+        consumoElectricidad: 25,
+        consumoAgua: 0,
+        ingreso: 2000,
+        capacidad: 20,
         mantenimiento: 35
     },
 
     // Industriales
     I1: {
-        costo: 7000,
-        consumoElectricidad: 12,
-        consumoAgua: 8,
-        produccion: 25,
-        capacidad: 25,
+        costo: 5000,
+        consumoElectricidad: 20,
+        consumoAgua: 15,
+        produccion: 800,
+        capacidad: 15,
         mantenimiento: 30,
-        recurso: 'comida',
-        tasaProduccion: 1.2
+        recurso: 'dinero',
+        tasaProduccion: 1
     },
     I2: {
-        costo: 13000,
-        consumoElectricidad: 18,
+        costo: 3000,
+        consumoElectricidad: 0,
         consumoAgua: 10,
-        produccion: 45,
-        capacidad: 45,
+        produccion: 50,
+        capacidad: 8,
         mantenimiento: 50,
         recurso: 'comida',
-        tasaProduccion: 1.4
+        tasaProduccion: 1
     },
 
     // Servicios
     S1: {
-        costo: 3000,
-        consumoElectricidad: 5,
-        consumoAgua: 3,
-        capacidad: 20,
+        costo: 4000,
+        consumoElectricidad: 15,
+        consumoAgua: 0,
+        capacidad: 4,
         beneficio: 10,
         mantenimiento: 15,
-        servicio: 'salud'
+        servicio: 'policía',
+        radio: 5
     },
     S2: {
-        costo: 3000,
-        consumoElectricidad: 5,
-        consumoAgua: 3,
-        capacidad: 20,
+        costo: 4000,
+        consumoElectricidad: 15,
+        consumoAgua: 0,
+        capacidad: 8,
         beneficio: 10,
         mantenimiento: 15,
-        servicio: 'seguridad'
+        servicio: 'bomberos',
+        radio: 5
     },
     S3: {
-        costo: 3000,
-        consumoElectricidad: 5,
-        consumoAgua: 3,
-        capacidad: 20,
+        costo: 6000,
+        consumoElectricidad: 20,
+        consumoAgua: 10,
+        capacidad: 12,
         beneficio: 10,
         mantenimiento: 15,
-        servicio: 'educación'
+        servicio: 'hospital',
+        radio: 7
     },
 
     // Utilidades
     U1: {
-        costo: 12000,
+        costo: 10000,
         consumoElectricidad: 0,
         consumoAgua: 0,
-        produccion: 60,
-        capacidad: 30,
+        produccion: 200,
+        capacidad: 0,
         mantenimiento: 25,
-        utilidad: 'electricidad',
-        reservaInicial: 0,
-        almacenamiento: 500
+        utilidad: 'electricidad'
     },
     U2: {
-        costo: 12000,
-        consumoElectricidad: 0,
+        costo: 8000,
+        consumoElectricidad: 20,
         consumoAgua: 0,
-        produccion: 60,
-        capacidad: 30,
+        produccion: 150,
+        capacidad: 0,
         mantenimiento: 25,
-        utilidad: 'agua',
-        reservaInicial: 0,
-        almacenamiento: 500
+        utilidad: 'agua'
     },
 
     // Parques
     P1: {
-        costo: 5000,
+        costo: 1500,
         consumoElectricidad: 0,
-        consumoAgua: 1,
+        consumoAgua: 0,
         capacidad: 0,
-        beneficio: 20,
-        mantenimiento: 5
+        beneficio: 5,
+        mantenimiento: 5,
+        tipoRecreacion: 'parque'
     }
 };
 

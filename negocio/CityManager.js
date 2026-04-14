@@ -253,15 +253,44 @@ class CityManager {
             return { exito: false, mensaje: 'Celda vacía.' };
         }
 
+        // Obtener edificio ANTES de demoler
+        const edificio = this.ciudad.edificios.find(e => e.x === x && e.y === y);
+        let reembolso = 0;
+        let ciudadanosAfectados = 0;
+
+        if (edificio) {
+            reembolso = edificio.reembolsoDemolicion || 0;
+
+            // Calcular ciudadanos afectados
+            if (edificio.tipo.startsWith('R')) {
+                // Residencial: ciudadanos que pierden vivienda
+                ciudadanosAfectados = edificio.ocupacionActual || 0;
+            } else if (edificio.ciudadanosAsignados?.length > 0) {
+                // Comercial/Industrial: empleados que pierden trabajo
+                ciudadanosAfectados = edificio.ciudadanosAsignados.length;
+            } else if (edificio.ocupacionActual > 0) {
+                ciudadanosAfectados = edificio.ocupacionActual;
+            }
+        }
+
         const resultado = this.ciudad.mapa.demolerEdificio(x, y);
         if (!resultado.exitoso) return { exito: false, mensaje: resultado.motivo };
 
-        // Eliminar edificio del listado de la ciudad si existe
         const indice = this.ciudad.edificios.findIndex(e => e.x === x && e.y === y);
         if (indice > -1) this.ciudad.edificios.splice(indice, 1);
 
+        if (reembolso > 0) {
+            this.ciudad.ingresarDinero(reembolso);
+        }
+
         this.save();
-        return { exito: true, mensaje: 'Demolición realizada.' };
+        return {
+            exito: true,
+            mensaje: 'Demolición realizada.',
+            reembolso,
+            tipoDemolido: tipo,
+            ciudadanosAfectados
+        };
     }
 
     async planificarRuta(idEdificioOrigen, idEdificioDestino) {

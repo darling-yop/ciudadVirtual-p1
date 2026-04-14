@@ -6,10 +6,11 @@
     <title>Nueva Ciudad - Ciudad Virtual</title>
     <link rel="stylesheet" href="../estilos/estilos.css" />
 </head>
-    <div class="container">
-        <main style="max-width: 600px; margin: 40px auto;">
-            <section class="modal-content" style="background:#0f2e4b; color:#fff;">
-                <h2 style="color:#ffda00; text-align:center;">Nueva Ciudad</h2>
+<body>
+    <div class="container crear-ciudad-container">
+        <main class="crear-ciudad-main">
+            <section class="crear-ciudad-modal">
+                <h2 class="crear-ciudad-title">Nueva Ciudad</h2>
                 <form id="crear-ciudad-form">
                     <label>
                         Nombre de la ciudad *
@@ -83,9 +84,9 @@
                         </select>
                     </label>
 
-                    <div class="mapa-carga" style="margin-top:8px;">
+                    <div class="mapa-carga">
                         <button id="boton-cargar-mapa" type="button">Cargar mapa desde .txt</button>
-                        <input id="input-mapa-archivo" type="file" accept=".txt" style="display:none" />
+                        <input id="input-mapa-archivo" type="file" accept=".txt" class="input-hidden" />
                     </div>
                     <div id="estado-mapa" class="estado-mapa">Ningún archivo seleccionado</div>
 
@@ -97,7 +98,7 @@
                         <div class="recurso"><span>Comida:</span><span>0 unidades</span></div>
                     </section>
 
-                    <div class="modal-actions" style="justify-content: space-between; gap: 10px; margin-top: 14px;">
+                    <div class="modal-actions modal-actions--spread">
                         <button type="button" id="boton-volver">Volver</button>
                         <button type="submit">Crear Ciudad</button>
                     </div>
@@ -106,9 +107,7 @@
         </main>
     </div>
 
-    <script>
-        // Redirige a la versión unificada
-        window.location.replace('game.html');
-    </script>
+    <script src="crear-ciudad-redirect.js"></script>
+
 </body>
 </html>

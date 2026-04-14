@@ -145,15 +145,16 @@ class SistemaTurnos {
         this.ciudad.edificios.forEach(edificio => {
             if (edificio.estaOperativo) {
                 switch (edificio.tipo) {
-                    case 'P1': // Planta de energía
+                    case 'U1': // Planta eléctrica produce energía
                         produccionEnergia += edificio.produccionRecurso;
                         break;
-                    case 'U1': // Planta de agua
-                    case 'U2':
+                    case 'U2': // Planta de agua produce agua
                         produccionAgua += edificio.produccionRecurso;
                         break;
-                    case 'F1': // Granja
+                    case 'I2': // Granja produce alimentos
                         produccionComida += edificio.produccionRecurso;
+                        break;
+                    default:
                         break;
                 }
             }

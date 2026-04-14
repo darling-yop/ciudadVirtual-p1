@@ -45,6 +45,16 @@ class Edificio {
     get estaLleno() {
         return this.ocupacionActual >= this.capacidadMaxima;
     }
+
+    /**
+     * Devuelve la producción fija asociada al edificio.
+     * Esta función permite que los edificios de utilidades e industrias
+     * sean consumidos de forma uniforme en la lógica de simulación.
+     */
+    producirRecurso() {
+        return Number(this.produccionRecurso || 0);
+    }
 }
 
 export { Edificio };
+

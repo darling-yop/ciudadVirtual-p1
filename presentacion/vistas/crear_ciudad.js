@@ -1,6 +1,7 @@
 import { CityRepository } from '../../acceso_datos/CityRepository.js';
 import { Ciudad } from '../../modelos/Ciudad.js';
 
+// Fallback: datos locales en caso de que la API no esté disponible
 const colombiaMunicipios = {
     'Cundinamarca': {
         'Bogotá': { lat: 4.711, lon: -74.072 },
@@ -14,6 +15,13 @@ const colombiaMunicipios = {
         'Cali': { lat: 3.451, lon: -76.531 },
         'Palmira': { lat: 3.539, lon: -76.303 }
     }
+};
+
+const API_COLOMBIA = 'https://api-colombia.com/api/v1';
+
+let dataColombia = {
+    departamentos: [],
+    municipiosPorDepartamento: {}
 };
 
 const el = {
@@ -36,23 +44,107 @@ const el = {
 
 let mapaTextoCargado = null;
 
+/**
+ * Carga datos de departamentos y municipios desde api-colombia.com
+ * Usa fallback local si la API no está disponible
+ */
+async function cargarDatosColombia() {
+    try {
+        // Cargar lista de departamentos
+        const respDeparting = await fetch(`${API_COLOMBIA}/Department`);
+        if (!respDeparting.ok) throw new Error('No se pudo cargar departamentos');
+        
+        const departamentos = await respDeparting.json();
+        dataColombia.departamentos = departamentos;
+
+        // Cargar municipios para cada departamento
+        for (const dept of departamentos) {
+            try {
+                const respMunicipios = await fetch(`${API_COLOMBIA}/Department/${dept.id}/cities`);
+                if (respMunicipios.ok) {
+                    const municipios = await respMunicipios.json();
+                    dataColombia.municipiosPorDepartamento[dept.id] = municipios;
+                }
+            } catch (e) {
+                console.warn(`No se pudieron cargar municipios para ${dept.name}:`, e);
+            }
+        }
+
+        console.log('Datos de Colombia cargados exitosamente desde API');
+        poblaDepartamentos();
+    } catch (error) {
+        console.warn('Error cargando datos desde api-colombia.com, usando fallback local:', error);
+        usarFallbackColombia();
+    }
+}
+
+/**
+ * Usa los datos locales como fallback
+ */
+function usarFallbackColombia() {
+    dataColombia.departamentos = Object.keys(colombiaMunicipios).map((nombre, idx) => ({
+        id: idx,
+        name: nombre
+    }));
+    
+    dataColombia.municipiosPorDepartamento = {};
+    Object.entries(colombiaMunicipios).forEach(([depa, municipios]) => {
+        const deptId = dataColombia.departamentos.find(d => d.name === depa)?.id;
+        if (deptId !== undefined) {
+            dataColombia.municipiosPorDepartamento[deptId] = Object.entries(municipios).map(([name, coords]) => ({
+                id: `${depa}-${name}`,
+                name: name,
+                latitude: coords.lat,
+                longitude: coords.lon
+            }));
+        }
+    });
+    
+    poblaDepartamentos();
+}
+
+/**
+ * Puebla el selector de departamentos
+ */
+function poblaDepartamentos() {
+    const select = el.inputDepartamento;
+    select.innerHTML = '<option value="">Selecciona departamento</option>';
+    
+    dataColombia.departamentos.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept.id;
+        option.textContent = dept.name;
+        select.appendChild(option);
+    });
+}
+
+/**
+ * Puebla el selector de municipios basado en departamento seleccionado
+ */
 function setRegionVisibilidad() {
     const region = el.inputRegion.value;
     el.regionColombia.classList.toggle('hidden', region !== 'colombia');
     el.regionCustom.classList.toggle('hidden', region !== 'custom');
 }
 
-function populateMunicipios(depa) {
+function populateMunicipios(deptId) {
     el.inputMunicipio.innerHTML = '<option value="">Selecciona municipio</option>';
-    if (!depa || !colombiaMunicipios[depa]) return;
-    Object.keys(colombiaMunicipios[depa]).forEach(mun => {
+    
+    const municipios = dataColombia.municipiosPorDepartamento[deptId];
+    if (!municipios || municipios.length === 0) {
+        console.warn(`No hay municipios para departamento ${deptId}`);
+        return;
+    }
+    
+    municipios.forEach(mun => {
         const option = document.createElement('option');
-        option.value = mun;
-        option.textContent = mun;
+        option.value = mun.id;
+        option.textContent = mun.name;
+        option.dataset.lat = mun.latitude || 0;
+        option.dataset.lon = mun.longitude || 0;
         el.inputMunicipio.appendChild(option);
     });
 }
-
 function getRegionData() {
     const region = el.inputRegion.value;
 
@@ -147,3 +239,9 @@ el.botonVolver.addEventListener('click', () => {
 });
 
 setRegionVisibilidad();
+
+// Cargar datos de Colombia desde api-colombia.com al iniciar
+cargarDatosColombia().catch(error => {
+    console.error('Error fatal cargando datos de Colombia:', error);
+    usarFallbackColombia();
+});

@@ -26,6 +26,8 @@ class RankingLocal {
                 cityId: ciudad.cityId,
                 puntuacionAcumulada: ciudad.puntuacionAcumulada,
                 alcaldeNombre: ciudad.alcalde.nombre,
+                poblacion: ciudad.poblacion ? ciudad.poblacion.length : 0,
+                felicidadPromedio: Math.round(ciudad.obtenerFelicidadPromedio ? ciudad.obtenerFelicidadPromedio() : 0),
                 turnoActual: ciudad.turnoActual,
                 fechaGuardado: new Date().toISOString()
             };

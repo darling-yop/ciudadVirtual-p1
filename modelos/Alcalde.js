@@ -106,22 +106,31 @@ class Alcalde {
             return false;
         }
 
-        // Intentar demoler el edificio a través del mapa
-        const demolido = this.ciudad.mapa.demolerEdificio(idEdificio);
+        // Intentar demoler el edificio a través del mapa usando coordenadas
+        const resultado = this.ciudad.mapa.demolerEdificio(edificio.x, edificio.y);
 
-        if (demolido) {
+        if (resultado.exitoso) {
+            this.ciudad.removerEdificio(idEdificio);
+            const reembolso = Math.round(edificio.reembolsoDemolicion || 0);
+            if (reembolso > 0) {
+                this.ciudad.ingresarDinero(reembolso);
+            }
+
             this.edificiosDemolidos++;
             this.decisiones.push({
                 tipo: 'demolicion',
                 edificio: edificio.tipo,
                 id: idEdificio,
+                coordenadas: { x: edificio.x, y: edificio.y },
+                reembolso,
                 turno: this.ciudad.turnoActual
             });
             this.accionesTurno++;
             return true;
         }
 
-        return false  ;
+        console.warn(`No se pudo demoler el edificio ${idEdificio}:`, resultado.motivo);
+        return false;
     }
 
     /**

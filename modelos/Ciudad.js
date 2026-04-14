@@ -5,6 +5,7 @@ import { Alcalde } from './Alcalde.js';
 import { Ciudadano } from './Ciudadano.js';
 import { crearEdificioDesdeTipo, reconstruirEdificioDesdeEstado } from './EdificioFactory.js';
 import { Mapa } from './Mapa.js';
+import Recursos from './Recursos.js';
 
 function inferirCountryCode(region = {}) {
     const existente = String(region?.countryCode || '').trim().toLowerCase();
@@ -80,16 +81,10 @@ class Ciudad {
         this.juegoFinalizado = false;
         this.motivoFinJuego = null;
         this.turnosConDeficit = 0; // Contador de turnos consecutivos con déficit crítico
-        this.MAX_TURNOS_DEFICIT = 3; // Máximo de turnos que puede haber déficit antes de game-over
+        this.MAX_TURNOS_DEFICIT = 0; // Fin de juego inmediato ante recurso negativo
 
         // Recursos iniciales (aumentados para evitar game-over inmediato)
-        this.recursos = {
-            dinero: 50000,
-            electricidad: 0,
-            agua: 0,
-            alimentos: 0,
-            comida: 0
-        };
+        this.recursos = new Recursos();
 
         // Histórico de recursos para análisis y gráficos (últimos 20 turnos).
         this.historicoRecursos = [];
@@ -206,13 +201,7 @@ class Ciudad {
         this.poblacion = [];
 
         // Reiniciar recursos a valores iniciales y ajustar según edificaciones
-        this.recursos = {
-            dinero: 50000,
-            electricidad: 0,
-            agua: 0,
-            alimentos: 0,
-            comida: 0
-        };
+        this.recursos = new Recursos();
         this.historicoRecursos = [];
 
         let costoTotal = 0;
@@ -261,12 +250,8 @@ class Ciudad {
      * Permite configurar recursos desde la interfaz
      */
     configurarRecursoDesdeIU(tipo, valor) {
-        if (this.recursos.hasOwnProperty(tipo)) {
-            this.recursos[tipo] = Number(valor);
-            if (tipo === 'alimentos' || tipo === 'comida') {
-                this.recursos.alimentos = Number(valor);
-                this.recursos.comida = Number(valor);
-            }
+        if (typeof this.recursos.configurarRecurso === 'function') {
+            this.recursos.configurarRecurso(tipo, valor);
         }
     }
 
@@ -290,19 +275,19 @@ class Ciudad {
      */
     obtenerCostoConstruccion(tipo) {
         const costos = {
-            r: 20,
-            R1: 200,
-            R2: 400,
-            C1: 300,
-            C2: 600,
-            I1: 500,
-            I2: 900,
-            S1: 400,
-            S2: 700,
-            S3: 1000,
-            U1: 350,
-            U2: 650,
-            P1: 250
+            r: 100,
+            R1: 1000,
+            R2: 3000,
+            C1: 2000,
+            C2: 8000,
+            I1: 5000,
+            I2: 3000,
+            S1: 4000,
+            S2: 4000,
+            S3: 6000,
+            U1: 10000,
+            U2: 8000,
+            P1: 1500
         };
         return costos[tipo] ?? 100;
     }
@@ -692,6 +677,13 @@ class Ciudad {
         });
     }
 
+    /**
+     * Obtiene un edificio en las coordenadas especificadas
+     */
+    obtenerEdificioPorCoordenadas(x, y) {
+        return this.edificios.find(e => e.x === x && e.y === y) || null;
+    }
+
     // ============================================
     // GESTIÓN DE CIUDADANOS
     // ============================================
@@ -796,9 +788,16 @@ class Ciudad {
      * Actualiza la felicidad de todos los ciudadanos
      */
     actualizarFelicidadCiudadanos() {
-        const bonusServicios = this.edificios.filter(e =>
-            ['P1', 'S1', 'S2', 'S3'].includes(e.tipo)
-        ).length * 2; // 2 puntos por cada edificio de servicio/parque
+        const bonusServicios = this.edificios.reduce((total, edificio) => {
+            if (!edificio.estaOperativo) return total;
+            if (edificio.tipo === 'P1') {
+                return total + Number(edificio.beneficioFelicidad || 0);
+            }
+            if (['S1', 'S2', 'S3'].includes(edificio.tipo)) {
+                return total + Number(edificio.beneficioFelicidad || 0);
+            }
+            return total;
+        }, 0);
 
         const efectoClima = this.#calcularAjusteFelicidadClima();
         const poblacionTotal = this.poblacion.length;
@@ -896,15 +895,23 @@ class Ciudad {
             }
         });
 
+        // Verificar si hay recursos suficientes para producción industrial completa
+        const hayElectricidad = this.recursos.electricidad > 0;
+        const hayAgua = this.recursos.agua > 0;
+        const multiplicadorIndustrial = (hayElectricidad && hayAgua) ? 1.0 : 0.5;
+
+        // Granjas (I2) - producen alimentos
         const granjas = this.edificios.filter(e => e.tipo === 'I2' && e.estaOperativo);
         let prodAlimentos = 0;
         granjas.forEach(granja => {
             if (granja.calcularProduccion) {
-                prodAlimentos += granja.calcularProduccion();
+                const produccionBase = granja.calcularProduccion();
+                // Si falta agua, producción al 50%
+                const multiplicadorGranja = hayAgua ? 1.0 : 0.5;
+                prodAlimentos += produccionBase * multiplicadorGranja;
             }
         });
 
-        // Los alimentos son acumulables y generados por granjas.
         const multiplicadorClima = this.#calcularMultiplicadorProduccionComida();
         prodAlimentos *= multiplicadorClima;
 
@@ -928,7 +935,12 @@ class Ciudad {
             if (!edificio.estaOperativo) return;
 
             const tipo = edificio.tipo;
-            if (tipo === 'U1' || tipo === 'U2') {
+            if (tipo === 'U1') {
+                return;
+            }
+            if (tipo === 'U2') {
+                consumoElectricidad += Math.max(0, Number(edificio.consumoElectricidad || 0));
+                // U2 no consume agua, produce agua.
                 return;
             }
 
@@ -952,6 +964,12 @@ class Ciudad {
      */
     procesarIngresos() {
         let ingresosTotales = 0;
+        const hayElectricidad = this.recursos.electricidad > 0;
+
+        if (!hayElectricidad) {
+            // Si no hay electricidad, los comercios e industrias no generan ingresos
+            return;
+        }
 
         const comercios = this.edificios.filter(e => e.tipo.startsWith('C'));
         comercios.forEach(comercio => {
@@ -1178,7 +1196,8 @@ class Ciudad {
             ciudadano.estadoEmpleo = Boolean(item.estadoEmpleo);
             return ciudadano;
         }).filter(Boolean);
-        c.recursos = data.recursos || c.recursos;
+        c.recursos = new Recursos();
+        Object.assign(c.recursos, data.recursos || {});
         c.recursos.dinero = Number(c.recursos.dinero ?? 0);
         c.recursos.electricidad = Number(c.recursos.electricidad ?? 0);
         c.recursos.agua = Number(c.recursos.agua ?? 0);
@@ -1260,7 +1279,30 @@ class Ciudad {
                 electricidad: this.recursos.electricidad,
                 agua: this.recursos.agua,
                 alimentos: this.recursos.alimentos,
-                comida: this.recursos.comida
+                comida: this.recursos.comida,
+                // Desglose para tooltips (HU-015)
+                produccionElectricidad: (() => {
+                    return this.edificios
+                        .filter(e => e.tipo === 'U1' && e.estaOperativo && e.producirRecurso)
+                        .reduce((acc, e) => acc + e.producirRecurso(), 0);
+                })(),
+                consumoElectricidad: this.recursos.consumoElectricidadTurno || 0,
+                produccionAgua: (() => {
+                    return this.edificios
+                        .filter(e => e.tipo === 'U2' && e.estaOperativo && e.producirRecurso)
+                        .reduce((acc, e) => acc + e.producirRecurso(), 0);
+                })(),
+                consumoAgua: this.recursos.consumoAguaTurno || 0,
+                produccionAlimentos: (() => {
+                    return this.edificios
+                        .filter(e => e.tipo === 'I2' && e.estaOperativo && e.calcularProduccion)
+                        .reduce((acc, e) => acc + e.calcularProduccion(), 0);
+                })(),
+                ingresosDinero: (() => {
+                    return this.edificios
+                        .filter(e => (e.tipo.startsWith('C') || e.tipo === 'I1') && e.estaOperativo && e.calcularIngresos)
+                        .reduce((acc, e) => acc + e.calcularIngresos(), 0);
+                })(),
             },
             juegoFinalizado: Boolean(this.juegoFinalizado),
             motivoFinJuego: this.motivoFinJuego || null,
